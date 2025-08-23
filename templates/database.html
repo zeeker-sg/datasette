@@ -110,7 +110,7 @@
             <div class="card table-card">
                 <div class="table-header">
                     <h3>
-                        <a href="/{{ database }}/{{ table.name }}">{{ metadata.tables[table.name].title|title }} ({{
+                        <a href="/{{ database }}/{{ table.name }}">{% if metadata.tables[table.name] and metadata.tables[table.name].title %}{{ metadata.tables[table.name].title|title }}{% else %}{{ table.name|title }}{% endif %} ({{
                             table.name }})</a>
                     </h3>
 
@@ -158,7 +158,7 @@
                     </div>
                 </div>
 
-                {% if metadata.tables[table.name].description %}
+                {% if metadata.tables[table.name] and metadata.tables[table.name].description %}
                 <p class="table-description">{{ metadata.tables[table.name].description }}</p>
                 {% endif %}
 
@@ -169,7 +169,7 @@
                         {% for column in table.columns[:5] %}
                         <div class="column-item">
                             <span class="column-name">{{ column }}</span>
-                            {% if metadata.tables[table.name].columns[column] %}
+                            {% if metadata.tables[table.name] and metadata.tables[table.name].columns and metadata.tables[table.name].columns[column] %}
                             <span class="column-description">{{ metadata.tables[table.name].columns[column].description }}</span>
                             {% endif %}
                             {% if column in table.primary_keys %}

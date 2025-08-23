@@ -11,7 +11,15 @@
     "*": {
       "allow_sql": true,
       "allow_facet": true,
-      "allow_download": true
+      "allow_download": true,
+      "tables": {
+        "_zeeker_schemas": {
+          "hidden": true
+        },
+        "_zeeker_updates": {
+          "hidden": true
+        }
+      }
     }
   },
   "plugins": {
