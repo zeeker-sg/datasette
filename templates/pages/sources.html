@@ -73,10 +73,12 @@
             <h4>Available Tables:</h4>
             <ul>
                 {% for table in database.tables[:5] %}
+                {% if not table.name.startswith('_zeeker') %}
                 <li>
                     <a href="/{{ database.name }}/{{ table.name }}">{{ table.name|title }}</a>
                     {% if table.count is defined and table.count %}<span class="row-count">({{ table.count|safe_format }} rows)</span>{% endif %}
                 </li>
+                {% endif %}
                 {% endfor %}
                 {% if database.tables|length > 5 %}
                 <li><em>...and {{ database.tables|length - 5 }} more</em></li>

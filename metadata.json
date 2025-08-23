@@ -20,6 +20,16 @@
           "hidden": true
         }
       }
+    },
+    "sglawwatch": {
+      "tables": {
+        "_zeeker_schemas": {
+          "hidden": true
+        },
+        "_zeeker_updates": {
+          "hidden": true
+        }
+      }
     }
   },
   "plugins": {

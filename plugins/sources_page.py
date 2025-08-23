@@ -26,6 +26,9 @@ async def sources_page(request, datasette):
         try:
             table_names = await db.table_names()
             for table_name in table_names:
+                # Skip zeeker internal meta tables
+                if table_name.startswith('_zeeker'):
+                    continue
                 table_info = {"name": table_name}
                 try:
                     # Get row count

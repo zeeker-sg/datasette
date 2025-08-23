@@ -105,7 +105,7 @@
 
     <div class="tables-grid">
         {% for table in tables %}
-        {% if show_hidden or not table.hidden %}
+        {% if (show_hidden or not table.hidden) and not table.name.startswith('_zeeker') %}
         <div class="db-table">
             <div class="card table-card">
                 <div class="table-header">
