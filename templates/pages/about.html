@@ -1,7 +1,7 @@
 {% extends "default:base.html" %}
 
 {% block extra_head %}
-<meta name="description" content="About Zeeker - Making Singapore legal data searchable and accessible">
+<meta name="description" content="About Zeeker - Making data searchable and accessible">
 {% endblock %}
 
 {% block nav %}
@@ -15,50 +15,50 @@
     <div style="text-align: center; padding: 2rem 0;">
         <h1>About Zeeker</h1>
         <p style="font-size: 1.2rem; color: var(--color-text-secondary);">
-            Making Singapore legal data searchable and accessible to researchers and developers
+            Making data searchable and accessible to researchers and developers
         </p>
     </div>
 
     <div class="card">
-        <h2>🎯 What This Is</h2>
+        <h2>What This Is</h2>
         <p>
-            Zeeker is a searchable database of Singapore legal information. Currently focused on
-            legal news, with court decisions being added soon.
+            Zeeker is a searchable data platform. It provides structured access to
+            curated datasets through both a web interface and a REST API.
         </p>
 
         <p>
-            Built for legal researchers, developers, and anyone who needs to search through
-            Singapore legal data efficiently. All data is available through both a web interface
-            and REST API.
+            Built for researchers, developers, and anyone who needs to search through
+            data efficiently. All data is available through both the web interface
+            and programmatic API access.
         </p>
     </div>
 
-    <h2>🛠️ What You Can Do</h2>
+    <h2>What You Can Do</h2>
     <div class="features-grid">
         <div class="feature">
-            <h3>🔍 Full-Text Search</h3>
-            <p>Search across all legal documents with filtering and faceted navigation.</p>
+            <h3>Full-Text Search</h3>
+            <p>Search across all available data with filtering and faceted navigation.</p>
         </div>
 
         <div class="feature">
-            <h3>💻 SQL Interface</h3>
+            <h3>SQL Interface</h3>
             <p>Write custom SQL queries to analyze the data however you need.</p>
         </div>
 
         <div class="feature">
-            <h3>📊 Export Data</h3>
+            <h3>Export Data</h3>
             <p>Download search results or query outputs as JSON, CSV, or SQLite files.</p>
         </div>
 
         <div class="feature">
-            <h3>🔄 REST API</h3>
+            <h3>REST API</h3>
             <p>Programmatic access to all data for building tools or conducting research.</p>
         </div>
     </div>
 
     <section class="technology-section">
         <div class="card">
-            <h2>🔧 How It Works</h2>
+            <h2>How It Works</h2>
             <p>
                 Built on Datasette, an open-source tool for exploring and publishing data.
                 Data is stored in SQLite databases and automatically updated from various sources.
@@ -68,25 +68,25 @@
 
     <section class="use-cases-section">
         <div class="card">
-            <h2>💼 Who Uses This</h2>
+            <h2>Who Uses This</h2>
 
             <div class="use-case-grid">
                 <div class="use-case">
-                    <h3>👨‍💼 Legal Researchers</h3>
+                    <h3>Researchers</h3>
                     <ul>
-                        <li>Track legal developments and trends</li>
-                        <li>Search for case references and precedents</li>
-                        <li>Analyze judicial patterns over time</li>
+                        <li>Track developments and trends</li>
+                        <li>Search for references and precedents</li>
+                        <li>Analyze patterns over time</li>
                         <li>Export data for further analysis</li>
                     </ul>
                 </div>
 
                 <div class="use-case">
-                    <h3>💻 Developers</h3>
+                    <h3>Developers</h3>
                     <ul>
-                        <li>Build legal technology applications</li>
+                        <li>Build data-driven applications</li>
                         <li>Create monitoring and alert systems</li>
-                        <li>Integrate legal data into other tools</li>
+                        <li>Integrate data into other tools</li>
                         <li>Develop research and analysis workflows</li>
                     </ul>
                 </div>
@@ -95,13 +95,13 @@
     </section>
 
     <section class="cta-section">
-        <h2>🚀 Get Started</h2>
-        <p>Ready to explore Singapore legal data? Start with a search or dive into the SQL interface.</p>
+        <h2>Get Started</h2>
+        <p>Ready to explore? Start with a search or dive into the SQL interface.</p>
 
         <div class="cta-buttons">
-            <a href="/" class="btn btn-primary">🏠 Explore Data</a>
-            <a href="/-/metadata" class="btn btn-secondary">📊 API Documentation</a>
-            <a href="/sources" class="btn btn-secondary">📋 Data Sources</a>
+            <a href="/" class="btn btn-primary">Explore Data</a>
+            <a href="/-/metadata" class="btn btn-secondary">API Documentation</a>
+            <a href="/sources" class="btn btn-secondary">Data Sources</a>
         </div>
     </section>
 </div>

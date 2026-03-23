@@ -561,8 +561,8 @@ def check_assets(verbose):
             "assets/default/templates/search.html",
             "assets/default/templates/database.html",
             "assets/default/templates/table.html",
-            "assets/default/static/css/zeeker-theme.css",
-            "assets/default/static/js/zeeker-enhanced.js"
+            "assets/default/static/css/zeeker-base.css",
+            "assets/default/static/js/zeeker-base.js"
         ]
 
         missing_assets = []

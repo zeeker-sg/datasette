@@ -2,178 +2,8 @@
 
 {% block extra_head %}
 {{ super() }}
-<meta name="description" content="View record details in {{ table }} - {{ database }}">
+<meta name="description" content="Record details - {{ table }} in {{ database }}">
 {% endblock %}
-
-<style>
-    /* Field Details Styling */
-    .field-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: var(--space-lg);
-        margin-top: var(--space-lg);
-    }
-
-    .field-item {
-        background: var(--color-bg-tertiary);
-        border: 1px solid var(--color-border);
-        border-radius: var(--radius-lg);
-        padding: var(--space-md);
-        transition: var(--transition-base);
-    }
-
-    .field-item:hover {
-        border-color: rgba(0, 212, 255, 0.3);
-    }
-
-    .field-name {
-        color: var(--color-accent-cyan);
-        margin: 0 0 var(--space-sm) 0;
-        font-size: var(--text-base);
-        font-family: 'JetBrains Mono', monospace;
-        font-weight: 500;
-    }
-
-    .field-info {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-xs);
-    }
-
-    .field-value {
-        flex: 1;
-    }
-
-    .value-display {
-        color: var(--color-text-primary);
-        font-size: var(--text-sm);
-        line-height: 1.4;
-        word-break: break-word;
-    }
-
-    .field-value.empty .empty-value {
-        color: var(--color-text-muted);
-        font-style: italic;
-        font-size: var(--text-sm);
-    }
-
-    .field-value details {
-        cursor: pointer;
-    }
-
-    .field-value summary {
-        color: var(--color-accent-primary);
-        font-size: var(--text-sm);
-        margin-bottom: var(--space-xs);
-    }
-
-    .field-value .full-value {
-        background: var(--color-bg-primary);
-        border: 1px solid var(--color-border);
-        border-radius: var(--radius-sm);
-        padding: var(--space-sm);
-        margin-top: var(--space-xs);
-        font-size: var(--text-xs);
-        line-height: 1.4;
-        color: var(--color-text-secondary);
-        white-space: pre-wrap;
-        word-break: break-word;
-        max-height: 200px;
-        overflow-y: auto;
-    }
-
-    .field-meta {
-        display: flex;
-        gap: var(--space-sm);
-        margin-top: var(--space-xs);
-    }
-
-    .value-type,
-    .value-length {
-        background: var(--color-bg-primary);
-        color: var(--color-text-muted);
-        padding: var(--space-xs) var(--space-sm);
-        border-radius: var(--radius-sm);
-        font-size: var(--text-xs);
-        font-family: 'JetBrains Mono', monospace;
-    }
-
-    .value-type {
-        color: var(--color-accent-magenta);
-    }
-
-    .value-length {
-        color: var(--color-accent-cyan);
-    }
-
-    /* Metadata Grid */
-    .metadata-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: var(--space-lg);
-        margin-top: var(--space-lg);
-    }
-
-    .metadata-item {
-        background: var(--color-bg-tertiary);
-        border: 1px solid var(--color-border);
-        border-radius: var(--radius-lg);
-        padding: var(--space-lg);
-    }
-
-    .metadata-item h4 {
-        color: var(--color-accent-cyan);
-        margin: 0 0 var(--space-md) 0;
-        font-size: var(--text-lg);
-    }
-
-    .metadata-item p {
-        margin: 0;
-        color: var(--color-text-secondary);
-        font-size: var(--text-sm);
-        line-height: 1.5;
-    }
-
-    .nav-actions {
-        display: flex;
-        gap: var(--space-xs);
-        flex-wrap: wrap;
-    }
-
-    .context-actions {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-xs);
-    }
-
-    .related-tables {
-        display: flex;
-        gap: var(--space-xs);
-        flex-wrap: wrap;
-    }
-
-    /* Mobile responsive */
-    @media (max-width: 768px) {
-        .field-grid {
-            grid-template-columns: 1fr;
-            gap: var(--space-md);
-        }
-
-        .metadata-grid {
-            grid-template-columns: 1fr;
-            gap: var(--space-md);
-        }
-
-        .nav-actions,
-        .context-actions {
-            flex-direction: column;
-        }
-
-        .related-tables {
-            flex-direction: column;
-        }
-    }
-</style>
 
 {% block nav %}
 {% include "_header.html" %}
@@ -182,46 +12,35 @@
 {% block title %}{{ display_value or "Record" }} - {{ table }} - {{ database }}{% endblock %}
 
 {% block content %}
-{% set first_column = '' %}
-{% set sample_value = '' %}
-{% if row_values %}
-{% for key, value in row_values.items() %}
-{% if not first_column and value and value != '' %}
-{% set first_column = key %}
-{% set sample_value = value %}
-{% endif %}
-{% endfor %}
-{% endif %}
-
+<!-- Row Header -->
+{% block row_header %}
 <div class="row-header">
     <div class="breadcrumbs">
-        <a href="/">🏠 Home</a>
-        <span class="separator">→</span>
+        <a href="/">Home</a>
+        <span class="separator">&rarr;</span>
         <a href="/{{ database }}">{{ database|title }}</a>
-        <span class="separator">→</span>
+        <span class="separator">&rarr;</span>
         <a href="/{{ database }}/{{ table }}">{{ table|title }}</a>
-        <span class="separator">→</span>
+        <span class="separator">&rarr;</span>
         <span>Record Details</span>
     </div>
 
     <div class="row-overview">
         <div class="row-info">
             <div class="row-summary">
-                <h1 class="row-title">{{ table|title }} Record</h1>
+                <h1 class="row-title">
+                    {% if display_value %}
+                    {{ display_value }}
+                    {% else %}
+                    {{ table|title }} Record
+                    {% endif %}
+                </h1>
 
                 {% if display_value %}
-                <p class="row-subtitle">{{ display_value }}</p>
-                {% else %}
-                <p class="row-subtitle">
-                    Individual record from the {{ table }} table
-                </p>
+                <p class="row-subtitle">Record from {{ table|title }}</p>
                 {% endif %}
 
                 <div class="row-stats">
-                    <div class="stat-item">
-                        <span class="stat-number">📄</span>
-                        <span class="stat-label">single record</span>
-                    </div>
                     {% if row_values and row_values|length %}
                     <div class="stat-item">
                         <span class="stat-number">{{ row_values|length }}</span>
@@ -233,39 +52,33 @@
 
             <div class="row-actions-section">
                 <div class="export-actions">
-                    <a href="{{ request.url }}.json" class="btn btn-secondary">📊 JSON</a>
-                    <a href="/{{ database }}/{{ table }}" class="btn btn-secondary">← Back to Table</a>
-                    {% if pks %}
-                    <a href="/{{ database }}?sql=SELECT+*+FROM+%22{{ table }}%22+WHERE+{{ pks|join('+AND+') }}"
-                       class="btn btn-secondary">💻 SQL</a>
-                    {% endif %}
+                    <a href="{{ request.url }}.json" class="btn btn-secondary">JSON</a>
+                    <a href="/{{ database }}/{{ table }}" class="btn btn-secondary">&larr; Back to Table</a>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
 
 {# Let Datasette handle the core record display #}
 {{ super() }}
 
-
+<!-- Row Tools -->
+{% block row_tools %}
 <section class="row-tools">
     <div class="card">
-        <h2>🛠️ Record Tools</h2>
+        <h2>Record Tools</h2>
 
         {% set pk_conditions = [] %}
         {% for i in range(primary_keys|length) %}
-        {% set _ = pk_conditions.append('"' + primary_keys[i] + '"' + ' = ' + "'" + primary_key_values[i]|string + "'")
-        %}
+        {% set _ = pk_conditions.append('"' + primary_keys[i] + '"' + ' = ' + "'" + primary_key_values[i]|string + "'") %}
         {% endfor %}
         {% set pk_where_clause = pk_conditions|join(' AND ') %}
 
-        {% set first_column = display_columns[1].name if display_columns|length > 1 else display_columns[0].name %}
-        {% set first_column_value = row[first_column] if row and first_column in row else 'N/A' %}
-
         <div class="tools-grid">
             <div class="tool">
-                <h3>📊 Export This Record</h3>
+                <h3>Export This Record</h3>
                 <p>Download this specific record in different formats</p>
                 <div class="export-options">
                     <a href="{{ url_csv_path }}" class="btn">CSV</a>
@@ -273,18 +86,9 @@
                 </div>
             </div>
 
-            {% if first_column and first_column_value and first_column_value != 'N/A' %}
-            <div class="tool">
-                <h3>🔍 Find Similar Records</h3>
-                <p>Records that share the {{ first_column }} value</p>
-                <a href="/{{ database }}?sql=SELECT * FROM {{ table }} WHERE {{ first_column }} = '{{ first_column_value|string|urlencode }}'"
-                   class="btn">Find Similar</a>
-            </div>
-            {% endif %}
-
             {% if primary_keys and primary_key_values %}
             <div class="tool">
-                <h3>💻 Query This Record</h3>
+                <h3>Query This Record</h3>
                 <p>SQL query targeting this specific record</p>
                 <a href="/{{ database }}?sql=SELECT * FROM {{ table }} WHERE {{ pk_where_clause|urlencode }}"
                    class="btn">Query Record</a>
@@ -292,7 +96,7 @@
             {% endif %}
 
             <div class="tool">
-                <h3>🔗 Table Context</h3>
+                <h3>Table Context</h3>
                 <p>View this record within its table</p>
                 <div class="context-actions">
                     <a href="/{{ database }}/{{ table }}" class="btn">Browse {{ table|title }}</a>
@@ -302,7 +106,7 @@
 
             {% if foreign_key_tables and foreign_key_tables|length > 0 %}
             <div class="tool">
-                <h3>🔗 Related Records</h3>
+                <h3>Related Records</h3>
                 <p>Find records in other tables that reference this one</p>
                 <div class="related-tables">
                     {% for fk_table in foreign_key_tables %}
@@ -312,68 +116,18 @@
                 </div>
             </div>
             {% endif %}
-
-            {% if primary_keys and first_column %}
-            <div class="tool">
-                <h3>📈 Value Analysis</h3>
-                <p>Analyze distribution of values in this table</p>
-                <a href="/{{ database }}?sql=SELECT {{ first_column }}, COUNT(*) as frequency FROM {{ table }} GROUP BY {{ first_column }} ORDER BY frequency DESC LIMIT 20"
-                   class="btn">Analyze {{ first_column|title }}</a>
-            </div>
-            {% endif %}
-
-            {% if primary_keys and primary_key_values %}
-            <div class="tool">
-                <h3>🔄 Navigation</h3>
-                <p>Browse records in chronological order</p>
-                <div class="nav-actions">
-                    {% if 'date' in display_columns|map(attribute='name')|list %}
-                    <a href="/{{ database }}?sql=SELECT * FROM {{ table }} WHERE date < (SELECT date FROM {{ table }} WHERE {{ pk_where_clause }}) ORDER BY date DESC LIMIT 1"
-                       class="btn btn-small">← Previous</a>
-                    <a href="/{{ database }}?sql=SELECT * FROM {{ table }} WHERE date > (SELECT date FROM {{ table }} WHERE {{ pk_where_clause }}) ORDER BY date ASC LIMIT 1"
-                       class="btn btn-small">Next →</a>
-                    {% else %}
-                    <a href="/{{ database }}?sql=SELECT * FROM {{ table }} WHERE rowid < (SELECT rowid FROM {{ table }} WHERE {{ pk_where_clause }}) ORDER BY rowid DESC LIMIT 1"
-                       class="btn btn-small">← Previous</a>
-                    <a href="/{{ database }}?sql=SELECT * FROM {{ table }} WHERE rowid > (SELECT rowid FROM {{ table }} WHERE {{ pk_where_clause }}) ORDER BY rowid ASC LIMIT 1"
-                       class="btn btn-small">Next →</a>
-                    {% endif %}
-                </div>
-            </div>
-            {% endif %}
-
-            {% if 'text' in display_columns|map(attribute='name')|list %}
-            <div class="tool">
-                <h3>🔍 Content Search</h3>
-                <p>Search for similar content in the database</p>
-                <div class="search-actions">
-                    <a href="/{{ database }}?sql=SELECT title, summary, date FROM {{ table }} WHERE text LIKE '%' || (SELECT substr(text, 1, 50) FROM {{ table }} WHERE {{ pk_where_clause }}) || '%' AND {{ primary_keys[0] }} != '{{ primary_key_values[0] }}' LIMIT 10"
-                       class="btn">Find Similar Content</a>
-                </div>
-            </div>
-            {% endif %}
-
-            {% if 'author' in display_columns|map(attribute='name')|list %}
-            <div class="tool">
-                <h3>👤 Author Analysis</h3>
-                <p>Explore content by the same author</p>
-                <div class="author-actions">
-                    <a href="/{{ database }}?sql=SELECT * FROM {{ table }} WHERE author = (SELECT author FROM {{ table }} WHERE {{ pk_where_clause }}) ORDER BY date DESC"
-                       class="btn">Same Author</a>
-                    <a href="/{{ database }}?sql=SELECT author, COUNT(*) as articles FROM {{ table }} GROUP BY author ORDER BY articles DESC LIMIT 20"
-                       class="btn">Top Authors</a>
-                </div>
-            </div>
-            {% endif %}
         </div>
     </div>
 </section>
+{% endblock %}
 
+<!-- Record Metadata -->
+{% block record_metadata %}
 {% if row_values %}
 <section class="record-metadata">
     <div class="card">
-        <h2>📋 Record Metadata</h2>
-        <p>Technical information about this record and its fields</p>
+        <h2>Record Metadata</h2>
+        <p>Technical information about this record</p>
 
         <div class="metadata-grid">
             <div class="metadata-item">
@@ -388,9 +142,7 @@
             <div class="metadata-item">
                 <h4>Data Access</h4>
                 <p>
-                    <strong>JSON API:</strong> <a href="{{ request.url }}.json">{{ request.url }}.json</a><br>
-                    <strong>Last Updated:</strong> Real-time access<br>
-                    <strong>License:</strong> <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">CC-BY-4.0</a>
+                    <strong>JSON API:</strong> <a href="{{ request.url }}.json">{{ request.url }}.json</a>
                 </p>
             </div>
 
@@ -411,18 +163,9 @@
                 </p>
             </div>
             {% endif %}
-
-            <div class="metadata-item">
-                <h4>Query Examples</h4>
-                <p>
-                    <strong>Find this record:</strong> <code>WHERE {{ pks|join(' AND ') if pks else 'rowid = N'
-                    }}</code><br>
-                    <strong>Export formats:</strong> .json, .csv, .xlsx<br>
-                    <strong>API endpoint:</strong> Programmatic access available
-                </p>
-            </div>
         </div>
     </div>
 </section>
 {% endif %}
+{% endblock %}
 {% endblock %}

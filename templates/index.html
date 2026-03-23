@@ -2,16 +2,9 @@
 
 {% block extra_head %}
 {{ super() }}
-<meta name="description"
-      content="Explore Singapore legal data through search and SQL queries. Legal news database with court cases coming soon.">
-<meta name="keywords" content="Singapore law, legal data, court decisions, legal research">
-<meta property="og:title" content="data.zeeker.sg - Explore Singapore Legal Data">
-<meta property="og:description"
-      content="Search and query Singapore legal data - legal news database with court cases coming soon">
-<meta property="og:type" content="website">
-
-<!-- Preload critical hero image -->
-<link rel="preload" href="/static/images/supcourt-sg.png" as="image">
+{% if metadata and metadata.description %}
+<meta name="description" content="{{ metadata.description }}">
+{% endif %}
 {% endblock %}
 
 {% block nav %}
@@ -19,78 +12,73 @@
 {% endblock %}
 
 {% block content %}
-<!-- Enhanced Hero Banner Section -->
-<section class="hero-enhanced">
-    <div class="hero-bg-container">
-        <picture class="hero-background-picture">
-            <!-- WebP versions for modern browsers -->
-            <source
-                    media="(max-width: 768px)"
-                    srcset="/static/images/supcourt-sg-mobile.webp"
-                    type="image/webp">
-            <source
-                    media="(max-width: 1024px)"
-                    srcset="/static/images/supcourt-sg-tablet.webp"
-                    type="image/webp">
-            <source
-                    media="(min-width: 1025px)"
-                    srcset="/static/images/supcourt-sg.webp"
-                    type="image/webp">
-
-            <!-- PNG fallbacks -->
-            <source
-                    media="(max-width: 768px)"
-                    srcset="/static/images/supcourt-sg-mobile.png">
-            <source
-                    media="(max-width: 1024px)"
-                    srcset="/static/images/supcourt-sg-tablet.png">
-
-            <!-- Default fallback -->
-            <img
-                    src="/static/images/supcourt-sg.png"
-                    alt="Singapore Supreme Court"
-                    class="hero-background-image loading"
-                    loading="eager">
-        </picture>
-        <div class="hero-overlay-gradient"></div>
-    </div>
-
+<!-- Hero Section -->
+{% block hero %}
+<section class="hero-section">
     <div class="hero-content-wrapper">
-        <div class="hero-glass-card">
-            <h1 class="hero-title-main">{{ str_site_title }}</h1>
-            <p class="hero-tagline-main">
-                Explore Singapore legal data through search and SQL queries
-            </p>
+        <h1 class="hero-title-main">{{ metadata.title if metadata and metadata.title else s('site_title', 'Data Explorer') }}</h1>
+        <p class="hero-tagline-main">
+            {{ metadata.description if metadata and metadata.description else s('site_tagline', 'Explore data through search and SQL queries') }}
+        </p>
 
-            <div class="hero-search-container">
-                <form class="hero-search-form" action="/-/search">
-                    <div class="hero-search-wrapper">
-                        <input
-                                type="search"
-                                name="q"
-                                class="hero-search-input"
-                                placeholder="Search legal news, cases, decisions..."
-                                aria-label="Search legal data"
-                        >
-                    </div>
-                </form>
-            </div>
+        <div class="hero-search-container">
+            <form class="hero-search-form" action="/-/search">
+                <div class="hero-search-wrapper">
+                    <input
+                        type="search"
+                        name="q"
+                        class="hero-search-input"
+                        placeholder="{{ s('search_placeholder', 'Search across all data...') }}"
+                        aria-label="Search data"
+                    >
+                </div>
+            </form>
+        </div>
 
-            <div class="hero-cta-group">
-                <a href="/-/search" class="cta-primary">
-                    🔍 Start Searching
-                </a>
-            </div>
+        <div class="hero-cta-group">
+            <a href="/-/search" class="cta-primary">
+                Start Searching
+            </a>
         </div>
     </div>
 </section>
+{% endblock %}
 
-<!-- Add proper spacing before next section -->
-<div class="section-spacer"></div>
+<!-- Stats Strip -->
+{% block stats_strip %}
+{% if databases %}
+<section class="stats-strip">
+    <div class="stats-strip-inner">
+        <div class="stat-item">
+            <span class="stat-number">{{ databases|length }}</span>
+            <span class="stat-label">{{ plural(databases|length, 'plural_database', 'plural_databases') }}</span>
+        </div>
+        {% set ns = namespace(total_tables=0) %}
+        {% for database in databases %}
+            {% if database.table_count is defined and database.table_count %}
+                {% set ns.total_tables = ns.total_tables + database.table_count %}
+            {% endif %}
+        {% endfor %}
+        {% if ns.total_tables > 0 %}
+        <div class="stat-item">
+            <span class="stat-number">{{ "{:,}".format(ns.total_tables) }}</span>
+            <span class="stat-label">{{ plural(ns.total_tables, 'plural_table', 'plural_tables') }}</span>
+        </div>
+        {% endif %}
+        <div class="stat-item">
+            <span class="stat-number">CSV, JSON, SQL</span>
+            <span class="stat-label">{{ s('form_export', 'Export formats') }}</span>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}
 
+<!-- Databases Section -->
+{% block databases_section %}
 {% if databases %}
 <section class="databases-section">
-    <h2>Available Data</h2>
+    <h2>{{ s('databases_heading', 'Available Data') }}</h2>
     <div class="database-grid">
         {% for database in databases %}
         <div class="card database-card">
@@ -105,7 +93,7 @@
             </h3>
             <div class="database-meta">
                 {% if database.table_count is defined and database.table_count %}
-                <span class="table-count">{{ database.table_count }} table{{ database.table_count|pluralize }}</span>
+                <span class="table-count">{{ database.table_count }} {{ plural(database.table_count, 'plural_table', 'plural_tables') }}</span>
                 {% endif %}
                 {% if database.size is defined and database.size %}
                 <span class="database-size">{{ database.size|filesizeformat }}</span>
@@ -118,59 +106,46 @@
             {% endif %}
 
             <div class="database-actions">
-                <a href="/{{ database.name }}" class="btn">Explore Data</a>
-                <a href="/{{ database.name }}.json" class="btn btn-secondary">JSON</a>
+                <a href="/{{ database.name }}" class="btn btn-primary">{{ s('db_explore', 'Explore Data') }}</a>
+                <a href="/{{ database.name }}.csv" class="btn btn-secondary">{{ s('db_export_csv', 'CSV') }}</a>
+                <a href="/{{ database.name }}.json" class="btn btn-secondary">{{ s('db_export_json', 'JSON') }}</a>
+                <a href="/{{ database.name }}.db" class="btn btn-secondary">SQLite</a>
             </div>
-    </div>
-    {% endfor %}
+        </div>
+        {% endfor %}
     </div>
 </section>
 {% endif %}
+{% endblock %}
 
-<!-- Add spacing before platform section -->
-<div class="section-spacer"></div>
-
+<!-- Export Info Section -->
+{% block export_section %}
 <section class="about-section">
     <div class="card">
-        <h2>What's Here</h2>
-        <p>Currently focusing on legal news data, with court decisions being added soon. All data is searchable and
-            available through a full SQL interface.</p>
+        <h2>{{ s('about_heading', 'About This Platform') }}</h2>
+        <p>{{ s('about_description', 'All data is searchable and available through a full SQL interface.') }}</p>
 
-        <div class="features-list">
-            <h3>How to Use</h3>
-            <ul>
-                <li>🔍 <strong>Search</strong> - Full-text search across all legal documents</li>
-                <li>💻 <strong>SQL Queries</strong> - Write custom queries against the database</li>
-                <li>📊 <strong>Export Data</strong> - Download results as JSON or CSV</li>
-                <li>⚡ <strong>Updated Regularly</strong> - Data refreshes automatically</li>
-            </ul>
+        <div class="export-info-grid">
+            <div class="export-info-item">
+                <h3>CSV Export</h3>
+                <p>Download any table or query result as a CSV file for use in spreadsheets and data tools.</p>
+            </div>
+            <div class="export-info-item">
+                <h3>JSON API</h3>
+                <p>Access all data programmatically through the JSON API. Append <code>.json</code> to any page URL.</p>
+            </div>
+            <div class="export-info-item">
+                <h3>SQL Queries</h3>
+                <p>Write custom SQL queries against any database for precise data extraction and analysis.</p>
+            </div>
+            <div class="export-info-item">
+                <h3>SQLite Download</h3>
+                <p>Download full database files in SQLite format for offline analysis and archival.</p>
+            </div>
         </div>
     </div>
 </section>
-
-<section class="sql-section">
-    <div class="card">
-        <h2>🔌 For Developers</h2>
-        <p>Full REST API access to all data. Perfect for building tools or conducting research.</p>
-
-        <div class="api-example">
-            <h3>Quick Examples</h3>
-            <pre><code># Get all databases
-curl https://data.zeeker.sg/.json
-
-# Search all data
-curl "https://data.zeeker.sg/-/search.json?q=contract+law"
-
-# Custom SQL query
-curl "https://data.zeeker.sg/[database]?sql=SELECT * FROM [table] LIMIT 10"</code></pre>
-        </div>
-
-        <div class="api-links">
-            <a href="/how-to-use" class="btn">How to use</a>
-            <a href="/sglawwatch?sql=SELECT%20name%20FROM%20sqlite_master%20WHERE%20type%3D%27table%27"
-               class="btn btn-secondary">Try SQL Editor</a></div>
-    </div>
-</section>
+{% endblock %}
 {% endblock %}
 
 {% block footer %}

@@ -161,7 +161,7 @@ class ZeekerS3Downloader:
         required_files = [
             f"{self.s3_assets_default_path}/metadata.json",
             f"{self.s3_assets_default_path}/templates/index.html",
-            f"{self.s3_assets_default_path}/static/css/zeeker-theme.css"
+            f"{self.s3_assets_default_path}/static/css/zeeker-base.css"
         ]
 
         for file_key in required_files:

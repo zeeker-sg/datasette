@@ -5,12 +5,16 @@
             <div class="tagline">{{ str_site_tagline }}</div>
         </div>
         <nav>
+            {% block nav_items %}
             <ul>
-                <li><a href="/">Home</a></li>
                 <li><a href="/-/search">Search All</a></li>
-                <li><a href="/how-to-use">How to Use</a></li>
-                <li><a href="/about">About</a></li>
+                {% if metadata and metadata.menu_links %}
+                {% for link in metadata.menu_links %}
+                <li><a href="{{ link.href }}">{{ link.label }}</a></li>
+                {% endfor %}
+                {% endif %}
             </ul>
+            {% endblock %}
         </nav>
     </div>
 </header>

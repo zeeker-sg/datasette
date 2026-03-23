@@ -2,6 +2,7 @@
 """
 Simple string management plugin using YAML files
 """
+from datetime import datetime
 from pathlib import Path
 
 import yaml
@@ -152,6 +153,9 @@ def extra_template_vars(request, datasette):
 
     # Add all strings directly to context for easy access
     string_context = {f'str_{k}': v for k, v in STRINGS.items()}
+
+    # Add current year for dynamic copyright
+    string_context['current_year'] = datetime.now().year
 
     # Add helper functions
     string_context.update({

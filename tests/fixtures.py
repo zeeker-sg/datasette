@@ -63,8 +63,8 @@ class SampleData:
                     {"Key": "assets/default/templates/table.html"},
                     {"Key": "assets/default/templates/row.html"},
                     {"Key": "assets/default/templates/query.html"},
-                    {"Key": "assets/default/static/css/zeeker-theme.css"},
-                    {"Key": "assets/default/static/js/zeeker-enhanced.js"},
+                    {"Key": "assets/default/static/css/zeeker-base.css"},
+                    {"Key": "assets/default/static/js/zeeker-base.js"},
                     {"Key": "assets/default/plugins/__init__.py"},
                     {"Key": "assets/default/plugins/template_filters.py"},
                 ]
@@ -133,18 +133,19 @@ class SampleData:
                 },
                 "plugins": {
                     "datasette-search-all": {
-                        "template": "Search across all Singapore legal resources"
+                        "template": "Search across all available data"
                     }
                 },
                 "extra_css_urls": [
-                    "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap",
-                    "/static/css/zeeker-theme.css"
+                    "/static/css/zeeker-base.css"
                 ],
-                "extra_js_urls": ["/static/js/zeeker-enhanced.js"],
+                "extra_js_urls": ["/static/js/zeeker-base.js"],
                 "menu_links": [
                     {"href": "/", "label": "Home"},
-                    {"href": "/-/metadata", "label": "API Info"},
-                    {"href": "/templates/pages/about", "label": "About"},
+                    {"href": "/how-to-use", "label": "How to Use"},
+                    {"href": "/developers", "label": "Developers"},
+                    {"href": "/about", "label": "About"},
+                    {"href": "/status", "label": "Status"},
                 ],
             },
 
@@ -236,7 +237,7 @@ class SampleData:
 <head>
     <meta charset="UTF-8">
     <title>{{ metadata.title or "Zeeker Legal Data" }}</title>
-    <link rel="stylesheet" href="/static/css/zeeker-theme.css">
+    <link rel="stylesheet" href="/static/css/zeeker-base.css">
 </head>
 <body>
     <header>
@@ -264,7 +265,7 @@ class SampleData:
 <head>
     <meta charset="UTF-8">
     <title>{{ database|title }} - {{ metadata.title }}</title>
-    <link rel="stylesheet" href="/static/css/zeeker-theme.css">
+    <link rel="stylesheet" href="/static/css/zeeker-base.css">
 </head>
 <body>
     <header>
@@ -296,7 +297,7 @@ class SampleData:
 <head>
     <meta charset="UTF-8">
     <title>Court Decisions - {{ metadata.title }}</title>
-    <link rel="stylesheet" href="/static/css/zeeker-theme.css">
+    <link rel="stylesheet" href="/static/css/zeeker-base.css">
     <link rel="stylesheet" href="/static/databases/courts/courts-theme.css">
 </head>
 <body class="courts-database">
@@ -343,7 +344,7 @@ class SampleData:
     def sample_static_files():
         """Sample static files for testing"""
         return {
-            "css/zeeker-theme.css": """/* Zeeker Base Theme */
+            "css/zeeker-base.css": """/* Zeeker Base Theme */
 :root {
     --color-bg-primary: #1a1a1a;
     --color-bg-secondary: #2a2a2a;
@@ -378,7 +379,7 @@ header {
     text-decoration: none;
 }""",
 
-            "js/zeeker-enhanced.js": """// Zeeker Enhanced JavaScript
+            "js/zeeker-base.js": """// Zeeker Enhanced JavaScript
 class ZeekerEnhancer {
     constructor() {
         this.init();

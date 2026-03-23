@@ -18,7 +18,7 @@
     <!-- System Stats -->
     <section class="system-stats">
         <div class="card">
-            <h2>📊 Current System</h2>
+            <h2>Current System</h2>
 
             <div class="stats-simple">
                 <div class="stat-item">
@@ -40,7 +40,7 @@
     <!-- Recent Updates Timeline -->
     <section class="updates-section">
         <div class="card">
-            <h2>📅 {{ s('recent_updates_title') }}</h2>
+            <h2>{{ s('recent_updates_title') }}</h2>
 
             <div class="timeline">
                 {% for update in strings.recent_updates %}
@@ -135,7 +135,7 @@
 
 .update-type-feature {
     background: rgba(16, 185, 129, 0.2);
-    color: #10B981;
+    color: var(--color-success);
 }
 
 .update-type-data {

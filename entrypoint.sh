@@ -25,5 +25,6 @@ exec uv run datasette serve --host 0.0.0.0 --port 8001 \
     --template-dir /app/templates \
     --plugins-dir /app/plugins \
     --static static:/app/static \
+    --cors \
     --immutable \
     $(ls /data/*.db)

@@ -1,4 +1,4 @@
-# Simplified strings - more direct, less corporate
+# Simplified strings - direct and generic
 db_available_resources: Available Data
 db_columns: columns
 db_explore: Explore
@@ -31,11 +31,11 @@ plural_rows: rows
 plural_table: table
 plural_tables: tables
 search_no_results: No results found
-search_placeholder: Search legal news, cases, decisions...
+search_placeholder: Search across all databases...
 search_results_for: Results for "{query}"
-search_start: 🔍 Start Searching
-site_description: Explore Singapore legal data through search and SQL queries
-site_tagline: Singapore Legal Data
+search_start: Start Searching
+site_description: Explore structured data through search and SQL queries
+site_tagline: Open Data Platform
 site_title: data.zeeker.sg
 status_empty_table: This table is empty
 status_no_data: No data available
@@ -57,14 +57,12 @@ ui_loading: Loading...
 ui_next: Next
 ui_previous: Previous
 home_platform_features_list:
-  - 🔍 Full-text search across all legal documents
-  - 💻 SQL query interface for custom analysis
-  - 📊 Export data as JSON, CSV, or SQLite files
-  - ⚡ Regularly updated with new data
-  - 🔄 REST API for programmatic access
-  - 📱 Works on desktop and mobile devices
-
-# Add these to your existing plugins/strings.yaml:
+  - Full-text search across all documents
+  - SQL query interface for custom analysis
+  - Export data as JSON, CSV, or SQLite files
+  - Regularly updated with new data
+  - REST API for programmatic access
+  - Works on desktop and mobile devices
 
 nav_status: Status
 changelog_title: Project Status

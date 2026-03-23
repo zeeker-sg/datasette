@@ -1,7 +1,7 @@
 {% extends "default:base.html" %}
 
 {% block extra_head %}
-<meta name="description" content="Data sources for Singapore legal information on Zeeker">
+<meta name="description" content="Data sources available on Zeeker">
 {% endblock %}
 
 {% block nav %}
@@ -15,25 +15,25 @@
     <div style="text-align: center; padding: 2rem 0;">
         <h1>Data Sources</h1>
         <p style="font-size: 1.2rem; color: var(--color-text-secondary);">
-            Where the legal data comes from and how it's collected
+            Where the data comes from and how it is collected
         </p>
     </div>
 
     <div class="card">
-        <h2>🔍 Data Collection</h2>
+        <h2>Data Collection</h2>
         <p>
-            Zeeker aggregates legal information from various Singapore sources including government websites, 
-            judicial systems, and legal news outlets. All data collection respects robots.txt and terms of service.
+            Zeeker aggregates information from various sources. All data collection respects
+            robots.txt and terms of service.
         </p>
-        
+
         <p>
-            Data is automatically processed, structured, and made searchable while maintaining links 
+            Data is automatically processed, structured, and made searchable while maintaining links
             to original sources where possible.
         </p>
     </div>
 
     {% if databases %}
-    <h2>📊 Current Databases</h2>
+    <h2>Current Databases</h2>
 
     {% for database in databases %}
     <div class="card">
@@ -96,49 +96,45 @@
 
     {% else %}
     <div class="card">
-        <h2>📊 No Databases Available</h2>
+        <h2>No Databases Available</h2>
         <p>No databases are currently loaded. Data will appear here once databases are synchronized.</p>
     </div>
     {% endif %}
 
     <div class="card">
-        <h2>📄 Licensing & Attribution</h2>
+        <h2>Licensing and Attribution</h2>
         <p>
-            <strong>Government Sources:</strong> Most Singapore government data is available under open data licenses<br>
-            <strong>Court Decisions:</strong> Public domain judicial records<br>
-            <strong>Parliamentary Proceedings:</strong> Public records available for research use<br>
-            <strong>Zeeker Database:</strong> Available under Creative Commons Attribution (CC-BY-4.0)
-        </p>
-        
-        <p>
-            All original sources are credited and linked where available. The database serves as an access layer 
+            All original sources are credited and linked where available. The database serves as an access layer
             that enhances discoverability while respecting original licensing.
+        </p>
+        <p>
+            <strong>Zeeker Database:</strong> Available under Creative Commons Attribution (CC-BY-4.0)
         </p>
     </div>
 
     <div class="card">
-        <h2>🔄 Updates & Quality</h2>
+        <h2>Updates and Quality</h2>
         <p>
             <strong>Data Freshness:</strong> Most sources update daily or as new information becomes available<br>
             <strong>Processing:</strong> Automated collection with manual quality checks<br>
             <strong>Validation:</strong> Cross-referencing with official sources when possible
         </p>
-        
+
         <p>
-            The goal is accuracy and completeness while maintaining reasonable update frequency 
+            The goal is accuracy and completeness while maintaining reasonable update frequency
             for an independent project.
         </p>
     </div>
 
     <div class="card" style="text-align: center;">
-        <h2>📞 Questions?</h2>
+        <h2>Questions?</h2>
         <p>
-            Questions about data sources, attribution, or access? 
+            Questions about data sources, attribution, or access?
         </p>
-        
+
         <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem; flex-wrap: wrap;">
-            <a href="/how-to-use" class="btn btn-primary">📊 How to Use</a>
-            <a href="about" class="btn btn-secondary">ℹ️ Learn More</a>
+            <a href="/how-to-use" class="btn btn-primary">How to Use</a>
+            <a href="about" class="btn btn-secondary">Learn More</a>
         </div>
     </div>
 </div>

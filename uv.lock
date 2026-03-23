@@ -173,6 +173,18 @@ wheels = [
 ]
 
 [[package]]
+name = "datasette-template-sql"
+version = "1.0.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "datasette" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c9/02/6022d05e4ba267c60b6e775ac80d445f3ea4b0509ce14208ca84166f9c58/datasette-template-sql-1.0.2.tar.gz", hash = "sha256:664c795c319e820be635803198b505dc01621324a8b4627b269e4c174563e8c3", size = 3084, upload-time = "2021-01-29T02:30:52.816Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/70/3a/80703eb171f8294dbf77c5777b0fa644370e9c5b53cd8f9e5722cf4cacfb/datasette_template_sql-1.0.2-py3-none-any.whl", hash = "sha256:194514201e8ce3489040e89a7887d8144bf27fd32580649a904be31de2cd0752", size = 7360, upload-time = "2021-01-29T02:30:51.873Z" },
+]
+
+[[package]]
 name = "flexcache"
 version = "0.3"
 source = { registry = "https://pypi.org/simple" }
@@ -555,6 +567,7 @@ dependencies = [
     { name = "datasette" },
     { name = "datasette-matomo" },
     { name = "datasette-search-all" },
+    { name = "datasette-template-sql" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
 ]
@@ -572,6 +585,7 @@ requires-dist = [
     { name = "datasette", specifier = "==0.65.1" },
     { name = "datasette-matomo", specifier = ">=0.1.2" },
     { name = "datasette-search-all", specifier = ">=1.1.4" },
+    { name = "datasette-template-sql", specifier = ">=1.0" },
     { name = "python-dotenv", specifier = ">=1.0.0" },
     { name = "pyyaml", specifier = ">=6.0.2" },
 ]
