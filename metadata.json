@@ -32,14 +32,15 @@
         },
         "judiciary_news": {
           "title": "Singapore Judiciary News",
-          "description": "Media releases, judgments, and announcements from the Singapore Courts (Supreme Court, State Courts, Family Justice Courts). Covers significant rulings, practice directions, and court administration updates.",
+          "description": "News, speeches, and media releases from the Singapore Judiciary — Supreme Court, State Courts, Family Justice Courts, and related tribunals. Covers significant rulings, practice directions, speeches, and court administration updates.",
           "columns": {
             "id": "Unique identifier (SHA-256 hash of source URL)",
-            "title": "Title of the media release, judgment, or announcement",
+            "title": "Title of the news item, speech, or media release",
             "published_date": "Publication date (YYYY-MM-DD)",
-            "category": "Content type from the judiciary RSS feed",
+            "content_type": "Type of item: Speech, Media Release, Media Advisory, etc.",
+            "courts": "Pipe-separated court names (e.g. Supreme Court|State Courts)",
             "source_url": "URL to the original page on judiciary.gov.sg",
-            "summary": "AI-generated summary of the judicial announcement or ruling (~100 words)",
+            "summary": "AI-generated summary highlighting key judicial developments (~100 words)",
             "content_text": "Full extracted text (hidden — query directly via SQL)",
             "created_at": "Timestamp when this record was first imported"
           }
