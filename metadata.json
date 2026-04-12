@@ -19,6 +19,7 @@
         "mlaw_news": {
           "title": "Ministry of Law News",
           "description": "Press releases, speeches, parliamentary speeches, and announcements from the Ministry of Law Singapore (2026 onwards). Full article text is stored but not displayed; use the AI-generated summary for search and reading.",
+          "hidden_columns": ["content_text"],
           "columns": {
             "id": "Unique identifier (SHA-256 hash of source URL)",
             "title": "Title of the news item or speech",
@@ -33,6 +34,7 @@
         "judiciary_news": {
           "title": "Singapore Judiciary News",
           "description": "News, speeches, and media releases from the Singapore Judiciary — Supreme Court, State Courts, Family Justice Courts, and related tribunals. Covers significant rulings, practice directions, speeches, and court administration updates.",
+          "hidden_columns": ["content_text"],
           "columns": {
             "id": "Unique identifier (SHA-256 hash of source URL)",
             "title": "Title of the news item, speech, or media release",
