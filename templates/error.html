@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Error {{ status }} — data.zeeker.sg</title>
+    <link rel="stylesheet" href="/static/css/zeeker-base.css">
+</head>
+<body>
+<header>
+    <div class="header-content">
+        <div class="header-left">
+            <div class="logo"><a href="/" style="text-decoration:none;color:inherit;">data.zeeker.sg</a></div>
+            <div class="tagline">Open data for Singapore</div>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/-/search">Search</a></li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+<main>
+    <div class="container" style="max-width:800px;margin:3rem auto;padding:0 1.5rem;">
+        <div class="card" style="padding:2rem;">
+            <h1 style="font-size:3rem;font-weight:700;margin:0 0 0.5rem;">{{ status }}</h1>
+            <h2 style="margin:0 0 1.5rem;font-weight:400;opacity:0.7;">
+                {% if status == 500 %}Internal Server Error
+                {% elif status == 404 %}Page Not Found
+                {% elif status == 403 %}Access Denied
+                {% else %}Error{% endif %}
+            </h2>
+
+            {% if error %}
+            <p style="margin-bottom:1.5rem;">{{ error }}</p>
+            {% endif %}
+
+            <p>Something went wrong. You can:</p>
+            <ul style="margin:1rem 0 1.5rem;padding-left:1.5rem;">
+                <li><a href="/">Go back to the homepage</a></li>
+                <li><a href="javascript:history.back()">Go back to the previous page</a></li>
+                <li><a href="/-/search">Search all data</a></li>
+            </ul>
+        </div>
+    </div>
+</main>
+
+<footer>
+    <div class="footer-content">
+        <div class="footer-links">
+            <a href="/-/search">Search</a>
+            <a href="/about">About</a>
+            <a href="/sources">Sources</a>
+        </div>
+        <div class="footer-text">
+            <p>&copy; 2025 data.zeeker.sg</p>
+        </div>
+    </div>
+</footer>
+</body>
+</html>
