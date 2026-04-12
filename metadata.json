@@ -8,6 +8,44 @@
   "about": "Providing free access to structured data for research, analysis, and application development",
   "about_url": "https://data.zeeker.sg/about",
   "databases": {
+    "sg-gov-newsrooms": {
+      "title": "SG Government Newsrooms",
+      "description": "News and announcements from Singapore government ministries and the judiciary — press releases, speeches, parliamentary replies, and court announcements.",
+      "license": "All rights reserved",
+      "license_url": "https://www.mlaw.gov.sg/terms-of-use/",
+      "source": "Singapore Government Ministries & Judiciary",
+      "source_url": "https://www.mlaw.gov.sg/news/",
+      "tables": {
+        "mlaw_news": {
+          "title": "Ministry of Law News",
+          "description": "Press releases, speeches, parliamentary speeches, and announcements from the Ministry of Law Singapore (2026 onwards). Full article text is stored but not displayed; use the AI-generated summary for search and reading.",
+          "columns": {
+            "id": "Unique identifier (SHA-256 hash of source URL)",
+            "title": "Title of the news item or speech",
+            "published_date": "Publication date (YYYY-MM-DD)",
+            "category": "Content type: press-releases, speeches, parliamentary-speeches, announcements",
+            "source_url": "URL to the original page on mlaw.gov.sg",
+            "summary": "AI-generated summary highlighting key policy and legal points (~100 words)",
+            "content_text": "Full extracted article text (hidden — query directly via SQL)",
+            "created_at": "Timestamp when this record was first imported"
+          }
+        },
+        "judiciary_news": {
+          "title": "Singapore Judiciary News",
+          "description": "Media releases, judgments, and announcements from the Singapore Courts (Supreme Court, State Courts, Family Justice Courts). Covers significant rulings, practice directions, and court administration updates.",
+          "columns": {
+            "id": "Unique identifier (SHA-256 hash of source URL)",
+            "title": "Title of the media release, judgment, or announcement",
+            "published_date": "Publication date (YYYY-MM-DD)",
+            "category": "Content type from the judiciary RSS feed",
+            "source_url": "URL to the original page on judiciary.gov.sg",
+            "summary": "AI-generated summary of the judicial announcement or ruling (~100 words)",
+            "content_text": "Full extracted text (hidden — query directly via SQL)",
+            "created_at": "Timestamp when this record was first imported"
+          }
+        }
+      }
+    },
     "*": {
       "allow_sql": true,
       "allow_facet": true,
