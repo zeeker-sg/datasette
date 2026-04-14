@@ -2270,3 +2270,7 @@ footer {
     white-space: nowrap;
     border: 0;
 }
+
+/* Hide content_text column across all tables — copyright reasons.
+   Column remains accessible via SQL and JSON API. */
+.col-content_text { display: none; }
