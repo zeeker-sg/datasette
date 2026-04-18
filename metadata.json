@@ -28,9 +28,12 @@
     }
   },
   "extra_css_urls": [
+    "/static/css/vendor/prism.css",
     "/static/css/zeeker-base.css"
   ],
   "extra_js_urls": [
+    "/static/js/vendor/prism-core.min.js",
+    "/static/js/vendor/prism-sql.min.js",
     "/static/js/zeeker-base.js"
   ],
   "menu_links": [

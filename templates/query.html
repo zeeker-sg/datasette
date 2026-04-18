@@ -6,6 +6,18 @@
 {% endblock %}
 
 {% block nav %}
+{% if database %}
+{% set breadcrumbs = [
+    {'href': '/', 'label': 'Home'},
+    {'href': '/' ~ database, 'label': database|title},
+    {'label': 'SQL Query'}
+] %}
+{% else %}
+{% set breadcrumbs = [
+    {'href': '/', 'label': 'Home'},
+    {'label': 'SQL Query'}
+] %}
+{% endif %}
 {% include "_header.html" %}
 {% endblock %}
 
@@ -13,18 +25,6 @@
 <!-- Query Header -->
 {% block query_header %}
 <div class="query-header">
-    <div class="breadcrumbs">
-        <a href="/">Home</a>
-        <span class="separator">&rarr;</span>
-        {% if database %}
-        <a href="/{{ database }}">{{ database|title }}</a>
-        <span class="separator">&rarr;</span>
-        <span>SQL Query</span>
-        {% else %}
-        <span>SQL Query</span>
-        {% endif %}
-    </div>
-
     <div class="query-overview">
         <div class="query-summary">
             <h1 class="query-title">SQL Query Interface</h1>
@@ -97,7 +97,7 @@
                 <div class="export-options">
                     <span class="btn disabled" id="json-export">JSON</span>
                     <span class="btn disabled" id="csv-export">CSV</span>
-                    <small style="color: var(--color-text-muted); margin-top: 0.5rem; display: block;">Run a query first to enable exports</small>
+                    <small class="export-hint">Run a query first to enable exports</small>
                 </div>
             </div>
 

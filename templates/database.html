@@ -10,6 +10,10 @@
 {% endblock %}
 
 {% block nav %}
+{% set breadcrumbs = [
+    {'href': '/', 'label': 'Home'},
+    {'label': metadata.title if metadata and metadata.title else database|title}
+] %}
 {% include "_header.html" %}
 {% endblock %}
 
@@ -17,12 +21,6 @@
 <!-- Database Header -->
 {% block database_header %}
 <div class="database-header">
-    <div class="breadcrumbs">
-        <a href="/">Home</a>
-        <span class="separator">&rarr;</span>
-        <span>{{ metadata.title if metadata and metadata.title else database|title }}</span>
-    </div>
-
     <div class="database-overview">
         <div class="database-info">
             <div class="database-summary">
@@ -220,90 +218,41 @@
 <!-- SQL Examples: empty by default, available for per-database overlays -->
 {% block sql_examples %}{% endblock %}
 
-<!-- Data Guide -->
+<!-- Data Guide — source / license / suggested uses (tools live in top export-bar) -->
 {% block database_tools %}
-<section class="database-tools">
-    <!-- Data Guide Card -->
+<aside class="data-guide">
     <div class="card data-guide-card">
-        <h2>Data Guide</h2>
-
-        <div class="data-guide-content">
+        <h2>About this data</h2>
+        <dl class="data-guide-list">
             {% if metadata and metadata.description %}
-            <div class="data-guide-item">
-                <h3>About This Data</h3>
-                <p>{{ metadata.description }}</p>
-            </div>
+            <dt>Description</dt>
+            <dd>{{ metadata.description }}</dd>
             {% endif %}
 
             {% if metadata and metadata.license %}
-            <div class="data-guide-item">
-                <h3>License</h3>
-                <p>
-                    {% if metadata.license_url %}
-                    <a href="{{ metadata.license_url }}">{{ metadata.license }}</a>
-                    {% else %}
-                    {{ metadata.license }}
-                    {% endif %}
-                </p>
-            </div>
+            <dt>License</dt>
+            <dd>
+                {% if metadata.license_url %}
+                <a href="{{ metadata.license_url }}">{{ metadata.license }}</a>
+                {% else %}
+                {{ metadata.license }}
+                {% endif %}
+            </dd>
             {% endif %}
 
             {% if metadata and metadata.source %}
-            <div class="data-guide-item">
-                <h3>Source</h3>
-                <p>
-                    {% if metadata.source_url %}
-                    <a href="{{ metadata.source_url }}">{{ metadata.source }}</a>
-                    {% else %}
-                    {{ metadata.source }}
-                    {% endif %}
-                </p>
-            </div>
+            <dt>Source</dt>
+            <dd>
+                {% if metadata.source_url %}
+                <a href="{{ metadata.source_url }}">{{ metadata.source }}</a>
+                {% else %}
+                {{ metadata.source }}
+                {% endif %}
+            </dd>
             {% endif %}
-
-            <div class="data-guide-item">
-                <h3>Suggested Uses</h3>
-                <ul class="data-guide-uses">
-                    <li>Search and filter records using the table explorer</li>
-                    <li>Write custom SQL queries for advanced analysis</li>
-                    <li>Export data as CSV for use in spreadsheets</li>
-                    <li>Access the JSON API for programmatic integration</li>
-                    <li>Download the full SQLite database for offline work</li>
-                </ul>
-            </div>
-        </div>
+        </dl>
     </div>
-
-    <!-- Database Tools Card -->
-    <div class="card">
-        <h2>Database Tools</h2>
-
-        <div class="tools-grid">
-            <div class="tool">
-                <h3>SQL Query</h3>
-                <p>Write custom SQL queries against this database</p>
-                <a href="/{{ database }}?sql=SELECT+*+FROM+sqlite_master+LIMIT+25" class="btn">SQL Editor</a>
-            </div>
-
-            <div class="tool">
-                <h3>Schema</h3>
-                <p>Explore database structure and relationships</p>
-                <a href="/{{ database }}?sql=SELECT+name,+sql+FROM+sqlite_master+WHERE+type%3D%27table%27+ORDER+BY+name"
-                   class="btn">View Schema</a>
-            </div>
-
-            <div class="tool">
-                <h3>Export</h3>
-                <p>Download the entire database</p>
-                <div class="export-options">
-                    <a href="/{{ database }}.csv" class="btn">CSV</a>
-                    <a href="/{{ database }}.json" class="btn">JSON</a>
-                    <a href="/{{ database }}.db" class="btn">SQLite</a>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
+</aside>
 {% endblock %}
 
 {% if canned_queries %}
