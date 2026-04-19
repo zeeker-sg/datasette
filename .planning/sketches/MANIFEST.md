@@ -14,4 +14,4 @@ The current data.zeeker.sg UI reads as "white and plain, no design" — the pale
 | # | Name | Design Question | Winner | Tags |
 |---|------|----------------|--------|------|
 | 001 | home-editorial-hero | Does the home page feel crafted and color-confident instead of "empty whitespace"? | **D — synthesis: editorial shell + card-grid data section** | home, hero, typography, palette |
-| 002 | database-table-grid | How should 20+ table cards read — wall of cards, editorial list, or grouped? | pending | database, list, cards |
+| 002 | database-table-grid | How should 20+ table cards read — wall of cards, editorial list, or grouped? | **B — editorial list (no taxonomy needed)** | database, list, cards |
