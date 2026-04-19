@@ -39,3 +39,15 @@ Do **not** replace the full `table.html`. Use Datasette's `_table-{database}-{ta
 Per-table file per news table (e.g. `templates/_table-sg_govt_newsrooms-acra_news.html`), each doing `{% include "_partials/news_feed.html" %}` to share the card markup. Inside the partial, `display_rows` is iterable and `row.display("col")` gives the HTML-rendered value. Use `urls.row(database, table, row[primary_keys[0]])` for permalinks and `path_with_replaced_args(request, {'category': row['category']})` for clickable category pills.
 
 See `.planning/notes/datasette-styling-limits.md` for full context variables available inside the partial.
+
+## Content-agnostic usage
+
+Applies to all long-text tables, not just news. The "feed card" pattern degrades gracefully:
+
+| Table shape | Title | Primary pill | Date | Excerpt | Source |
+|-------------|-------|--------------|------|---------|--------|
+| `*_news` | `title` | `category` | `published_date` | first N chars of `content` | `source_url` |
+| `judgments` | `case_name` | `court` + `citation` | `decision_date` | first tag of `subject_tags[]` as chips | `source_url` |
+| `about_singapore_law` | `title` | `section` | `last_scraped` | (omit — `content_length` often 0) | `item_url` |
+
+When there's no body to excerpt (guides with `content_length=0`), the card falls back to title + meta only — the layout stays uniform, just denser. No new template needed.

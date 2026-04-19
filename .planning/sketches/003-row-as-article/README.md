@@ -1,19 +1,33 @@
 ---
 sketch: 003
 name: row-as-article
-question: "How does a row render when the content is a full press release / news article, not tabular data?"
-winner: null
-status: parked-future-feature
-tags: [row, article, reading, long-text, future]
+question: "How does a row render when the content is long-form text (news, judgment, or guide)?"
+winner: pending
+tags: [row, article, reading, long-text]
 ---
-
-> **Parked.** Datasette's default row-detail page is not currently customized in zeeker. Keeping this sketch as a reference for future work if/when a custom `row.html` template gets built. Next (sketch 004) pivots to the table page, which is what was actually broken.
-
 
 # Sketch 003: Row as article
 
 ## Design Question
-Zeeker's SG Government Newsrooms database contains press releases, speeches, and announcements — long-form prose, not tabular data. Datasette's default row view renders a `<dl>` of `field: value`, which dumps the article body alongside the SHA-256 id as if they're equivalent. How should a row feel when the content IS the article?
+Zeeker stores several kinds of long-form content across multiple databases — press releases and speeches (`*_news`), court judgments (`Zeeker-Judgements/judgments`), legal guides (`Sglawwatch/about_singapore_law`). All are too long to display inline in a table row. The row-detail page is where users actually read the content.
+
+Datasette's default row view renders a `<dl>` of `field: value`, which dumps the body alongside the SHA id as if they're equivalent. How should a row feel when the content IS the article?
+
+## Content-agnostic design — do not overfit
+
+The three variants use a news-article sample, but the layout is **content-type-neutral**. Each slot maps to different columns per table:
+
+| Slot | News / speech | Judgment | Guide |
+|------|---------------|----------|-------|
+| Kicker / category | `category` pill | `court` code + `citation` | `section` |
+| Title | `title` | `case_name` | `title` |
+| Byline | date · agency · source | `decision_date` · judges (if present) · LawWatch | `last_scraped` · LawWatch |
+| Body | `content` | judgment text | `content` (may be empty — fallback to URL-out) |
+| Secondary tags | — | `subject_tags` (array → chip row) | — |
+| Source | `source_url` | `source_url` | `item_url` |
+| Sidebar meta | `id`, `published_date`, `fetched_at` | `id`, `citation`, `case_numbers`, `court` | `id`, `home_page`, `content_length` |
+
+Implementation likely uses one `row-{db}-{table}.html` per table (or a shared `row.html` that branches on column presence), **not** three different row layouts. The layout is generic; the fields swap.
 
 ## How to View
 ```
