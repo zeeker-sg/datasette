@@ -15,3 +15,5 @@ The current data.zeeker.sg UI reads as "white and plain, no design" — the pale
 |---|------|----------------|--------|------|
 | 001 | home-editorial-hero | Does the home page feel crafted and color-confident instead of "empty whitespace"? | **D — synthesis: editorial shell + card-grid data section** | home, hero, typography, palette |
 | 002 | database-table-grid | How should 20+ table cards read — wall of cards, editorial list, or grouped? | **B — editorial list (no taxonomy needed)** | database, list, cards |
+| 003 | row-as-article | How does a row render when the content is a press release, not tabular data? | _parked — future feature_ | row, article, long-text, future |
+| 004 | table-as-news-archive | How does the table page display press-release rows when content is long text, not cells? | **A — news feed (flat reverse-chron with faceted sidebar)** | table, archive, rows, long-text |
