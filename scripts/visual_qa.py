@@ -27,6 +27,10 @@ ROUTES: list[tuple[str, str]] = [
     ("table-roadside", "/fixtures/roadside_attractions"),
     ("row-view", "/fixtures/roadside_attractions/1"),
     ("query-sql", "/fixtures?sql=select+pk%2C+state%2C+on_earth+from+facetable+limit+10"),
+    # Production content-type coverage (phase 01 editorial patterns)
+    ("table-news-feed", "/SG-Government-Newsrooms/acra_news"),
+    ("table-judgments", "/Zeeker-Judgements/judgments"),
+    ("table-legal-guides", "/Sglawwatch/about_singapore_law"),
 ]
 
 VIEWPORTS: dict[str, dict[str, int]] = {
