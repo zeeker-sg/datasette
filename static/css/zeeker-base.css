@@ -230,17 +230,18 @@ button:focus-visible,
 
 html {
     font-family: var(--font-body);
-    line-height: 1.6;
+    line-height: var(--leading-normal);
     -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
 }
 
 body {
     margin: 0;
     padding: 0;
-    background: var(--color-bg-primary);
-    color: var(--color-text-secondary);
+    background: var(--color-bg);   /* warm paper, never pure white */
+    color: var(--color-text);
     font-size: var(--text-base);
-    line-height: 1.6;
+    line-height: var(--leading-normal);
     min-height: 100vh;
     overflow-x: hidden;
 }
@@ -250,37 +251,55 @@ body {
  * ---------------------------------------------------------------- */
 
 h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-headline);
-    font-weight: 600;
-    line-height: 1.3;
-    margin: 0 0 var(--space-md) 0;
-    color: var(--color-text-primary);
+    font-family: var(--font-display);
+    font-weight: 500;
+    line-height: var(--leading-tight);
+    letter-spacing: var(--tracking-tight);
+    margin: 0 0 var(--space-4) 0;
+    color: var(--color-ink);
 }
 
-h1 { font-size: var(--text-4xl); }
-h2 { font-size: var(--text-3xl); }
+h1 { font-size: var(--text-5xl); font-weight: 400; }
+h2 { font-size: var(--text-4xl); font-weight: 400; }
 h3 { font-size: var(--text-2xl); }
 h4 { font-size: var(--text-xl); }
 h5 { font-size: var(--text-lg); }
 h6 { font-size: var(--text-base); }
 
+/* Italic-accent-on-h1 signature — the move that carries the editorial feel */
+h1 em, h2 em, h3 em {
+    font-style: italic;
+    color: var(--color-accent);
+    font-weight: 500;
+}
+
+h1 .und, h2 .und {
+    text-decoration: underline;
+    text-decoration-color: var(--color-ochre);
+    text-decoration-thickness: 4px;
+    text-underline-offset: 6px;
+    text-decoration-skip-ink: none;
+}
+
 p {
-    margin: 0 0 var(--space-md) 0;
+    margin: 0 0 var(--space-4) 0;
     color: var(--color-text-secondary);
 }
 
-a {
-    color: var(--color-accent-primary);
+/* Beat Datasette app.css a:link #276890 with matching-specificity petrol */
+a, a:link, a:visited {
+    color: var(--color-accent);
     text-decoration: none;
-    transition: var(--transition-fast);
+    transition: color var(--transition-fast);
 }
 
-a:hover {
+a:hover, a:focus {
     color: var(--color-accent-hover);
     text-decoration: underline;
+    text-underline-offset: 3px;
 }
 
-/* Button-styled anchors never underline */
+/* Button-styled anchors never underline (retained — must remain after the a:hover rule) */
 a.btn,
 a.btn:hover,
 a.btn:focus,
@@ -299,19 +318,19 @@ a.cta-secondary:focus,
 code {
     background: var(--color-code-bg);
     color: var(--color-code-text);
-    padding: var(--space-xs) var(--space-sm);
+    padding: 2px 6px;
     border-radius: var(--radius-sm);
     font-family: var(--font-mono);
     font-size: 0.9em;
 }
 
 pre {
-    background: var(--color-bg-primary);
+    background: var(--color-surface);
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    padding: var(--space-md);
+    border-radius: var(--radius-sm);
+    padding: var(--space-4);
     overflow-x: auto;
-    margin: var(--space-md) 0;
+    margin: var(--space-4) 0;
 }
 
 pre code {
@@ -319,13 +338,13 @@ pre code {
     color: var(--color-code-text);
     padding: 0;
     font-size: var(--text-sm);
-    line-height: 1.4;
+    line-height: 1.55;
 }
 
 kbd {
-    background: var(--color-bg-tertiary);
-    color: var(--color-text-primary);
-    padding: var(--space-xs) var(--space-sm);
+    background: var(--color-bg-alt);
+    color: var(--color-text);
+    padding: 2px 6px;
     border-radius: var(--radius-sm);
     border: 1px solid var(--color-border);
     font-family: var(--font-mono);
