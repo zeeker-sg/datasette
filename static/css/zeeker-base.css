@@ -3726,17 +3726,17 @@ footer {
 .list {
   border-top: 2px solid var(--color-ink);
 }
-.row {
+.list .row {
   display: grid;
   grid-template-columns: 60px 1fr 280px 130px 130px;
   gap: var(--space-6);
   align-items: baseline;
-  padding: var(--space-6) 0;
+  padding: var(--space-6) var(--space-8);
   border-bottom: 1px solid var(--color-border);
   transition: background 0.2s ease, padding 0.2s ease, margin 0.2s ease;
   position: relative;
 }
-.row::before {
+.list .row::before {
   content: '';
   position: absolute;
   left: 0;
@@ -3747,29 +3747,29 @@ footer {
   transition: width 0.2s ease, height 0.2s ease, left 0.2s ease;
   transform: translateY(-50%);
 }
-.row:hover {
+.list .row:hover {
   background: var(--color-bg-alt);
   padding-left: var(--space-6);
   padding-right: var(--space-4);
   margin-left: calc(-1 * var(--space-6));
   margin-right: calc(-1 * var(--space-4));
 }
-.row:hover::before {
+.list .row:hover::before {
   width: 3px;
   height: 60%;
   left: -3px;
 }
-.row:hover .name { color: var(--color-accent); }
+.list .row:hover .name { color: var(--color-accent); }
 
-.row .idx {
+.list .row .idx {
   font-family: var(--font-mono);
   color: var(--color-text-muted);
   font-size: var(--text-sm);
 }
-.row .name-col { min-width: 0; }
-.row .name,
-.row .name:link,
-.row .name:visited {
+.list .row .name-col { min-width: 0; }
+.list .row .name,
+.list .row .name:link,
+.list .row .name:visited {
   font-family: var(--font-display);
   font-size: var(--text-3xl);
   font-weight: 500;
@@ -3781,30 +3781,30 @@ footer {
   text-decoration: none;
   transition: color 0.15s ease;
 }
-.row .name:hover { color: var(--color-accent); text-decoration: none; }
-.row .desc {
+.list .row .name:hover { color: var(--color-accent); text-decoration: none; }
+.list .row .desc {
   color: var(--color-text-muted);
   font-size: var(--text-sm);
   line-height: 1.5;
   margin: 0;
 }
-.row .cols {
+.list .row .cols {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   color: var(--color-text-secondary);
   line-height: 1.7;
   word-break: break-word;
 }
-.row .cols .pk {
+.list .row .cols .pk {
   color: var(--color-accent);
   font-weight: 600;
 }
-.row .cols .more {
+.list .row .cols .more {
   color: var(--color-text-muted);
   font-style: italic;
 }
-.row .count-col { text-align: right; }
-.row .count {
+.list .row .count-col { text-align: right; }
+.list .row .count {
   font-family: var(--font-display);
   font-size: var(--text-3xl);
   font-weight: 500;
@@ -3812,7 +3812,7 @@ footer {
   display: block;
   line-height: 1;
 }
-.row .label {
+.list .row .label {
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
   color: var(--color-text-muted);
@@ -3821,15 +3821,15 @@ footer {
   margin-top: 4px;
   display: block;
 }
-.row .date-col {
+.list .row .date-col {
   text-align: right;
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   color: var(--color-text-muted);
   line-height: 1.7;
 }
-.row .date-col a { color: var(--color-text-secondary); }
-.row .date-col a:hover { color: var(--color-accent); text-decoration: none; }
+.list .row .date-col a { color: var(--color-text-secondary); }
+.list .row .date-col a:hover { color: var(--color-accent); text-decoration: none; }
 
 /* Meta-col export-links variant on database hero */
 .db-header .meta-col dd.export-links {
@@ -3845,16 +3845,16 @@ footer {
 .db-header .meta-col dd.export-links a:hover { color: var(--color-accent-hover); text-decoration: underline; }
 
 @media (max-width: 960px) {
-  .row {
+  .list .row {
     grid-template-columns: 40px 1fr 110px;
     gap: var(--space-3);
   }
-  .row .cols,
-  .row .date-col {
+  .list .row .cols,
+  .list .row .date-col {
     display: none;
   }
-  .row .name { font-size: var(--text-xl); }
-  .row .count { font-size: var(--text-xl); }
+  .list .row .name { font-size: var(--text-xl); }
+  .list .row .count { font-size: var(--text-xl); }
 }
 
 /* =========== FEED CARDS — phase 01 ============ */
@@ -3978,6 +3978,120 @@ footer {
   .va-item-title { font-size: var(--text-xl); }
   .va-item-excerpt { -webkit-line-clamp: 3; }
 }
+
+/* =========== PHASE 01 POLISH FIXES — post-QA tweaks ============ */
+
+/* (1) SQL examples on /how-to-use overflow on mobile because long unbroken
+ *     identifiers like "WHERE LOWER(text) LIKE '%keyword%'" exceed the card
+ *     width. The pre already has white-space: pre-wrap, but we add explicit
+ *     overflow-x as a safety net and tighten padding on narrow viewports. */
+.example-box {
+  overflow-x: auto;
+  max-width: 100%;
+}
+.example-box pre,
+.example-box pre[class*="language-"] {
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 600px) {
+  .example-box {
+    padding: var(--space-3);
+  }
+  .example-box pre,
+  .example-box pre[class*="language-"],
+  .example-box code,
+  .example-box code[class*="language-"] {
+    font-size: var(--text-2xs);
+    line-height: 1.55;
+  }
+}
+
+/* (2) /sources "Available Tables" list: long table names like
+ *     "primary_key_multiple_columns_explicit_label" overflow on mobile.
+ *     Allow the anchor text to break inside underscores. */
+.table-preview ul li {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+.table-preview ul li a {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* (3) /developers "Stable URL patterns" + other api-tables overflow on
+ *     mobile because the pattern column has long literal URL paths.
+ *     Wrap the table in horizontal scroll + collapse cell padding on narrow
+ *     viewports so long code snippets stay readable without breaking layout. */
+.page-developers .api-table {
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.page-developers .api-table th,
+.page-developers .api-table td {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+.page-developers .api-table code {
+  word-break: break-all;
+  white-space: normal;
+}
+@media (max-width: 600px) {
+  .page-developers .api-table th,
+  .page-developers .api-table td {
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--text-xs);
+  }
+}
+
+/* (4) /-/search input contrast: Datasette's app.css ships
+ *     `form input[type=text], form input[type=search] { border: 1px solid #ccc }`
+ *     which has specificity (0,1,2) and wins against a bare `input[type=...]`.
+ *     We match its specificity AND load later (extra_css_urls), so we win.
+ *     Bumps the border to petrol with subtle inset shadow + focus ring. */
+form input[type="text"],
+form input[type="search"] {
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  color: var(--color-text);
+  box-shadow: inset 0 1px 2px rgba(20,32,31,0.06);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+form input[type="text"]:focus,
+form input[type="search"]:focus {
+  outline: none;
+  border-color: var(--color-accent-hover);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+form input[type="text"]::placeholder,
+form input[type="search"]::placeholder {
+  color: var(--color-text-muted);
+}
+/* Datasette's `form input[type=submit]` ships a blue bootstrap-style button.
+ * Re-paint the search-all submit in petrol to match the editorial palette. */
+form.core input[type="submit"] {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-text-inverse);
+  padding: var(--space-3) var(--space-5);
+  font-family: var(--font-body);
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+}
+form.core input[type="submit"]:hover {
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+}
+
+/* (5) `.list .row` left/right padding moved up into the base rule so the
+ *     idx column ("01", "02") gets breathing room from the container edge —
+ *     especially visible on the database page table list. */
 
 /* ----------------------------------------------------------------
  * FOOTER LINK OVERRIDE — must remain at TAIL of file to win cascade
