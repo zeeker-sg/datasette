@@ -9,7 +9,6 @@
 
 {% block nav %}
 {% set breadcrumbs = [
-    {'href': '/', 'label': 'Home'},
     {'href': '/' ~ database, 'label': database|title},
     {'label': metadata.title if metadata and metadata.title else table|title}
 ] %}

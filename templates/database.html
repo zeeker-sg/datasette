@@ -11,7 +11,6 @@
 
 {% block nav %}
 {% set breadcrumbs = [
-    {'href': '/', 'label': 'Home'},
     {'label': metadata.title if metadata and metadata.title else database|title}
 ] %}
 {% include "_header.html" %}
