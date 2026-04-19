@@ -12,140 +12,170 @@
 {% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
-{% block hero %}
-<section class="hero-section">
-    <div class="hero-content-wrapper">
-        <h1 class="hero-title-main">{{ metadata.title if metadata and metadata.title else s('site_title', 'Data Explorer') }}</h1>
-        <p class="hero-tagline-main">
-            {{ metadata.description if metadata and metadata.description else s('site_tagline', 'Explore data through search and SQL queries') }}
+{# --- Hero -------------------------------------------------------- #}
+<header class="db-header home-header">
+  <div class="container">
+    <div class="db-header-grid">
+      <div>
+        <div class="kicker">Civic data, open access</div>
+        <h1>
+          {{ s('home_hero_primary', 'Public data,')|safe }}
+          <em>{{ s('home_hero_accent', 'rendered')|safe }}</em>
+          <span class="und">{{ s('home_hero_underline', 'legible')|safe }}</span>.
+        </h1>
+        <p class="lede">
+          {{ metadata.description if metadata and metadata.description
+             else s('site_tagline', 'A curated, queryable archive of Singapore government, judicial, and legal publications.') }}
         </p>
+        <form class="hero-search" action="/-/search" method="get" role="search">
+          <label for="home-search" class="visually-hidden">Search across all data</label>
+          <input id="home-search" type="search" name="q"
+                 placeholder="{{ s('search_placeholder', 'Search press releases, judgments, guides…') }}"
+                 autocomplete="off">
+          <button type="submit">Search</button>
+        </form>
+      </div>
+      <dl class="meta-col">
+        <dt>Licence</dt>
+        <dd>{{ metadata.license if metadata and metadata.license else 'CC-BY-4.0' }}</dd>
+        <dt>Source</dt>
+        <dd>{{ metadata.source if metadata and metadata.source else 'Various curated sources' }}</dd>
+        <dt>Last refreshed</dt>
+        <dd>{{ current_year if current_year is defined else '' }}</dd>
+      </dl>
+    </div>
+  </div>
+</header>
 
-        <div class="hero-search-container">
-            <form class="hero-search-form" action="/-/search">
-                <div class="hero-search-wrapper">
-                    <input
-                        type="search"
-                        name="q"
-                        class="hero-search-input"
-                        placeholder="{{ s('search_placeholder', 'Search across all data...') }}"
-                        aria-label="Search data"
-                    >
-                </div>
-            </form>
-        </div>
+{# --- Petrol stat band ------------------------------------------- #}
+{% set visible_dbs = databases|rejectattr('hidden')|list if databases else [] %}
+{% set ns = namespace(total_tables=0) %}
+{% for database in visible_dbs %}
+  {% if database.table_count is defined and database.table_count %}
+    {% set ns.total_tables = ns.total_tables + database.table_count %}
+  {% endif %}
+{% endfor %}
+<div class="db-statband">
+  <div class="container">
+    <div>
+      <div class="stat-num">{{ visible_dbs|length }}</div>
+      <span class="stat-label">{{ plural(visible_dbs|length, 'plural_database', 'plural_databases') }}</span>
+    </div>
+    {% if ns.total_tables > 0 %}
+    <div>
+      <div class="stat-num">{{ "{:,}".format(ns.total_tables) }}</div>
+      <span class="stat-label">{{ plural(ns.total_tables, 'plural_table', 'plural_tables') }}</span>
+    </div>
+    {% endif %}
+    <div>
+      <div class="stat-num">SQL</div>
+      <span class="stat-label">full query access</span>
+    </div>
+    <div>
+      <div class="stat-num">CSV · JSON</div>
+      <span class="stat-label">{{ s('form_export', 'export formats') }}</span>
+    </div>
+  </div>
+</div>
 
-        <div class="hero-cta-group">
-            <a href="/-/search" class="cta-primary">
-                Start Searching
+{# --- № 01 · Databases ------------------------------------------- #}
+<section class="section">
+  <div class="container">
+    <div class="section-num">№ 01 · {{ s('databases_heading', 'Databases') }}</div>
+    <div class="section-head">
+      <h2>
+        {{ s('home_section1_line1', 'Curated public data,')|safe }}
+        <em>{{ s('home_section1_line2', 'ready to query')|safe }}</em>.
+      </h2>
+      <div class="aside">
+        {{ s('home_section1_aside', 'Every dataset ships with schema, source citation, and full SQL access.') }}
+        <br>
+        <a href="/-/search">Search across all data →</a>
+      </div>
+    </div>
+    {% if visible_dbs %}
+    <div class="cards">
+      {% for database in visible_dbs %}
+        {% set db_meta = metadata.databases[database.name] if metadata and metadata.databases and metadata.databases[database.name] else {} %}
+        <article class="card">
+          <span class="idx">{{ "{:02d}".format(loop.index) }}</span>
+          <div class="card-meta">
+            <span>{{ plural(database.table_count|default(0), 'plural_table', 'plural_tables') }}</span>
+            {% if database.size is defined and database.size %}
+            <span>· {{ database.size|filesizeformat }}</span>
+            {% endif %}
+          </div>
+          <h3>
+            <a href="/{{ database.name }}">
+              {% if db_meta.title %}{{ db_meta.title }}{% else %}{{ database.name|replace('-', ' ')|replace('_', ' ')|title }}{% endif %}
             </a>
-        </div>
+          </h3>
+          {% if db_meta.description %}
+          <p class="card-desc">{{ db_meta.description }}</p>
+          {% endif %}
+          {% if database.table_count is defined and database.table_count %}
+          <div class="card-count">
+            {{ "{:,}".format(database.table_count) }}
+            <small>{{ plural(database.table_count, 'plural_table', 'plural_tables') }}</small>
+          </div>
+          {% endif %}
+          <div class="chips">
+            <span class="chip">Browse</span>
+            <a class="chip chip-link" href="/{{ database.name }}.csv">CSV</a>
+            <a class="chip chip-link" href="/{{ database.name }}.json">JSON</a>
+          </div>
+        </article>
+      {% endfor %}
     </div>
+    {% endif %}
+  </div>
 </section>
-{% endblock %}
 
-<!-- Stats Strip -->
-{% block stats_strip %}
-{% if databases %}
-<section class="stats-strip">
-    <div class="stats-strip-inner">
-        <div class="stat-item">
-            <span class="stat-number">{{ databases|length }}</span>
-            <span class="stat-label">{{ plural(databases|length, 'plural_database', 'plural_databases') }}</span>
-        </div>
-        {% set ns = namespace(total_tables=0) %}
-        {% for database in databases %}
-            {% if database.table_count is defined and database.table_count %}
-                {% set ns.total_tables = ns.total_tables + database.table_count %}
-            {% endif %}
-        {% endfor %}
-        {% if ns.total_tables > 0 %}
-        <div class="stat-item">
-            <span class="stat-number">{{ "{:,}".format(ns.total_tables) }}</span>
-            <span class="stat-label">{{ plural(ns.total_tables, 'plural_table', 'plural_tables') }}</span>
-        </div>
-        {% endif %}
-        <div class="stat-item">
-            <span class="stat-number stat-text">CSV &middot; JSON &middot; SQL</span>
-            <span class="stat-label">{{ s('form_export', 'Export formats') }}</span>
-        </div>
+{# --- № 02 · How to use ------------------------------------------ #}
+<section class="section alt">
+  <div class="container">
+    <div class="section-num">№ 02 · {{ s('howto_heading', 'How to use') }}</div>
+    <div class="section-head">
+      <h2>
+        {{ s('home_section2_line1', 'Three ways to')|safe }}
+        <em>{{ s('home_section2_line2', 'spend')|safe }}</em>
+        {{ s('home_section2_line3', 'the data.')|safe }}
+      </h2>
     </div>
-</section>
-{% endif %}
-{% endblock %}
-
-<!-- Databases Section -->
-{% block databases_section %}
-{% if databases %}
-<section class="databases-section">
-    <h2>{{ s('databases_heading', 'Available Data') }}</h2>
-    <div class="database-grid">
-        {% for database in databases %}
-        <div class="card database-card">
-            <h3>
-                <a href="/{{ database.name }}">
-                    {% if metadata.databases[database.name] and metadata.databases[database.name].title %}
-                    {{ metadata.databases[database.name].title }}
-                    {% else %}
-                    {{ database.name|title }}
-                    {% endif %}
-                </a>
-            </h3>
-            <div class="database-meta">
-                {% if database.table_count is defined and database.table_count %}
-                <span class="table-count">{{ database.table_count }} {{ plural(database.table_count, 'plural_table', 'plural_tables') }}</span>
-                {% endif %}
-                {% if database.size is defined and database.size %}
-                <span class="database-size">{{ database.size|filesizeformat }}</span>
-                {% endif %}
-            </div>
-            {% if database.description %}
-            <p class="database-description">{{ database.description }}</p>
-            {% elif metadata.databases[database.name] and metadata.databases[database.name].description %}
-            <p class="database-description">{{ metadata.databases[database.name].description }}</p>
-            {% endif %}
-
-            <div class="database-actions">
-                <a href="/{{ database.name }}" class="btn btn-primary">{{ s('db_explore', 'Explore Data') }}</a>
-                <a href="/{{ database.name }}.csv" class="btn btn-secondary">{{ s('db_export_csv', 'CSV') }}</a>
-                <a href="/{{ database.name }}.json" class="btn btn-secondary">{{ s('db_export_json', 'JSON') }}</a>
-                <a href="/{{ database.name }}.db" class="btn btn-secondary">SQLite</a>
-            </div>
-        </div>
-        {% endfor %}
+    <div class="how-grid">
+      <div class="how-item">
+        <div class="kicker">Explore</div>
+        <h3>Browse by database</h3>
+        <p>Open any database above. Each page lists its tables with descriptions, schemas, and full-text search where available.</p>
+      </div>
+      <div class="how-item">
+        <div class="kicker">Query</div>
+        <h3>Write SQL</h3>
+        <p>Every database accepts custom SQL via the query UI. Press <kbd>?sql=…</kbd> to pre-fill, or click <em>Schema</em> on a database page.</p>
+      </div>
+      <div class="how-item">
+        <div class="kicker">Export</div>
+        <h3>Pull the data</h3>
+        <p>Append <code>.csv</code>, <code>.json</code>, or <code>.db</code> to any URL. Use the JSON API for programmatic access.</p>
+      </div>
     </div>
+  </div>
 </section>
-{% endif %}
-{% endblock %}
 
-<!-- Export Info Section -->
-{% block export_section %}
-<section class="about-section">
-    <div class="card">
-        <h2>{{ s('about_heading', 'About This Platform') }}</h2>
-        <p>{{ s('about_description', 'All data is searchable and available through a full SQL interface.') }}</p>
-
-        <div class="export-info-grid">
-            <div class="export-info-item">
-                <h3>CSV Export</h3>
-                <p>Download any table or query result as a CSV file for use in spreadsheets and data tools.</p>
-            </div>
-            <div class="export-info-item">
-                <h3>JSON API</h3>
-                <p>Access all data programmatically through the JSON API. Append <code>.json</code> to any page URL.</p>
-            </div>
-            <div class="export-info-item">
-                <h3>SQL Queries</h3>
-                <p>Write custom SQL queries against any database for precise data extraction and analysis.</p>
-            </div>
-            <div class="export-info-item">
-                <h3>SQLite Download</h3>
-                <p>Download full database files in SQLite format for offline analysis and archival.</p>
-            </div>
-        </div>
+{# --- Dark CTA --------------------------------------------------- #}
+<section class="cta">
+  <div class="container">
+    <h2>
+      {{ s('home_cta_line1', 'Bring your questions,')|safe }}
+      <em>{{ s('home_cta_line2', 'leave with data')|safe }}</em>.
+    </h2>
+    <p>{{ s('home_cta_body', 'Open, citable, machine-readable. CC-BY-4.0 unless noted otherwise.') }}</p>
+    <div class="cta-actions">
+      <a href="/-/search" class="btn-primary">{{ s('home_cta_primary', 'Start searching') }}</a>
+      <a href="/how-to-use" class="btn-ghost">{{ s('home_cta_ghost', 'Read the guide') }}</a>
     </div>
+  </div>
 </section>
-{% endblock %}
 {% endblock %}
 
 {% block footer %}
