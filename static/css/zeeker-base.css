@@ -203,6 +203,22 @@ a:hover {
     text-decoration: underline;
 }
 
+/* Button-styled anchors never underline */
+a.btn,
+a.btn:hover,
+a.btn:focus,
+a.cta-primary,
+a.cta-primary:hover,
+a.cta-primary:focus,
+a.cta-secondary,
+a.cta-secondary:hover,
+a.cta-secondary:focus,
+.header-left,
+.header-left:hover,
+.header-left:focus {
+    text-decoration: none;
+}
+
 code {
     background: var(--color-code-bg);
     color: var(--color-code-text);
@@ -2232,6 +2248,15 @@ div[class*="export"],
     color: var(--color-text-primary);
     line-height: 1;
     letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Override for non-numeric stat values (acronyms/labels) — sans reads better */
+.stats-strip .stat-number.stat-text {
+    font-family: var(--font-body);
+    font-size: var(--text-xl);
+    font-weight: 600;
+    letter-spacing: 0;
 }
 
 .stats-strip .stat-label {
@@ -2855,6 +2880,19 @@ footer {
 }
 
 .footer-col a:hover {
+    color: var(--color-accent);
+    text-decoration: none;
+}
+
+footer a:link,
+footer a:visited,
+footer a:active {
+    color: var(--color-text-secondary);
+    text-decoration: none;
+}
+
+footer a:hover,
+footer a:focus {
     color: var(--color-accent);
     text-decoration: none;
 }

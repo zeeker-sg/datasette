@@ -106,11 +106,12 @@
 
     <div class="tables-grid">
         {% for table in tables if not table.hidden and not table.name.startswith('_zeeker') %}
+        {% set table_meta = metadata.get('tables', {}).get(table.name) or {} %}
         <div class="db-table">
             <div class="card table-card">
                 <div class="table-header">
                     <h3>
-                        <a href="/{{ database }}/{{ table.name }}">{% if metadata.tables[table.name] and metadata.tables[table.name].title %}{{ metadata.tables[table.name].title }}{% else %}{{ table.name|title }}{% endif %}</a>
+                        <a href="/{{ database }}/{{ table.name }}">{% if table_meta.title %}{{ table_meta.title }}{% else %}{{ table.name|title }}{% endif %}</a>
                     </h3>
 
                     <div class="database-stats">
@@ -136,8 +137,8 @@
                     </div>
                 </div>
 
-                {% if metadata.tables[table.name] and metadata.tables[table.name].description %}
-                <p class="table-description">{{ metadata.tables[table.name].description }}</p>
+                {% if table_meta.description %}
+                <p class="table-description">{{ table_meta.description }}</p>
                 {% endif %}
 
                 {% if table.columns %}
@@ -147,8 +148,8 @@
                         {% for column in table.columns[:5] %}
                         <div class="column-item">
                             <span class="column-name">{{ column }}</span>
-                            {% if metadata.tables[table.name] and metadata.tables[table.name].columns and metadata.tables[table.name].columns[column] %}
-                            <span class="column-description">{{ metadata.tables[table.name].columns[column].description }}</span>
+                            {% if table_meta.columns and table_meta.columns.get(column) %}
+                            <span class="column-description">{{ table_meta.columns[column].description }}</span>
                             {% endif %}
                             {% if column in table.primary_keys %}
                             <span class="column-flag">PK</span>
