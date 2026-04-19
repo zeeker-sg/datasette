@@ -1,0 +1,26 @@
+{#
+  _table-Sglawwatch-about_singapore_law.html
+  Legal-guide partial — title + section pill + source; no excerpt block (content_length commonly 0).
+#}
+<div class="va-feed">
+  {% for row in display_rows %}
+    {% set card_row = row %}
+    {% set card_title_col = "title" %}
+    {% set card_date_col = "last_scraped" %}
+    {% set card_pill_col = "section" %}
+    {% set card_pill_class = "speech" %}
+    {% set card_body_col = "" %}
+    {% set card_body_length_col = "content_length" %}
+    {% set card_source_url_col = "item_url" %}
+    {% set card_id_col = "id" %}
+
+    {# BLK-05: about_singapore_law has a single-column `id` PK. Pass the scalar, NOT a list. #}
+    {% set card_row_href = urls.row(database, table, row[primary_keys[0]]) if primary_keys else '' %}
+
+    {% include "_partials/feed_card.html" %}
+  {% endfor %}
+</div>
+
+{% if not display_rows %}
+<p class="va-empty">No guides match the current filters.</p>
+{% endif %}

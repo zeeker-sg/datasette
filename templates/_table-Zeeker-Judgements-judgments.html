@@ -1,0 +1,29 @@
+{#
+  _table-Zeeker-Judgements-judgments.html
+  Judgment-feed partial — case-name title, court pill, decision_date; citation shown above each card.
+#}
+<div class="va-feed">
+  {% for row in display_rows %}
+    {% set card_row = row %}
+    {% set card_title_col = "case_name" %}
+    {% set card_date_col = "decision_date" %}
+    {% set card_pill_col = "court" %}
+    {% set card_pill_class = "press-release" %}
+    {% set card_body_col = "" %}
+    {% set card_body_length_col = "" %}
+    {% set card_source_url_col = "source_url" %}
+    {% set card_id_col = "id" %}
+
+    {# BLK-05: judgments has a single-column `id` PK. Pass the scalar, NOT a list. #}
+    {% set card_row_href = urls.row(database, table, row[primary_keys[0]]) if primary_keys else '' %}
+
+    <div class="va-item-wrap">
+      {% if row["citation"] %}<div class="va-citation">{{ row.display("citation") }}</div>{% endif %}
+      {% include "_partials/feed_card.html" %}
+    </div>
+  {% endfor %}
+</div>
+
+{% if not display_rows %}
+<p class="va-empty">No judgments match the current filters.</p>
+{% endif %}
