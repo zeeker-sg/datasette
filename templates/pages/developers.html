@@ -12,19 +12,17 @@
 
 {% block content %}
 <div class="container">
-    <div style="text-align: center; padding: 2rem 0;">
-        <h1>Developer Portal</h1>
-        <p style="font-size: 1.2rem; color: var(--color-text-secondary);">
-            Access data programmatically via REST API, CSV exports, and SQL queries
-        </p>
-    </div>
+    <header class="page-intro">
+        <h1>Developer portal</h1>
+        <p class="subtitle">Access data programmatically via REST API, CSV exports, and SQL queries.</p>
+    </header>
 
     <!-- API Overview -->
     <div class="card">
-        <h2>API Overview</h2>
+        <h2>API overview</h2>
         <p>
             Every database and table on data.zeeker.sg is available through a REST API. You can retrieve
-            data as JSON or CSV, run SQL queries, and perform full-text search -- all without authentication.
+            data as JSON or CSV, run SQL queries, and perform full-text search &mdash; all without authentication.
             CORS is enabled on all endpoints.
         </p>
         <p>
@@ -39,7 +37,7 @@
 
     <!-- Stable URL Patterns -->
     <div class="card">
-        <h2>Stable URL Patterns</h2>
+        <h2>Stable URL patterns</h2>
         <table class="api-table">
             <thead>
                 <tr>
@@ -67,7 +65,7 @@
             </tbody>
         </table>
 
-        <h3>Common Parameters</h3>
+        <h3>Common parameters</h3>
         <table class="api-table">
             <thead>
                 <tr>
@@ -105,7 +103,7 @@
     {% set example_db = databases[0] %}
     {% set example_table = example_db.tables[0].name if example_db.tables else "table" %}
     <div class="card">
-        <h2>curl Examples</h2>
+        <h2>curl examples</h2>
         <p>Try these commands in your terminal. Replace database and table names as needed.</p>
 
         <h3>List rows as JSON</h3>
@@ -124,17 +122,17 @@
 
     <!-- Export Formats -->
     <div class="card">
-        <h2>Export Formats</h2>
+        <h2>Export formats</h2>
 
         <h3>JSON</h3>
         <p>
             The default format. Use the <code>_shape</code> parameter to control the response structure:
         </p>
         <ul>
-            <li><code>objects</code> -- array of objects with column names as keys (default)</li>
-            <li><code>arrays</code> -- array of arrays, with a separate columns list</li>
-            <li><code>array</code> -- flat array of objects (no pagination metadata)</li>
-            <li><code>object</code> -- object keyed by primary key</li>
+            <li><code>objects</code> &mdash; array of objects with column names as keys (default)</li>
+            <li><code>arrays</code> &mdash; array of arrays, with a separate columns list</li>
+            <li><code>array</code> &mdash; flat array of objects (no pagination metadata)</li>
+            <li><code>object</code> &mdash; object keyed by primary key</li>
         </ul>
 
         <h3>CSV</h3>
@@ -143,7 +141,7 @@
             that stream all rows without pagination.
         </p>
 
-        <h3>SQLite Database Download</h3>
+        <h3>SQLite database download</h3>
         <p>
             Download the entire database file directly for offline analysis. Available from each
             database page via the download link.
@@ -152,7 +150,7 @@
 
     <!-- SQL Editor -->
     <div class="card">
-        <h2>SQL Query Interface</h2>
+        <h2>SQL query interface</h2>
         <p>
             Each database has a built-in SQL editor where you can write and execute queries directly
             in your browser.
@@ -169,13 +167,13 @@
     <!-- Schema Listing -->
     {% if databases %}
     <div class="card">
-        <h2>Schema Reference</h2>
+        <h2>Schema reference</h2>
         <p>Tables and columns available in each database.</p>
 
         {% for db in databases %}
         <h3>
             <a href="/{{ db.name }}">{{ db.name|title }}</a>
-            <span style="font-weight: normal; font-size: var(--text-sm); color: var(--color-text-muted);">
+            <span class="schema-header-meta">
                 ({{ db.table_count }} table{{ db.table_count|pluralize }})
             </span>
         </h3>
@@ -188,7 +186,7 @@
             <h4>
                 <a href="/{{ db.name }}/{{ table.name }}">{{ table.name }}</a>
                 {% if table.count is defined and table.count is not none %}
-                <span style="font-weight: normal; font-size: var(--text-sm); color: var(--color-text-muted);">
+                <span class="schema-header-meta">
                     ({{ "{:,}".format(table.count) }} rows)
                 </span>
                 {% endif %}
@@ -207,85 +205,14 @@
     </div>
     {% endif %}
 
-    <div class="card" style="text-align: center;">
+    <div class="card centered">
         <h2>Questions?</h2>
-        <p>
-            Need help integrating with the API or have a feature request?
-        </p>
-        <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem; flex-wrap: wrap;">
+        <p>Need help integrating with the API or have a feature request?</p>
+        <div class="cta-actions">
             <a href="/about" class="btn btn-secondary">About</a>
         </div>
     </div>
 </div>
-
-<style>
-.api-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: var(--space-md) 0;
-}
-
-.api-table th,
-.api-table td {
-    text-align: left;
-    padding: var(--space-sm) var(--space-md);
-    border-bottom: 1px solid var(--color-border);
-}
-
-.api-table th {
-    font-weight: 600;
-    color: var(--color-text-primary);
-}
-
-.api-table code {
-    background: var(--color-bg-secondary, #f5f5f5);
-    padding: 2px 6px;
-    border-radius: var(--radius-sm);
-    font-size: var(--text-sm);
-}
-
-pre {
-    background: var(--color-bg-secondary, #f5f5f5);
-    padding: var(--space-md);
-    border-radius: var(--radius-md);
-    overflow-x: auto;
-    margin: var(--space-sm) 0 var(--space-lg) 0;
-}
-
-pre code {
-    background: none;
-    padding: 0;
-    font-size: var(--text-sm);
-}
-
-.schema-table {
-    margin-left: var(--space-md);
-    margin-bottom: var(--space-sm);
-    padding-bottom: var(--space-sm);
-    border-bottom: 1px solid var(--color-border);
-}
-
-.schema-table:last-child {
-    border-bottom: none;
-}
-
-.schema-table h4 {
-    margin: var(--space-xs) 0;
-}
-
-.schema-columns {
-    font-size: var(--text-sm);
-    color: var(--color-text-muted);
-    margin: var(--space-xs) 0;
-}
-
-.schema-columns code {
-    background: var(--color-bg-secondary, #f5f5f5);
-    padding: 1px 4px;
-    border-radius: var(--radius-sm);
-    font-size: var(--text-xs);
-}
-</style>
 {% endblock %}
 
 {% block footer %}

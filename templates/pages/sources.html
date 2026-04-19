@@ -12,12 +12,10 @@
 
 {% block content %}
 <div class="container">
-    <div style="text-align: center; padding: 2rem 0;">
-        <h1>Data Sources</h1>
-        <p style="font-size: 1.2rem; color: var(--color-text-secondary);">
-            Where the data comes from and how it is collected
-        </p>
-    </div>
+    <header class="page-intro">
+        <h1>Data sources</h1>
+        <p class="subtitle">Where the data comes from and how it is collected.</p>
+    </header>
 
     <div class="card">
         <h2>Data Collection</h2>
@@ -87,7 +85,7 @@
         </div>
         {% endif %}
 
-        <div style="margin-top: 1rem;">
+        <div class="sources-meta">
             <a href="/{{ database.name }}" class="btn">Explore Database</a>
             <a href="/{{ database.name }}.json" class="btn btn-secondary">JSON</a>
         </div>
@@ -126,15 +124,13 @@
         </p>
     </div>
 
-    <div class="card" style="text-align: center;">
+    <div class="card centered">
         <h2>Questions?</h2>
-        <p>
-            Questions about data sources, attribution, or access?
-        </p>
+        <p>Questions about data sources, attribution, or access?</p>
 
-        <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem; flex-wrap: wrap;">
+        <div class="cta-actions">
             <a href="/how-to-use" class="btn btn-primary">How to Use</a>
-            <a href="about" class="btn btn-secondary">Learn More</a>
+            <a href="/about" class="btn btn-secondary">Learn More</a>
         </div>
     </div>
 </div>

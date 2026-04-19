@@ -8,6 +8,10 @@
 {% endblock %}
 
 {% block nav %}
+{% set breadcrumbs = [
+    {'href': '/' ~ database, 'label': database|title},
+    {'label': metadata.title if metadata and metadata.title else table|title}
+] %}
 {% include "_header.html" %}
 {% endblock %}
 
@@ -15,14 +19,6 @@
 <!-- Table Header -->
 {% block table_header %}
 <div class="table-header">
-    <div class="breadcrumbs">
-        <a href="/">Home</a>
-        <span class="separator">&rarr;</span>
-        <a href="/{{ database }}">{{ database|title }}</a>
-        <span class="separator">&rarr;</span>
-        <span>{{ metadata.title if metadata and metadata.title else table|title }}</span>
-    </div>
-
     <div class="table-overview">
         <div class="table-info">
             <div class="table-summary">
@@ -73,84 +69,45 @@
     </div>
 </div>
 
-<!-- Column Descriptions Panel -->
-{% if column_descriptions %}
-<div class="card column-descriptions-panel">
-    <details>
-        <summary><h3 style="display:inline">Column Descriptions</h3></summary>
-        <div class="column-list">
-            {% for col_name, col_desc in column_descriptions.items() %}
-            <div class="column-item">
-                <span class="column-name">{{ col_name }}</span>
-                <span class="column-description">{{ col_desc }}</span>
-            </div>
-            {% endfor %}
-        </div>
-    </details>
-</div>
-{% elif metadata and metadata.columns %}
-<div class="card column-descriptions-panel">
-    <details>
-        <summary><h3 style="display:inline">Column Descriptions</h3></summary>
-        <div class="column-list">
-            {% for col_name, col_info in metadata.columns.items() %}
-            <div class="column-item">
-                <span class="column-name">{{ col_name }}</span>
-                {% if col_info is mapping and col_info.description %}
-                <span class="column-description">{{ col_info.description }}</span>
-                {% elif col_info is string %}
-                <span class="column-description">{{ col_info }}</span>
+<!-- Column Descriptions Panel: first 5 visible + details for the rest -->
+{% set col_desc_src = column_descriptions if column_descriptions else (metadata.columns if metadata and metadata.columns else None) %}
+{% if col_desc_src %}
+{% set col_items = col_desc_src.items() | list %}
+<section class="column-descriptions-panel card">
+    <h3 class="column-descriptions-title">Column reference</h3>
+    <dl class="column-list">
+        {% for col_name, col_info in col_items[:5] %}
+        <dt class="column-name">{{ col_name }}</dt>
+        <dd class="column-description">
+            {% if col_info is mapping and col_info.description %}{{ col_info.description }}
+            {% elif col_info is string %}{{ col_info }}
+            {% endif %}
+        </dd>
+        {% endfor %}
+    </dl>
+    {% if col_items | length > 5 %}
+    <details class="column-descriptions-more">
+        <summary>Show {{ col_items | length - 5 }} more column{% if col_items | length - 5 != 1 %}s{% endif %}</summary>
+        <dl class="column-list">
+            {% for col_name, col_info in col_items[5:] %}
+            <dt class="column-name">{{ col_name }}</dt>
+            <dd class="column-description">
+                {% if col_info is mapping and col_info.description %}{{ col_info.description }}
+                {% elif col_info is string %}{{ col_info }}
                 {% endif %}
-            </div>
+            </dd>
             {% endfor %}
-        </div>
+        </dl>
     </details>
-</div>
+    {% endif %}
+</section>
 {% endif %}
 {% endblock %}
 
 {# Let Datasette handle the core table display #}
 {{ super() }}
 
-<!-- Table Tools -->
-{% block table_tools %}
-<section class="table-tools">
-    <div class="card">
-        <h2>Table Tools</h2>
-
-        <div class="tools-grid">
-            <div class="tool">
-                <h3>SQL Query</h3>
-                <p>Run custom SQL queries against this table</p>
-                <a href="/{{ database }}?sql=SELECT+*+FROM+%22{{ table }}%22+LIMIT+100" class="btn">Query Table</a>
-            </div>
-
-            <div class="tool">
-                <h3>Schema</h3>
-                <p>Explore table structure and column details</p>
-                <a href="/{{ database }}?sql=PRAGMA+table_info(%22{{ table }}%22)" class="btn">View Schema</a>
-            </div>
-
-            <div class="tool">
-                <h3>Export Data</h3>
-                <p>Download table data in various formats</p>
-                <div class="export-options">
-                    <a href="/{{ database }}/{{ table }}.csv" class="btn">CSV</a>
-                    <a href="/{{ database }}/{{ table }}.json" class="btn">JSON</a>
-                </div>
-            </div>
-
-            {% if has_fts %}
-            <div class="tool">
-                <h3>Search</h3>
-                <p>Full-text search across table content</p>
-                <a href="/{{ database }}/{{ table }}?_search=" class="btn">Search Table</a>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-</section>
-{% endblock %}
+{# Table Tools card removed — actions live in the top export-bar #}
 
 <!-- SQL Examples: empty by default, available for per-database overlays -->
 {% block sql_examples %}{% endblock %}

@@ -1,20 +1,32 @@
-<header>
-    <div class="header-content">
-        <div class="header-left">
-            <div class="logo">{{ str_site_title }}</div>
-            <div class="tagline">{{ str_site_tagline }}</div>
-        </div>
-        <nav>
+<nav class="db-nav">
+    <div class="container">
+        <a class="logo" href="/">{{ str_site_title|default('data.zeeker.sg', true) }}</a>
+        <div class="menu">
             {% block nav_items %}
-            <ul>
-                <li><a href="/-/search">Search All</a></li>
-                {% if metadata and metadata.menu_links %}
+            {% if metadata and metadata.menu_links %}
                 {% for link in metadata.menu_links %}
-                <li><a href="{{ link.href }}">{{ link.label }}</a></li>
+                    {% if link.href != '/' %}
+                        <a href="{{ link.href }}">{{ link.label }}</a>
+                    {% endif %}
                 {% endfor %}
-                {% endif %}
-            </ul>
+            {% endif %}
             {% endblock %}
-        </nav>
+        </div>
     </div>
-</header>
+</nav>
+
+{% if breadcrumbs %}
+<div class="db-crumb">
+    <div class="container">
+        <a href="/">Home</a>
+        {% for crumb in breadcrumbs %}
+            <span class="sep">&rsaquo;</span>
+            {% if crumb.href and not loop.last %}
+                <a href="{{ crumb.href }}">{{ crumb.label }}</a>
+            {% else %}
+                <span class="current">{{ crumb.label }}</span>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+{% endif %}

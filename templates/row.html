@@ -6,6 +6,12 @@
 {% endblock %}
 
 {% block nav %}
+{% set breadcrumbs = [
+    {'href': '/', 'label': 'Home'},
+    {'href': '/' ~ database, 'label': database|title},
+    {'href': '/' ~ database ~ '/' ~ table, 'label': table|title},
+    {'label': 'Record Details'}
+] %}
 {% include "_header.html" %}
 {% endblock %}
 
@@ -15,16 +21,6 @@
 <!-- Row Header -->
 {% block row_header %}
 <div class="row-header">
-    <div class="breadcrumbs">
-        <a href="/">Home</a>
-        <span class="separator">&rarr;</span>
-        <a href="/{{ database }}">{{ database|title }}</a>
-        <span class="separator">&rarr;</span>
-        <a href="/{{ database }}/{{ table }}">{{ table|title }}</a>
-        <span class="separator">&rarr;</span>
-        <span>Record Details</span>
-    </div>
-
     <div class="row-overview">
         <div class="row-info">
             <div class="row-summary">

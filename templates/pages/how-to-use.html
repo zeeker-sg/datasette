@@ -85,7 +85,7 @@ Then bookmark: /-/search?q=your+topic</code></pre>
 
                 <div class="example-box">
                     <button class="copy-btn" aria-label="Copy code">Copy</button>
-                    <pre><code>SELECT strftime('%Y-%m', date) as month,
+                    <pre><code class="language-sql">SELECT strftime('%Y-%m', date) as month,
        COUNT(*) as mentions
 FROM your_table
 WHERE LOWER(text) LIKE '%keyword%'
@@ -141,7 +141,7 @@ Custom query: /{database}.csv?sql=your+query</code></pre>
                 <h4>Find Recent Records</h4>
                 <div class="example-box">
                     <button class="copy-btn" aria-label="Copy code">Copy</button>
-                    <pre><code>SELECT title, date
+                    <pre><code class="language-sql">SELECT title, date
 FROM your_table
 WHERE date > '2024-01-01'
 ORDER BY date DESC
@@ -154,7 +154,7 @@ LIMIT 20</code></pre>
                 <h4>Search by Keyword</h4>
                 <div class="example-box">
                     <button class="copy-btn" aria-label="Copy code">Copy</button>
-                    <pre><code>SELECT title, date
+                    <pre><code class="language-sql">SELECT title, date
 FROM your_table
 WHERE LOWER(text) LIKE '%keyword%'
    OR LOWER(title) LIKE '%keyword%'
@@ -167,7 +167,7 @@ ORDER BY date DESC</code></pre>
                 <h4>Mentions Over Time</h4>
                 <div class="example-box">
                     <button class="copy-btn" aria-label="Copy code">Copy</button>
-                    <pre><code>SELECT strftime('%Y-%m', date) as month,
+                    <pre><code class="language-sql">SELECT strftime('%Y-%m', date) as month,
        COUNT(*) as mentions
 FROM your_table
 WHERE LOWER(text) LIKE '%keyword%'
@@ -183,7 +183,7 @@ LIMIT 24</code></pre>
                 <h4>Complex Multi-term Search</h4>
                 <div class="example-box">
                     <button class="copy-btn" aria-label="Copy code">Copy</button>
-                    <pre><code>SELECT title, date
+                    <pre><code class="language-sql">SELECT title, date
 FROM your_table
 WHERE (LOWER(text) LIKE '%term one%'
    OR LOWER(text) LIKE '%term two%'
@@ -198,7 +198,7 @@ ORDER BY date DESC</code></pre>
                 <h4>Weekly Activity Trends</h4>
                 <div class="example-box">
                     <button class="copy-btn" aria-label="Copy code">Copy</button>
-                    <pre><code>SELECT
+                    <pre><code class="language-sql">SELECT
   strftime('%Y-W%W', date) as week,
   COUNT(*) as record_count
 FROM
@@ -332,7 +332,7 @@ SQL query: /{database}.json?sql=SELECT+*+FROM+table+LIMIT+10</code></pre>
 
                 <div class="method-card">
                     <h3>More Resources</h3>
-                    <ul style="text-align: left;">
+                    <ul class="text-left">
                         <li><a href="/sources">Data Sources and Attribution</a></li>
                         <li><a href="https://docs.datasette.io/" target="_blank">Datasette Documentation</a> (the underlying platform)</li>
                         <li><a href="https://sqlitebrowser.org/" target="_blank">DB Browser for SQLite</a> (for offline analysis)</li>

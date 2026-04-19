@@ -64,3 +64,7 @@ Zeeker Datasette is a data exploration platform built on Datasette. It provides 
 - CORS enabled on all API endpoints
 - All `_zeeker_*` metadata tables are hidden from the UI
 - Templates use `{{ s('key', 'default') }}` for translatable/configurable strings
+
+## Design & UI Routing
+- **Sketch findings for zeeker-datasette** (design decisions, CSS patterns, visual direction) → `Skill("sketch-findings-zeeker-datasette")`
+- **Datasette styling limits** (template override surface, app.css specificity, `_table-{db}-{table}.html` seam) → `.planning/notes/datasette-styling-limits.md`
