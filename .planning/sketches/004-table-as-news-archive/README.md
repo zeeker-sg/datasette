@@ -31,3 +31,11 @@ All three render the same 20 realistic ACRA rows with categories (press-release 
 - **Density trade** — C lets 20 items fit on a tall screen; A shows 6-7 with full excerpts. Which fits the reading intent better?
 - **Scaling to 361** — which pattern still works at page 10? B's monthly grouping gets heavy if there are 20+ months; A stays uniform; C's "featured" concept gets weird past page 1.
 - **Category treatment** — color-coded pills on every variant; ochre = speech, petrol = press-release, terracotta = announcement, muted = newsletter. Readable?
+
+## Implementation Hint
+
+Do **not** replace the full `table.html`. Use Datasette's `_table-{database}-{table}.html` seam — it replaces *only* the `<table class="rows-and-columns">` block while keeping the filter form, FTS search, sort links, pagination, CSV/JSON export links, and the full advanced-export pane for free.
+
+Per-table file per news table (e.g. `templates/_table-sg_govt_newsrooms-acra_news.html`), each doing `{% include "_partials/news_feed.html" %}` to share the card markup. Inside the partial, `display_rows` is iterable and `row.display("col")` gives the HTML-rendered value. Use `urls.row(database, table, row[primary_keys[0]])` for permalinks and `path_with_replaced_args(request, {'category': row['category']})` for clickable category pills.
+
+See `.planning/notes/datasette-styling-limits.md` for full context variables available inside the partial.
