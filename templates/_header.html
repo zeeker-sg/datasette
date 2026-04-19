@@ -1,47 +1,32 @@
-<header>
-    <div class="header-content">
-        <a class="header-left" href="/">
-            <div class="logo">{{ str_site_title|default('data.zeeker.sg', true) }}</div>
-            <div class="tagline">{{ str_site_tagline|default('Open Data Platform', true) }}</div>
-        </a>
-
-        <form class="header-search" action="/-/search" method="get" role="search">
-            <label for="header-search-input" class="visually-hidden">{% if s is defined %}{{ s('form_search', 'Search') }}{% else %}Search{% endif %}</label>
-            <svg class="header-search-icon" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="9" cy="9" r="6"></circle>
-                <path d="m14 14 4 4"></path>
-            </svg>
-            <input id="header-search-input" type="search" name="q" placeholder="{% if s is defined %}{{ s('search_placeholder', 'Search...') }}{% else %}Search...{% endif %}" autocomplete="off">
-            <kbd class="header-search-kbd" aria-hidden="true">/</kbd>
-        </form>
-
-        <nav>
+<nav class="db-nav">
+    <div class="container">
+        <a class="logo" href="/">{{ str_site_title|default('data.zeeker.sg', true) }}</a>
+        <div class="menu">
             {% block nav_items %}
-            <ul>
-                {% if metadata and metadata.menu_links %}
+            {% if metadata and metadata.menu_links %}
                 {% for link in metadata.menu_links %}
-                {% if link.href != '/' %}
-                <li><a href="{{ link.href }}">{{ link.label }}</a></li>
-                {% endif %}
+                    {% if link.href != '/' %}
+                        <a href="{{ link.href }}">{{ link.label }}</a>
+                    {% endif %}
                 {% endfor %}
-                {% endif %}
-            </ul>
+            {% endif %}
             {% endblock %}
-        </nav>
-    </div>
-
-    {% if breadcrumbs %}
-    <div class="header-breadcrumb">
-        <div class="header-breadcrumb-inner">
-            {% for crumb in breadcrumbs %}
-                {% if not loop.first %}<span class="separator">&rsaquo;</span>{% endif %}
-                {% if crumb.href and not loop.last %}
-                    <a href="{{ crumb.href }}">{{ crumb.label }}</a>
-                {% else %}
-                    <span class="current">{{ crumb.label }}</span>
-                {% endif %}
-            {% endfor %}
         </div>
     </div>
-    {% endif %}
-</header>
+</nav>
+
+{% if breadcrumbs %}
+<div class="db-crumb">
+    <div class="container">
+        <a href="/">Home</a>
+        {% for crumb in breadcrumbs %}
+            <span class="sep">&rsaquo;</span>
+            {% if crumb.href and not loop.last %}
+                <a href="{{ crumb.href }}">{{ crumb.label }}</a>
+            {% else %}
+                <span class="current">{{ crumb.label }}</span>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
