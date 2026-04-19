@@ -3561,6 +3561,166 @@ footer {
     .site-footer .footer-grid { grid-template-columns: repeat(2, 1fr); gap: var(--space-6); }
 }
 
+/* =========== HOME — phase 01 ============ */
+
+/* Hero inline search (home only) */
+.home-header .hero-search {
+  margin-top: var(--space-8);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background: var(--color-surface);
+  border: 2px solid var(--color-accent);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  max-width: 640px;
+}
+.home-header .hero-search input {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
+  color: var(--color-text);
+}
+.home-header .hero-search button {
+  background: var(--color-accent);
+  color: var(--color-text-inverse);
+  border: 0;
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  transition: background 0.15s ease;
+}
+.home-header .hero-search button:hover { background: var(--color-accent-hover); }
+
+/* Card grid with rotating accent borders */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-4);
+}
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-top: 3px solid var(--color-accent);
+  padding: var(--space-6);
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card:nth-child(3n+2) { border-top-color: var(--color-ochre); }
+.card:nth-child(3n+3) { border-top-color: var(--color-terracotta); }
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.card .idx {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-4);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+.card .card-meta {
+  display: flex;
+  gap: var(--space-3);
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  margin-bottom: var(--space-3);
+}
+.card h3 {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin: 0 0 var(--space-2);
+  line-height: 1.15;
+}
+.card h3 a,
+.card h3 a:link,
+.card h3 a:visited {
+  color: var(--color-ink);
+  text-decoration: none;
+}
+.card h3 a:hover { color: var(--color-accent); text-decoration: none; }
+.card .card-desc {
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  margin: 0 0 var(--space-4);
+}
+.card .card-count {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 500;
+  color: var(--color-ink);
+  margin-bottom: var(--space-4);
+  line-height: 1;
+}
+.card .card-count small {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  margin-left: 6px;
+  font-weight: 400;
+}
+.card .chips {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+.chip {
+  font-family: var(--font-body);
+  font-size: var(--text-2xs);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+}
+.chip.chip-link:hover { background: var(--color-accent); color: var(--color-text-inverse); text-decoration: none; }
+.card:nth-child(3n+2) .chip:not(.chip-link) { background: rgba(192,138,46,0.15); color: var(--color-ochre); }
+.card:nth-child(3n+3) .chip:not(.chip-link) { background: rgba(181,85,47,0.15); color: var(--color-terracotta); }
+
+/* How-to 3-column */
+.how-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-8);
+}
+.how-item .kicker { margin-bottom: var(--space-2); }
+.how-item h3 {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 500;
+  color: var(--color-ink);
+  margin: 0 0 var(--space-3);
+  letter-spacing: -0.01em;
+}
+.how-item h3 em { font-style: italic; color: var(--color-accent); }
+.how-item p {
+  color: var(--color-text-secondary);
+  font-size: var(--text-base);
+  line-height: 1.55;
+  margin: 0;
+}
+@media (max-width: 960px) {
+  .how-grid { grid-template-columns: 1fr; gap: var(--space-6); }
+}
+
 /* ----------------------------------------------------------------
  * FOOTER LINK OVERRIDE — must remain at TAIL of file to win cascade
  * against Datasette's /-/static/app.css `footer a:link` rule.
