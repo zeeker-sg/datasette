@@ -3721,6 +3721,142 @@ footer {
   .how-grid { grid-template-columns: 1fr; gap: var(--space-6); }
 }
 
+/* =========== DATABASE EDITORIAL ROWS — phase 01 ============ */
+
+.list {
+  border-top: 2px solid var(--color-ink);
+}
+.row {
+  display: grid;
+  grid-template-columns: 60px 1fr 280px 130px 130px;
+  gap: var(--space-6);
+  align-items: baseline;
+  padding: var(--space-6) 0;
+  border-bottom: 1px solid var(--color-border);
+  transition: background 0.2s ease, padding 0.2s ease, margin 0.2s ease;
+  position: relative;
+}
+.row::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 0;
+  height: 0;
+  background: var(--color-accent);
+  transition: width 0.2s ease, height 0.2s ease, left 0.2s ease;
+  transform: translateY(-50%);
+}
+.row:hover {
+  background: var(--color-bg-alt);
+  padding-left: var(--space-6);
+  padding-right: var(--space-4);
+  margin-left: calc(-1 * var(--space-6));
+  margin-right: calc(-1 * var(--space-4));
+}
+.row:hover::before {
+  width: 3px;
+  height: 60%;
+  left: -3px;
+}
+.row:hover .name { color: var(--color-accent); }
+
+.row .idx {
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+.row .name-col { min-width: 0; }
+.row .name,
+.row .name:link,
+.row .name:visited {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: 500;
+  color: var(--color-ink);
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  display: block;
+  margin-bottom: var(--space-2);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.row .name:hover { color: var(--color-accent); text-decoration: none; }
+.row .desc {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  margin: 0;
+}
+.row .cols {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+  word-break: break-word;
+}
+.row .cols .pk {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+.row .cols .more {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+.row .count-col { text-align: right; }
+.row .count {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: 500;
+  color: var(--color-ink);
+  display: block;
+  line-height: 1;
+}
+.row .label {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  margin-top: 4px;
+  display: block;
+}
+.row .date-col {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  line-height: 1.7;
+}
+.row .date-col a { color: var(--color-text-secondary); }
+.row .date-col a:hover { color: var(--color-accent); text-decoration: none; }
+
+/* Meta-col export-links variant on database hero */
+.db-header .meta-col dd.export-links {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  display: flex;
+  gap: var(--space-3);
+}
+.db-header .meta-col dd.export-links a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+.db-header .meta-col dd.export-links a:hover { color: var(--color-accent-hover); text-decoration: underline; }
+
+@media (max-width: 960px) {
+  .row {
+    grid-template-columns: 40px 1fr 110px;
+    gap: var(--space-3);
+  }
+  .row .cols,
+  .row .date-col {
+    display: none;
+  }
+  .row .name { font-size: var(--text-xl); }
+  .row .count { font-size: var(--text-xl); }
+}
+
 /* ----------------------------------------------------------------
  * FOOTER LINK OVERRIDE — must remain at TAIL of file to win cascade
  * against Datasette's /-/static/app.css `footer a:link` rule.
