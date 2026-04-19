@@ -3157,6 +3157,10 @@ footer {
     border: 0;
 }
 
+/* Hide content_text column across all tables — copyright reasons.
+ * Column remains accessible via SQL and JSON API. (merged from master) */
+.col-content_text { display: none; }
+
 /* =========== SHELL CHROME — phase 01 ============ */
 
 /* .container — shared layout wrapper for chrome/section blocks */
