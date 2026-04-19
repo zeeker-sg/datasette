@@ -17,265 +17,221 @@
 {% endblock %}
 
 {% block content %}
-<!-- Database Header -->
-{% block database_header %}
-<div class="database-header">
-    <div class="database-overview">
-        <div class="database-info">
-            <div class="database-summary">
-                <h1 class="database-title">{{ metadata.title if metadata and metadata.title else database|title }}</h1>
+{# --- Compute the visible-tables list ONCE (BLK-02, BLK-03) ------- #}
+{# Filter: not hidden AND name does not match ^_zeeker.* #}
+{% set vt = tables|selectattr('hidden','ne',true)|rejectattr('name','match','^_zeeker.*')|list %}
 
-                {% if metadata and metadata.description %}
-                <p class="database-subtitle">{{ metadata.description }}</p>
-                {% endif %}
-
-                <div class="database-stats">
-                    {% if tables %}
-                    {% set visible_tables = tables|rejectattr('hidden')|list %}
-                    <div class="stat-item">
-                        <span class="stat-number">{{ visible_tables|length }}</span>
-                        <span class="stat-label">{{ plural(visible_tables|length, 'table', 'tables') }}</span>
-                    </div>
-                    {% endif %}
-
-                    {% if tables %}
-                    {% set counts = [] %}
-                    {% for table in tables if not table.hidden %}
-                    {% if table.count %}
-                    {% set _ = counts.append(table.count) %}
-                    {% endif %}
-                    {% endfor %}
-                    {% set total_rows = counts | sum %}
-                    {% if total_rows > 0 %}
-                    <div class="stat-item">
-                        <span class="stat-number">{{ "{:,}".format(total_rows) }}</span>
-                        <span class="stat-label">total rows</span>
-                    </div>
-                    {% endif %}
-                    {% endif %}
-
-                    {% if size is defined and size %}
-                    <div class="stat-item">
-                        <span class="stat-number">{{ size|filesizeformat }}</span>
-                        <span class="stat-label">size</span>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="database-actions-section">
-                <div class="export-bar">
-                    <span class="export-bar-label">Download:</span>
-                    <div class="export-actions">
-                        <a href="/{{ database }}.csv" class="btn btn-secondary">CSV</a>
-                        <a href="/{{ database }}.json" class="btn btn-secondary">JSON</a>
-                        <a href="/{{ database }}.db" class="btn btn-secondary">SQLite</a>
-                        <a href="/{{ database }}?sql=SELECT+*+FROM+sqlite_master+WHERE+type%3D%27table%27"
-                           class="btn btn-secondary">Schema</a>
-                    </div>
-                </div>
-            </div>
-        </div>
+{# --- Editorial hero ------------------------------------------- #}
+<header class="db-header">
+  <div class="container">
+    <div class="db-header-grid">
+      <div>
+        <div class="kicker">№ 01 · Database</div>
+        <h1>
+          {% set db_title = metadata.title if metadata and metadata.title else (database|replace('-', ' ')|replace('_', ' ')|title) %}
+          {# WARN-04: split on the LAST space so only the trailing word gets italicized #}
+          {% if ' ' in db_title %}
+            {% set idx = db_title.rfind(' ') %}
+            {{ db_title[:idx] }} <em>{{ db_title[idx+1:] }}</em>
+          {% else %}
+            <em>{{ db_title }}</em>
+          {% endif %}
+        </h1>
+        {% if metadata and metadata.description %}
+        <p class="lede">{{ metadata.description }}</p>
+        {% endif %}
+      </div>
+      <dl class="meta-col">
+        {% if size is defined and size %}
+        <dt>Size</dt>
+        <dd>{{ size|filesizeformat }}</dd>
+        {% endif %}
+        {% if metadata and metadata.license %}
+        <dt>Licence</dt>
+        <dd>
+          {% if metadata.license_url %}<a href="{{ metadata.license_url }}">{{ metadata.license }}</a>
+          {% else %}{{ metadata.license }}{% endif %}
+        </dd>
+        {% endif %}
+        {% if metadata and metadata.source %}
+        <dt>Source</dt>
+        <dd>
+          {% if metadata.source_url %}<a href="{{ metadata.source_url }}">{{ metadata.source }}</a>
+          {% else %}{{ metadata.source }}{% endif %}
+        </dd>
+        {% endif %}
+        <dt>Export</dt>
+        <dd class="export-links">
+          <a href="/{{ database }}.csv">CSV</a>
+          <a href="/{{ database }}.json">JSON</a>
+          <a href="/{{ database }}.db">SQLite</a>
+        </dd>
+      </dl>
     </div>
+  </div>
+</header>
+
+{# --- Petrol stat band ---------------------------------------- #}
+{% set total_rows_ns = namespace(total=0) %}
+{% for t in vt %}
+  {% if t.count is not none %}
+    {% set total_rows_ns.total = total_rows_ns.total + t.count %}
+  {% endif %}
+{% endfor %}
+<div class="db-statband">
+  <div class="container">
+    <div>
+      <div class="stat-num">{{ vt|length }}</div>
+      <span class="stat-label">{{ plural(vt|length, 'plural_table', 'plural_tables') }}</span>
+    </div>
+    {% if total_rows_ns.total > 0 %}
+    <div>
+      <div class="stat-num">{{ "{:,}".format(total_rows_ns.total) }}</div>
+      <span class="stat-label">total rows</span>
+    </div>
+    {% endif %}
+    {% if size is defined and size %}
+    <div>
+      <div class="stat-num">{{ size|filesizeformat }}</div>
+      <span class="stat-label">on disk</span>
+    </div>
+    {% endif %}
+    <div>
+      <div class="stat-num">SQL</div>
+      <span class="stat-label">
+        <a href="/{{ database }}?sql=SELECT+name+FROM+sqlite_master+WHERE+type%3D%27table%27" style="color: inherit; text-decoration: underline;">open query</a>
+      </span>
+    </div>
+  </div>
 </div>
-{% endblock %}
 
+{# --- Sticky sub-toolbar (WARN-02 — consumes .db-toolbar from Plan 02) --- #}
+<div class="db-toolbar">
+  <div class="container">
+    <form class="db-toolbar-search" method="get" action="/{{ database }}" role="search">
+      <label for="db-table-filter" class="visually-hidden">Filter tables</label>
+      <input id="db-table-filter" type="search" name="_search"
+             value="{{ search_query if search_query is defined and search_query else '' }}"
+             placeholder="Filter tables by name or description…"
+             autocomplete="off">
+      <button type="submit">Filter</button>
+    </form>
+    <a class="fts-badge" href="/{{ database }}?sql=SELECT+*+FROM+sqlite_master+WHERE+type%3D%27table%27">Schema</a>
+  </div>
+</div>
+
+{# --- Search-results banner (retained from existing) ---------- #}
 {% if search_query %}
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title">Search Results for "{{ search_query }}"</h2>
-        <p class="card-description">
-            {% if search_results %}
-            Found {{ search_results|length }} matching table{% if search_results|length != 1 %}s{% endif %}
-            {% else %}
-            No tables found matching your search.
-            {% endif %}
-        </p>
-    </div>
+<div class="container" style="padding-top: var(--space-8);">
+  <div class="kicker">Search results</div>
+  <h2 style="font-family: var(--font-display); font-size: var(--text-2xl); margin-top: var(--space-2);">
+    {% if search_results %}
+      {{ search_results|length }} match{% if search_results|length != 1 %}es{% endif %} for “{{ search_query }}”
+    {% else %}
+      No tables match “{{ search_query }}”
+    {% endif %}
+  </h2>
 </div>
 {% endif %}
 
-<!-- Tables Section -->
-{% block tables_section %}
-{% if tables %}
-<section class="tables-section">
-    {% if not search_query %}
-    <h2>Tables</h2>
-    {% endif %}
-
-    <div class="tables-grid">
-        {% for table in tables if not table.hidden and not table.name.startswith('_zeeker') %}
+{# --- № 01 · Tables (editorial rows) -------------------------- #}
+{% if vt %}
+<section class="section">
+  <div class="container">
+    <div class="section-num">№ 01 · Tables</div>
+    <div class="list">
+      {% for table in vt %}
         {% set table_meta = metadata.get('tables', {}).get(table.name) or {} %}
-        <div class="db-table">
-            <div class="card table-card">
-                <div class="table-header">
-                    <h3>
-                        <a href="/{{ database }}/{{ table.name }}">{% if table_meta.title %}{{ table_meta.title }}{% else %}{{ table.name|title }}{% endif %}</a>
-                    </h3>
-
-                    <div class="database-stats">
-                        {% if table.count is defined and table.count is not none %}
-                        <div class="stat-item">
-                            <span class="stat-number">{{ "{:,}".format(table.count) }}</span>
-                            <span class="stat-label">rows</span>
-                        </div>
-                        {% endif %}
-
-                        {% if table.columns %}
-                        <div class="stat-item">
-                            <span class="stat-number">{{ "{:,}".format(table.columns|list|length) }}</span>
-                            <span class="stat-label">columns</span>
-                        </div>
-                        {% endif %}
-
-                        {% if table.fts_table %}
-                        <div class="stat-item">
-                            <span class="stat-label">Searchable</span>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-
-                {% if table_meta.description %}
-                <p class="table-description">{{ table_meta.description }}</p>
-                {% endif %}
-
-                {% if table.columns %}
-                <div class="table-schema">
-                    <h4>Key Columns:</h4>
-                    <div class="column-list">
-                        {% for column in table.columns[:5] %}
-                        <div class="column-item">
-                            <span class="column-name">{{ column }}</span>
-                            {% if table_meta.columns and table_meta.columns.get(column) %}
-                            <span class="column-description">{{ table_meta.columns[column].description }}</span>
-                            {% endif %}
-                            {% if column in table.primary_keys %}
-                            <span class="column-flag">PK</span>
-                            {% endif %}
-                        </div>
-                        {% endfor %}
-                        {% if table.columns|length > 5 %}
-                        <div class="column-item more-columns">
-                            <em>...and {{ table.columns|length - 5 }} more column{% if (table.columns|length - 5) != 1 %}s{% endif %}</em>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endif %}
-
-                <div class="table-actions">
-                    <a href="/{{ database }}/{{ table.name }}" class="btn btn-primary">Explore</a>
-                    <a href="/{{ database }}/{{ table.name }}.csv" class="btn">CSV</a>
-                    <a href="/{{ database }}/{{ table.name }}.json" class="btn">JSON</a>
-                    {% if table.fts %}
-                    <a href="/{{ database }}/{{ table.name }}?_search=" class="btn">Search</a>
-                    {% endif %}
-                </div>
-            </div>
+        <div class="row">
+          <div class="idx">{{ "{:02d}".format(loop.index) }}</div>
+          <div class="name-col">
+            <a href="/{{ database }}/{{ table.name }}" class="name">
+              {% if table_meta.title %}{{ table_meta.title }}{% else %}{{ table.name|replace('_', ' ')|title }}{% endif %}
+            </a>
+            {% if table_meta.description %}
+            <div class="desc">{{ table_meta.description }}</div>
+            {% elif table.human_description_en %}
+            <div class="desc">{{ table.human_description_en }}</div>
+            {% endif %}
+          </div>
+          <div class="cols">
+            {% if table.columns %}
+              {% for col in table.columns[:8] %}{% if not loop.first %} · {% endif %}<span class="{% if col in (table.primary_keys or []) %}pk{% endif %}">{{ col }}</span>{% endfor %}
+              {% if table.columns|length > 8 %} <span class="more">+{{ table.columns|length - 8 }}</span>{% endif %}
+            {% endif %}
+          </div>
+          <div class="count-col">
+            {% if table.count is not none %}
+            <span class="count">{{ "{:,}".format(table.count) }}</span>
+            <span class="label">rows</span>
+            {% else %}
+            <span class="count">—</span>
+            <span class="label">rows</span>
+            {% endif %}
+          </div>
+          <div class="date-col">
+            {% if table.fts_table or table.fts %}<span class="fts-badge">FTS</span><br>{% endif %}
+            <a href="/{{ database }}/{{ table.name }}.csv">CSV</a> ·
+            <a href="/{{ database }}/{{ table.name }}.json">JSON</a>
+          </div>
         </div>
-        {% endfor %}
+      {% endfor %}
     </div>
+  </div>
 </section>
 {% else %}
-<section class="no-tables">
-    <div class="card">
-        <h2>No Tables Available</h2>
-        {% if search_query %}
-        <p>No tables found matching "{{ search_query }}". Try a different search term or <a href="/{{ database }}">view all tables</a>.</p>
-        {% else %}
-        <p>This database doesn't contain any tables yet.</p>
-        {% endif %}
-    </div>
+<section class="section">
+  <div class="container">
+    <p>No tables yet in this database.</p>
+  </div>
 </section>
 {% endif %}
-{% endblock %}
 
+{# --- Views (retained) --------------------------------------- #}
 {% if views %}
-<section class="views-section">
-    <h2>Views</h2>
-    <div class="views-grid">
-        {% for view in views %}
-        <div class="card view-card">
-            <h3>
-                <a href="/{{ database }}/{{ view.name }}">{{ view.name|title }}</a>
-            </h3>
-
-            {% if view.description %}
-            <p class="view-description">{{ view.description }}</p>
-            {% endif %}
-
-            <div class="view-actions">
-                <a href="/{{ database }}/{{ view.name }}" class="btn btn-primary">Query</a>
-                <a href="/{{ database }}/{{ view.name }}.json" class="btn">JSON</a>
-            </div>
+<section class="section alt">
+  <div class="container">
+    <div class="section-num">№ 02 · Views</div>
+    <div class="list">
+      {% for view in views %}
+      <div class="row">
+        <div class="idx">{{ "{:02d}".format(loop.index) }}</div>
+        <div class="name-col">
+          <a href="/{{ database }}/{{ view.name }}" class="name">{{ view.name|replace('_', ' ')|title }}</a>
+          {% if view.description %}<div class="desc">{{ view.description }}</div>{% endif %}
         </div>
-        {% endfor %}
+        <div class="cols"></div>
+        <div class="count-col"><span class="count">view</span><span class="label">&nbsp;</span></div>
+        <div class="date-col"><a href="/{{ database }}/{{ view.name }}.json">JSON</a></div>
+      </div>
+      {% endfor %}
     </div>
+  </div>
 </section>
 {% endif %}
 
-<!-- SQL Examples: empty by default, available for per-database overlays -->
-{% block sql_examples %}{% endblock %}
-
-<!-- Data Guide — source / license / suggested uses (tools live in top export-bar) -->
-{% block database_tools %}
-<aside class="data-guide">
-    <div class="card data-guide-card">
-        <h2>About this data</h2>
-        <dl class="data-guide-list">
-            {% if metadata and metadata.description %}
-            <dt>Description</dt>
-            <dd>{{ metadata.description }}</dd>
-            {% endif %}
-
-            {% if metadata and metadata.license %}
-            <dt>License</dt>
-            <dd>
-                {% if metadata.license_url %}
-                <a href="{{ metadata.license_url }}">{{ metadata.license }}</a>
-                {% else %}
-                {{ metadata.license }}
-                {% endif %}
-            </dd>
-            {% endif %}
-
-            {% if metadata and metadata.source %}
-            <dt>Source</dt>
-            <dd>
-                {% if metadata.source_url %}
-                <a href="{{ metadata.source_url }}">{{ metadata.source }}</a>
-                {% else %}
-                {{ metadata.source }}
-                {% endif %}
-            </dd>
-            {% endif %}
-        </dl>
-    </div>
-</aside>
-{% endblock %}
-
+{# --- Canned queries (retained) ------------------------------ #}
 {% if canned_queries %}
-<section class="canned-queries">
-    <div class="card">
-        <h2>Saved Queries</h2>
-        <p>Common queries to get you started</p>
-
-        <div class="queries-grid">
-            {% for query in canned_queries %}
-            <div class="query-card">
-                <h3>{{ query.title }}</h3>
-                {% if query.description %}
-                <p class="query-description">{{ query.description }}</p>
-                {% endif %}
-                <div class="query-actions">
-                    <a href="/{{ database }}?{{ query.name }}" class="btn btn-primary">Run</a>
-                    <a href="/{{ database }}?{{ query.name }}&_format=json" class="btn">JSON</a>
-                </div>
-            </div>
-            {% endfor %}
+<section class="section">
+  <div class="container">
+    <div class="section-num">№ 03 · Saved queries</div>
+    <div class="list">
+      {% for query in canned_queries %}
+      <div class="row">
+        <div class="idx">{{ "{:02d}".format(loop.index) }}</div>
+        <div class="name-col">
+          <a href="/{{ database }}/{{ query.name }}" class="name">{{ query.title }}</a>
+          {% if query.description %}<div class="desc">{{ query.description }}</div>{% endif %}
         </div>
+        <div class="cols"></div>
+        <div class="count-col"></div>
+        <div class="date-col"><a href="/{{ database }}/{{ query.name }}.json">JSON</a></div>
+      </div>
+      {% endfor %}
     </div>
+  </div>
 </section>
 {% endif %}
 {% endblock %}
+
+{% block footer %}{% include "_footer.html" %}{% endblock %}
