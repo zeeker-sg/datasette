@@ -1,0 +1,25 @@
+{
+  "source_path": "/Users/houfu/Projects/zeeker-datasette/prd-zeeker-frontend-split.md",
+  "type": "PRD",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "PRD: Split data.zeeker.sg into API (Datasette) + Frontend (FastAPI)",
+  "summary": "Architectural refactor of data.zeeker.sg deployment: split into Datasette (read-only API) + FastAPI/Jinja frontend behind a Caddy suffix-routing proxy; preserve API byte-for-byte and the zeeker CLI/S3 pipeline.",
+  "scope": [
+    "data.zeeker.sg deployment topology",
+    "datasette service (API only)",
+    "new frontend service (FastAPI + Jinja2)",
+    "Caddy reverse proxy with suffix-based routing",
+    "URL routing contract (.json/.csv/.db/-/* -> datasette; everything else -> frontend)",
+    "packages/zeeker-datasette pruning (templates/static/UI plugins deleted)",
+    "new packages/zeeker-frontend",
+    "incremental migration plan (6 steps)",
+    "per-database UI overlay mechanism (open question)"
+  ],
+  "cross_refs": [
+    ".planning/notes/datasette-styling-limits.md"
+  ],
+  "locked": false,
+  "precedence": null,
+  "notes": "Status: Draft. Appendix A enumerates 6 PRD-level architectural choices but they are not ratified ADRs (no Accepted status, no per-decision ADR file). Scope DIRECTLY conflicts with the strategy of current milestone M1 'Editorial polish', which invests in patching the existing Datasette template surface. This PRD proposes replacing that surface entirely. Merge-mode synthesis must surface this as a competing-direction WARNING for user resolution."
+}

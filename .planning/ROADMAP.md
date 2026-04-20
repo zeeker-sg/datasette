@@ -57,3 +57,166 @@ Note: Plans 03/04/05 all append to `static/css/zeeker-base.css`; they run sequen
 - Skill: `sketch-findings-zeeker-datasette` (auto-loads)
 - Sources: `.claude/skills/sketch-findings-zeeker-datasette/sources/`
 - Constraints: `.planning/notes/datasette-styling-limits.md`
+
+---
+
+## Milestone M2: Frontend / API Split
+
+Split `data.zeeker.sg` into a read-only Datasette API + a FastAPI/Jinja frontend behind a Caddy suffix-routing proxy. Preserve API byte-for-byte, eliminate Datasette template-override debt, reduce UI-coupled plugins to zero. Supersedes M1's strategy of patching the Datasette template surface — M1's V2 templates and editorial CSS become reference material harvested by M2 phases that re-implement them in FastAPI/Jinja.
+
+Driven by `prd-zeeker-frontend-split.md` (PRD, Status: Draft) ingested via `/gsd-ingest-docs` on 2026-04-20. PRD-level decisions (DEC-1..DEC-6 in `.planning/intel/decisions.md`) are not yet ratified ADRs — promote to `Status: Accepted` ADRs to lock them.
+
+### Phases
+
+#### Phase 02 — Dual-service bring-up
+
+**Goal:** Add `frontend` (FastAPI placeholder) and `caddy` (off-the-shelf) services to `docker-compose.yml`. Caddy still routes everything to datasette; frontend serves a single `/frontend-test` route. Site behavior unchanged.
+
+**Scope — in:**
+- New `packages/zeeker-frontend/` package (FastAPI + Jinja2 + httpx + uv, black-formatted) with placeholder route.
+- New root `Caddyfile` (transparent proxy → datasette only).
+- `docker-compose.yml` updated: 3 services (datasette, frontend, caddy); only Caddy publishes ports.
+- Datasette service `ports:` mapping removed (internal-only, network-reachable from Caddy).
+
+**Success criteria:**
+- `docker compose up` brings all 3 services healthy.
+- All existing URLs (`/`, `/{db}`, `*.json`, `/-/sql`, etc.) still resolve byte-for-byte through Caddy → datasette.
+- `GET /frontend-test` returns 200 from the new frontend service.
+- Datasette healthcheck (`/-/versions.json`) returns 200 over the internal Docker network.
+
+**References:** PRD §10 Step 1, §7.1, §7.3.
+
+---
+
+#### Phase 03 — Flip suffix-based routing
+
+**Goal:** Update Caddyfile so `*.json`, `*.csv`, `*.db`, `/-/*` route to datasette and everything else routes to frontend. Frontend will 404 on HTML routes that aren't ported yet — this is intentional and tested locally before deploy.
+
+**Scope — in:**
+- Caddyfile suffix-router (`@datasette { path *.json *.csv *.db /-/* }` + default to frontend).
+- Local `curl` parity tests: every existing `.json`/`.csv`/`.db`/`/-/*` URL returns identical bytes to pre-flip baseline.
+- Test plan documented for repeatable post-flip verification.
+
+**Success criteria:**
+- `diff` of curl-captured `.json` responses (timestamps and version strings excepted) shows no meaningful changes pre vs post flip.
+- HTML routes that aren't yet ported return 404 from frontend (NOT silent fallthrough to datasette HTML).
+
+**Out:** Production deploy. Phase 03 is local-validation-only; deploy waits for Phase 04's homepage port so HTML users see the new look.
+
+**Depends on:** Phase 02.
+**References:** PRD §10 Step 2, §6.
+
+---
+
+#### Phase 04 — Port home + database pages
+
+**Goal:** Implement frontend routes `/` (homepage with hero, stats, database cards) and `/{db}` (database overview with tables, row counts, schema link, SQL examples). Deploy together with the suffix-routing flip from Phase 03.
+
+**Scope — in:**
+- Frontend handlers + Jinja templates for `/` and `/{db}`.
+- Internal HTTP calls to `http://datasette:8001/...json` for live data; in-memory TTL cache on metadata endpoints.
+- Harvest M1 V2 designs: `templates/index.html` (sketch 001-D) and `templates/database.html` (sketch 002-B) as visual reference.
+- Self-hosted Inter + JetBrains Mono moved to frontend; `static/css/zeeker-base.css` ported as `zeeker.css`.
+- Production deploy.
+
+**Success criteria:**
+- `https://data.zeeker.sg/` and `https://data.zeeker.sg/{db}` render the V2 editorial design from the frontend service.
+- All `.json` API URLs continue to return identical bytes (REQ-api-byte-parity holds).
+- No 2025/2026 footer year mismatch.
+
+**Depends on:** Phase 03 (routing must be flipped before deploy).
+**References:** PRD §10 Step 3 (first tranche), §7.2.
+
+> Per PRD §11 R7, **Phases 02 + 04 together deliver >50% of the perceived UI fix**. Subsequent phases (05–08) are optional continuation if project ROI justifies the work.
+
+---
+
+#### Phase 05 — Port table browse + row view
+
+**Goal:** Implement frontend routes `/{db}/{table}` (paginated rows, facets, export links, inline query form) and `/{db}/{table}/{pk}` (single row view).
+
+**Scope — in:**
+- Frontend handlers + Jinja templates for table and row pages.
+- Faceted browse via calls to `/{db}/{table}.json?_facet=col` (validate edge cases: array columns, m2m — see PRD R1).
+- Harvest M1 sketch 004-A feed-card design and the row-reading layouts.
+- Pagination, sort, FTS query forwarding to datasette JSON.
+
+**Success criteria:**
+- Table page renders with working facets, pagination, sort, FTS, and export links (CSV/JSON download links route directly to datasette).
+- Row page renders single-record view consistent with M1 row-reading layouts.
+
+**Depends on:** Phase 04.
+**References:** PRD §10 Step 3 (second tranche), §7.2, R1.
+
+---
+
+#### Phase 06 — Port auxiliary pages
+
+**Goal:** Implement remaining frontend routes: `/developers`, `/status`, `/sources`, `/about`, `/how-to-use`, `/-/search`, `/llms.txt`.
+
+**Scope — in:**
+- Frontend handlers + Jinja templates for all 7 routes.
+- `/-/search` calls `datasette-search-all` JSON output (PRD R4 recommendation: don't re-implement).
+- `/-/sql` thin replacement: `<textarea>` POSTing to `/-/sql?format=json`, results rendered as a table (PRD R2 v1 spec).
+- `/llms.txt` machine-readable description.
+
+**Success criteria:**
+- All 7 routes return 200 with rendered HTML.
+- `/-/search` cross-database search works against current databases.
+- `/-/sql` accepts queries and renders results.
+
+**Depends on:** Phase 05.
+**References:** PRD §10 Step 3 (remainder), §7.2, R2, R4.
+
+---
+
+#### Phase 07 — Prune zeeker-datasette
+
+**Goal:** Delete UI-coupled plugins and template/static directories from `packages/zeeker-datasette/`. The package becomes data-only: `Dockerfile`, `metadata.json`, `scripts/`, `entrypoint.sh`.
+
+**Scope — in:**
+- Delete `developers_page.py`, `status_page.py`, `sources_page.py`, `string_manager.py`, `template_filters.py`.
+- Delete `templates/` (all of it) and `static/` (all of it) from `packages/zeeker-datasette/`.
+- Rebuild datasette image, deploy.
+
+**Success criteria:**
+- `packages/zeeker-datasette/` contains 0 UI plugins, no `templates/`, no `static/`.
+- All HTML routes still render correctly (frontend owns them now).
+- All API routes still return identical bytes.
+
+**Depends on:** Phase 06 (all HTML routes must be live in frontend before pruning).
+**References:** PRD §10 Steps 4 + 5, §7.1, §12.
+
+---
+
+#### Phase 08 — Overlay decision + Matomo migration
+
+**Goal:** Resolve the deferred per-database overlay question (PRD R5) and migrate Matomo analytics from datasette plugin to frontend `<script>` include (PRD R6).
+
+**Scope — in:**
+- Decide: retain S3 overlay mechanism for frontend (preserves "deploy UI without rebuilding container" workflow) vs retire (simpler system). Document decision as ADR.
+- Move Matomo to frontend; remove `datasette-matomo` plugin from datasette service.
+- Update `zeeker assets generate` if overlay mechanism is retained.
+
+**Success criteria:**
+- Matomo analytics functioning from frontend.
+- Overlay decision documented; if retained, `zeeker assets generate` produces frontend-shaped overlays.
+
+**Depends on:** Phase 07.
+**References:** PRD §10 Step 6, §9, R5, R6.
+
+---
+
+### Cross-Milestone Notes
+
+- **Critical path is short:** PRD §11 R7 calls out project-ROI uncertainty. Phases 02 + 04 alone deliver the bulk of the user-facing UI fix in roughly a weekend; everything beyond is optional follow-through.
+- **Out-of-scope fences (PRD Appendix B):** This milestone does NOT modify `fetch_data()`, `zeeker.toml`, S3 bucket layout, refresh cron, or the data-scraping projects.
+- **Decision lock state:** PRD Appendix A's 6 architectural choices (DEC-1..DEC-6) are PRD-level proposals, not ratified ADRs. Promote to `docs/adr/0001-suffix-routing.md` etc. with `Status: Accepted` to lock them before phases that depend on them ship.
+
+**References:**
+- Source PRD: `prd-zeeker-frontend-split.md`
+- Synthesis entry: `.planning/intel/SYNTHESIS.md`
+- Requirements: `.planning/REQUIREMENTS.md`
+- Per-type intel: `.planning/intel/{decisions,requirements,constraints,context}.md`
+- Conflicts report (resolved): `.planning/INGEST-CONFLICTS.md`
+- Datasette template constraints (existing): `.planning/notes/datasette-styling-limits.md`
