@@ -1,0 +1,121 @@
+{
+  "database": "sg-gov-newsrooms",
+  "table": "_zeeker_schemas",
+  "is_view": false,
+  "human_description_en": "",
+  "rows": [
+    [
+      "acra_news",
+      1,
+      "f22d2c0512a657f9",
+      "{\"source_url\": \"TEXT\", \"title\": \"TEXT\", \"content_text\": \"TEXT\", \"category\": \"TEXT\", \"created_at\": \"TEXT\", \"id\": \"TEXT\", \"published_date\": \"TEXT\", \"summary\": \"TEXT\"}",
+      "2026-04-16T15:35:13.312391",
+      "2026-04-16T15:35:13.312391"
+    ],
+    [
+      "agc_news",
+      1,
+      "f22d2c0512a657f9",
+      "{\"source_url\": \"TEXT\", \"title\": \"TEXT\", \"content_text\": \"TEXT\", \"category\": \"TEXT\", \"created_at\": \"TEXT\", \"id\": \"TEXT\", \"published_date\": \"TEXT\", \"summary\": \"TEXT\"}",
+      "2026-04-16T14:06:17.964508",
+      "2026-04-16T14:06:17.964508"
+    ],
+    [
+      "ccs_news",
+      1,
+      "f22d2c0512a657f9",
+      "{\"source_url\": \"TEXT\", \"title\": \"TEXT\", \"content_text\": \"TEXT\", \"category\": \"TEXT\", \"created_at\": \"TEXT\", \"id\": \"TEXT\", \"published_date\": \"TEXT\", \"summary\": \"TEXT\"}",
+      "2026-04-16T15:21:51.014209",
+      "2026-04-16T15:21:51.014209"
+    ],
+    [
+      "ipos_news",
+      1,
+      "f22d2c0512a657f9",
+      "{\"source_url\": \"TEXT\", \"title\": \"TEXT\", \"content_text\": \"TEXT\", \"category\": \"TEXT\", \"created_at\": \"TEXT\", \"id\": \"TEXT\", \"published_date\": \"TEXT\", \"summary\": \"TEXT\"}",
+      "2026-04-16T14:59:08.449805",
+      "2026-04-16T14:59:08.449805"
+    ],
+    [
+      "judiciary_news",
+      1,
+      "20a2941ef969f4d0",
+      "{\"published_date\": \"TEXT\", \"content_text\": \"TEXT\", \"summary\": \"TEXT\", \"created_at\": \"TEXT\", \"source_url\": \"TEXT\", \"courts\": \"TEXT\", \"title\": \"TEXT\", \"id\": \"TEXT\", \"content_type\": \"TEXT\"}",
+      "2026-04-12T15:05:51.330623",
+      "2026-04-12T15:05:51.330623"
+    ],
+    [
+      "mlaw_news",
+      1,
+      "f22d2c0512a657f9",
+      "{\"published_date\": \"TEXT\", \"content_text\": \"TEXT\", \"created_at\": \"TEXT\", \"source_url\": \"TEXT\", \"id\": \"TEXT\", \"summary\": \"TEXT\", \"category\": \"TEXT\", \"title\": \"TEXT\"}",
+      "2026-04-12T10:56:06.858601",
+      "2026-04-12T10:56:06.858601"
+    ],
+    [
+      "mom_news",
+      1,
+      "f22d2c0512a657f9",
+      "{\"source_url\": \"TEXT\", \"title\": \"TEXT\", \"content_text\": \"TEXT\", \"category\": \"TEXT\", \"created_at\": \"TEXT\", \"id\": \"TEXT\", \"published_date\": \"TEXT\", \"summary\": \"TEXT\"}",
+      "2026-04-16T15:35:57.831241",
+      "2026-04-16T15:35:57.831241"
+    ],
+    [
+      "pdpc_news",
+      1,
+      "f22d2c0512a657f9",
+      "{\"source_url\": \"TEXT\", \"title\": \"TEXT\", \"content_text\": \"TEXT\", \"category\": \"TEXT\", \"created_at\": \"TEXT\", \"id\": \"TEXT\", \"published_date\": \"TEXT\", \"summary\": \"TEXT\"}",
+      "2026-04-16T15:36:07.371511",
+      "2026-04-16T15:36:07.371511"
+    ]
+  ],
+  "truncated": false,
+  "filtered_table_rows_count": 8,
+  "expanded_columns": [],
+  "expandable_columns": [],
+  "columns": [
+    "resource_name",
+    "schema_version",
+    "schema_hash",
+    "column_definitions",
+    "created_at",
+    "updated_at"
+  ],
+  "primary_keys": [
+    "resource_name"
+  ],
+  "units": {},
+  "query": {
+    "sql": "select resource_name, schema_version, schema_hash, column_definitions, created_at, updated_at from _zeeker_schemas order by resource_name limit 11",
+    "params": {}
+  },
+  "facet_results": {},
+  "suggested_facets": [
+    {
+      "name": "schema_hash",
+      "toggle_url": "http://localhost:8001/sg-gov-newsrooms/_zeeker_schemas.json?_size=10&_facet=schema_hash"
+    },
+    {
+      "name": "column_definitions",
+      "toggle_url": "http://localhost:8001/sg-gov-newsrooms/_zeeker_schemas.json?_size=10&_facet=column_definitions"
+    },
+    {
+      "name": "created_at",
+      "type": "date",
+      "toggle_url": "http://localhost:8001/sg-gov-newsrooms/_zeeker_schemas.json?_size=10&_facet_date=created_at"
+    },
+    {
+      "name": "updated_at",
+      "type": "date",
+      "toggle_url": "http://localhost:8001/sg-gov-newsrooms/_zeeker_schemas.json?_size=10&_facet_date=updated_at"
+    }
+  ],
+  "next": null,
+  "next_url": null,
+  "private": false,
+  "allow_execute_sql": true,
+  "source": "Singapore Government Agencies",
+  "source_url": "https://data.zeeker.sg/",
+  "license": "All rights reserved",
+  "license_url": "https://www.mlaw.gov.sg/terms-of-use/"
+}

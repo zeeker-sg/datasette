@@ -1,0 +1,279 @@
+{
+  "sglawwatch": {
+    "name": "sglawwatch",
+    "hash": null,
+    "color": "95ccde",
+    "path": "/sglawwatch",
+    "tables_and_views_truncated": [
+      {
+        "name": "headlines",
+        "columns": [
+          "id",
+          "category",
+          "title",
+          "source_link",
+          "author",
+          "date",
+          "summary",
+          "text",
+          "imported_on"
+        ],
+        "primary_keys": [
+          "id"
+        ],
+        "count": null,
+        "hidden": false,
+        "fts_table": "headlines_fts",
+        "num_relationships_for_sorting": 0,
+        "private": false
+      },
+      {
+        "name": "about_singapore_law",
+        "columns": [
+          "id",
+          "item_url",
+          "title",
+          "section",
+          "home_page",
+          "last_scraped",
+          "content_length"
+        ],
+        "primary_keys": [],
+        "count": null,
+        "hidden": false,
+        "fts_table": "about_singapore_law_fts",
+        "num_relationships_for_sorting": 0,
+        "private": false
+      }
+    ],
+    "tables_and_views_more": false,
+    "tables_count": 2,
+    "table_rows_sum": 0,
+    "show_table_row_counts": false,
+    "hidden_table_rows_sum": 0,
+    "hidden_tables_count": 21,
+    "views_count": 0,
+    "private": false
+  },
+  "zeeker-judgements": {
+    "name": "zeeker-judgements",
+    "hash": null,
+    "color": "8b314d",
+    "path": "/zeeker-judgements",
+    "tables_and_views_truncated": [
+      {
+        "name": "judgments_fragments",
+        "columns": [
+          "id",
+          "judgment_id",
+          "ordinal",
+          "paragraph_number",
+          "class_name",
+          "section_heading",
+          "content_text",
+          "html_raw",
+          "footnote_text",
+          "has_footnotes",
+          "has_table",
+          "has_figure",
+          "figure_src",
+          "figure_descriptions"
+        ],
+        "primary_keys": [
+          "id"
+        ],
+        "count": 17841,
+        "hidden": false,
+        "fts_table": null,
+        "num_relationships_for_sorting": 0,
+        "private": false
+      },
+      {
+        "name": "judgments",
+        "columns": [
+          "id",
+          "citation",
+          "case_name",
+          "case_numbers",
+          "decision_date",
+          "court",
+          "subject_tags",
+          "source_url",
+          "pdf_url",
+          "content_text",
+          "court_summary",
+          "summary",
+          "created_at",
+          "has_content",
+          "has_court_summary",
+          "fragment_count",
+          "extracted_at",
+          "summary_generated_at"
+        ],
+        "primary_keys": [],
+        "count": 7498,
+        "hidden": false,
+        "fts_table": null,
+        "num_relationships_for_sorting": 0,
+        "private": false
+      },
+      {
+        "name": "_zeeker_updates",
+        "columns": [
+          "resource_name",
+          "last_updated",
+          "record_count",
+          "build_id",
+          "duration_ms"
+        ],
+        "primary_keys": [
+          "resource_name"
+        ],
+        "count": 1,
+        "hidden": false,
+        "fts_table": null,
+        "num_relationships_for_sorting": 0,
+        "private": false
+      },
+      {
+        "name": "_zeeker_schemas",
+        "columns": [
+          "resource_name",
+          "schema_version",
+          "schema_hash",
+          "column_definitions",
+          "created_at",
+          "updated_at"
+        ],
+        "primary_keys": [
+          "resource_name"
+        ],
+        "count": 1,
+        "hidden": false,
+        "fts_table": null,
+        "num_relationships_for_sorting": 0,
+        "private": false
+      }
+    ],
+    "tables_and_views_more": false,
+    "tables_count": 4,
+    "table_rows_sum": 25341,
+    "show_table_row_counts": true,
+    "hidden_table_rows_sum": 0,
+    "hidden_tables_count": 0,
+    "views_count": 0,
+    "private": false
+  },
+  "sg-gov-newsrooms": {
+    "name": "sg-gov-newsrooms",
+    "hash": "67e9f458e163e11489e0ca28be2d7d8bddbdb80c17f26bb15c3f82f74fdc5d45",
+    "color": "67e9f4",
+    "path": "/sg-gov-newsrooms",
+    "tables_and_views_truncated": [
+      {
+        "name": "acra_news",
+        "columns": [
+          "id",
+          "source_url",
+          "category",
+          "title",
+          "published_date",
+          "content_text",
+          "summary",
+          "created_at"
+        ],
+        "primary_keys": [],
+        "count": 361,
+        "hidden": false,
+        "fts_table": null,
+        "num_relationships_for_sorting": 0,
+        "private": false
+      },
+      {
+        "name": "agc_news",
+        "columns": [
+          "id",
+          "source_url",
+          "category",
+          "title",
+          "published_date",
+          "content_text",
+          "summary",
+          "created_at"
+        ],
+        "primary_keys": [],
+        "count": 294,
+        "hidden": false,
+        "fts_table": null,
+        "num_relationships_for_sorting": 0,
+        "private": false
+      },
+      {
+        "name": "judiciary_news",
+        "columns": [
+          "id",
+          "source_url",
+          "title",
+          "published_date",
+          "content_type",
+          "courts",
+          "content_text",
+          "summary",
+          "created_at"
+        ],
+        "primary_keys": [],
+        "count": 26,
+        "hidden": false,
+        "fts_table": null,
+        "num_relationships_for_sorting": 0,
+        "private": false
+      },
+      {
+        "name": "ccs_news",
+        "columns": [
+          "id",
+          "source_url",
+          "category",
+          "title",
+          "published_date",
+          "content_text",
+          "summary",
+          "created_at"
+        ],
+        "primary_keys": [],
+        "count": 20,
+        "hidden": false,
+        "fts_table": null,
+        "num_relationships_for_sorting": 0,
+        "private": false
+      },
+      {
+        "name": "mom_news",
+        "columns": [
+          "id",
+          "source_url",
+          "category",
+          "title",
+          "published_date",
+          "content_text",
+          "summary",
+          "created_at"
+        ],
+        "primary_keys": [],
+        "count": 18,
+        "hidden": false,
+        "fts_table": null,
+        "num_relationships_for_sorting": 0,
+        "private": false
+      }
+    ],
+    "tables_and_views_more": true,
+    "tables_count": 10,
+    "table_rows_sum": 761,
+    "show_table_row_counts": true,
+    "hidden_table_rows_sum": 0,
+    "hidden_tables_count": 0,
+    "views_count": 0,
+    "private": false
+  }
+}

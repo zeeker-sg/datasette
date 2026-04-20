@@ -1,0 +1,84 @@
+[
+  {
+    "name": "__init__.py",
+    "static": false,
+    "templates": false,
+    "version": null,
+    "hooks": []
+  },
+  {
+    "name": "cache_headers.py",
+    "static": false,
+    "templates": false,
+    "version": null,
+    "hooks": [
+      "asgi_wrapper"
+    ]
+  },
+  {
+    "name": "datasette-matomo",
+    "static": false,
+    "templates": false,
+    "version": "0.1.2",
+    "hooks": [
+      "extra_js_urls",
+      "register_routes"
+    ]
+  },
+  {
+    "name": "datasette-search-all",
+    "static": false,
+    "templates": true,
+    "version": "1.1.4",
+    "hooks": [
+      "extra_template_vars",
+      "menu_links",
+      "register_routes"
+    ]
+  },
+  {
+    "name": "developers_page.py",
+    "static": false,
+    "templates": false,
+    "version": null,
+    "hooks": [
+      "register_routes"
+    ]
+  },
+  {
+    "name": "sources_page.py",
+    "static": false,
+    "templates": false,
+    "version": null,
+    "hooks": [
+      "register_routes"
+    ]
+  },
+  {
+    "name": "status_page.py",
+    "static": false,
+    "templates": false,
+    "version": null,
+    "hooks": [
+      "register_routes"
+    ]
+  },
+  {
+    "name": "string_manager.py",
+    "static": false,
+    "templates": false,
+    "version": null,
+    "hooks": [
+      "extra_template_vars"
+    ]
+  },
+  {
+    "name": "template_filters.py",
+    "static": false,
+    "templates": false,
+    "version": null,
+    "hooks": [
+      "prepare_jinja2_environment"
+    ]
+  }
+]

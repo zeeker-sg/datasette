@@ -1,0 +1,457 @@
+{
+  "database": "sglawwatch",
+  "private": false,
+  "path": "/sglawwatch",
+  "size": 24666112,
+  "tables": [
+    {
+      "name": "about_singapore_law",
+      "columns": [
+        "id",
+        "item_url",
+        "title",
+        "section",
+        "home_page",
+        "last_scraped",
+        "content_length"
+      ],
+      "primary_keys": [],
+      "count": 280,
+      "hidden": false,
+      "fts_table": "about_singapore_law_fts",
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "headlines",
+      "columns": [
+        "id",
+        "category",
+        "title",
+        "source_link",
+        "author",
+        "date",
+        "summary",
+        "text",
+        "imported_on"
+      ],
+      "primary_keys": [
+        "id"
+      ],
+      "count": 662,
+      "hidden": false,
+      "fts_table": "headlines_fts",
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "_zeeker_schemas",
+      "columns": [
+        "resource_name",
+        "schema_version",
+        "schema_hash",
+        "column_definitions",
+        "created_at",
+        "updated_at"
+      ],
+      "primary_keys": [
+        "resource_name"
+      ],
+      "count": 3,
+      "hidden": true,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "_zeeker_updates",
+      "columns": [
+        "resource_name",
+        "last_updated",
+        "record_count",
+        "build_id",
+        "duration_ms"
+      ],
+      "primary_keys": [
+        "resource_name"
+      ],
+      "count": 2,
+      "hidden": true,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "about_singapore_law_fragments",
+      "columns": [
+        "id",
+        "item_id",
+        "fragment_order",
+        "content_text",
+        "char_count"
+      ],
+      "primary_keys": [],
+      "count": 17199,
+      "hidden": true,
+      "fts_table": "about_singapore_law_fragments_fts",
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "about_singapore_law_fragments_fts",
+      "columns": [
+        "content_text",
+        "about_singapore_law_fragments_fts",
+        "rank"
+      ],
+      "primary_keys": [],
+      "count": null,
+      "hidden": true,
+      "fts_table": "about_singapore_law_fragments_fts",
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "about_singapore_law_fragments_fts_config",
+      "columns": [
+        "k",
+        "v"
+      ],
+      "primary_keys": [
+        "k"
+      ],
+      "count": 1,
+      "hidden": true,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "about_singapore_law_fragments_fts_data",
+      "columns": [
+        "id",
+        "block"
+      ],
+      "primary_keys": [
+        "id"
+      ],
+      "count": 1154,
+      "hidden": true,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "about_singapore_law_fragments_fts_docsize",
+      "columns": [
+        "id",
+        "sz"
+      ],
+      "primary_keys": [
+        "id"
+      ],
+      "count": 17199,
+      "hidden": true,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "about_singapore_law_fragments_fts_idx",
+      "columns": [
+        "segid",
+        "term",
+        "pgno"
+      ],
+      "primary_keys": [
+        "segid",
+        "term"
+      ],
+      "count": 871,
+      "hidden": true,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "about_singapore_law_fts",
+      "columns": [
+        "title",
+        "about_singapore_law_fts",
+        "rank"
+      ],
+      "primary_keys": [],
+      "count": 280,
+      "hidden": true,
+      "fts_table": "about_singapore_law_fts",
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "about_singapore_law_fts_config",
+      "columns": [
+        "k",
+        "v"
+      ],
+      "primary_keys": [
+        "k"
+      ],
+      "count": 1,
+      "hidden": true,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "about_singapore_law_fts_data",
+      "columns": [
+        "id",
+        "block"
+      ],
+      "primary_keys": [
+        "id"
+      ],
+      "count": 9,
+      "hidden": true,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "about_singapore_law_fts_docsize",
+      "columns": [
+        "id",
+        "sz"
+      ],
+      "primary_keys": [
+        "id"
+      ],
+      "count": 280,
+      "hidden": true,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "about_singapore_law_fts_idx",
+      "columns": [
+        "segid",
+        "term",
+        "pgno"
+      ],
+      "primary_keys": [
+        "segid",
+        "term"
+      ],
+      "count": 7,
+      "hidden": true,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "headlines_fts",
+      "columns": [
+        "title",
+        "summary",
+        "headlines_fts",
+        "rank"
+      ],
+      "primary_keys": [],
+      "count": 662,
+      "hidden": true,
+      "fts_table": "headlines_fts",
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "headlines_fts_config",
+      "columns": [
+        "k",
+        "v"
+      ],
+      "primary_keys": [
+        "k"
+      ],
+      "count": 1,
+      "hidden": true,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "headlines_fts_data",
+      "columns": [
+        "id",
+        "block"
+      ],
+      "primary_keys": [
+        "id"
+      ],
+      "count": 100,
+      "hidden": true,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "headlines_fts_docsize",
+      "columns": [
+        "id",
+        "sz"
+      ],
+      "primary_keys": [
+        "id"
+      ],
+      "count": 662,
+      "hidden": true,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "headlines_fts_idx",
+      "columns": [
+        "segid",
+        "term",
+        "pgno"
+      ],
+      "primary_keys": [
+        "segid",
+        "term"
+      ],
+      "count": 98,
+      "hidden": true,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "metadata",
+      "columns": [
+        "key",
+        "value"
+      ],
+      "primary_keys": [
+        "key"
+      ],
+      "count": 1,
+      "hidden": true,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "schema_versions",
+      "columns": [
+        "table_name",
+        "version",
+        "updated_at"
+      ],
+      "primary_keys": [
+        "table_name"
+      ],
+      "count": 2,
+      "hidden": true,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "temp_headlines",
+      "columns": [
+        "c3bcd11af34088b1813b6ba5b5f13bf3",
+        "Straits Times",
+        "Chief Justice allows founder of site that ran fake KKH story to be called to the Bar",
+        "https://www.singaporelawwatch.sg/Headlines/Chief-Justice-allows-founder-of-site-that-ran-fake-KKH-story-to-be-called-to-the-Bar",
+        "Straits Times: Selina Lum",
+        "2025-08-09T00:01:00",
+        "Chief Justice Menon allowed Wake Up Singapore founder Ariffin Sha to be called to the Bar despite an $8,000 criminal defamation conviction, finding the offence involved negligent failure to verify a fabricated KKH story rather than dishonesty, and noting his prompt apology, remediation and pro bono work; two other applicants were deemed unfit. The decision—one of several \"legacy\" admission cases under new rules—signals that tribunals will distinguish negligence from moral turpitude when assessing fitness to practice, emphasising proportionality, candour and rehabilitative steps over automatic exclusion.",
+        "Title: Chief Justice allows founder of site that ran fake KKH story to be called to the Bar"
+      ],
+      "primary_keys": [],
+      "count": 3716,
+      "hidden": true,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    }
+  ],
+  "hidden_count": 21,
+  "views": [],
+  "queries": [],
+  "allow_execute_sql": true,
+  "source": "Singapore Government Agencies",
+  "source_url": "https://data.zeeker.sg/",
+  "license": "All rights reserved",
+  "license_url": "https://www.mlaw.gov.sg/terms-of-use/"
+}

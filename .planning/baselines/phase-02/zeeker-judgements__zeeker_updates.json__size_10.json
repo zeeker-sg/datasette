@@ -1,0 +1,50 @@
+{
+  "database": "zeeker-judgements",
+  "table": "_zeeker_updates",
+  "is_view": false,
+  "human_description_en": "",
+  "rows": [
+    [
+      "judgments",
+      "2026-04-19T21:12:45.365137",
+      7498,
+      "build_20260419_210720",
+      324465
+    ]
+  ],
+  "truncated": false,
+  "filtered_table_rows_count": 1,
+  "expanded_columns": [],
+  "expandable_columns": [],
+  "columns": [
+    "resource_name",
+    "last_updated",
+    "record_count",
+    "build_id",
+    "duration_ms"
+  ],
+  "primary_keys": [
+    "resource_name"
+  ],
+  "units": {},
+  "query": {
+    "sql": "select resource_name, last_updated, record_count, build_id, duration_ms from _zeeker_updates order by resource_name limit 11",
+    "params": {}
+  },
+  "facet_results": {},
+  "suggested_facets": [
+    {
+      "name": "last_updated",
+      "type": "date",
+      "toggle_url": "http://localhost:8001/zeeker-judgements/_zeeker_updates.json?_size=10&_facet_date=last_updated"
+    }
+  ],
+  "next": null,
+  "next_url": null,
+  "private": false,
+  "allow_execute_sql": true,
+  "source": "Singapore Government Agencies",
+  "source_url": "https://data.zeeker.sg/",
+  "license": "All rights reserved",
+  "license_url": "https://www.mlaw.gov.sg/terms-of-use/"
+}

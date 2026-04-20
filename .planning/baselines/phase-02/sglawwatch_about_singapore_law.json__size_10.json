@@ -1,0 +1,183 @@
+{
+  "database": "sglawwatch",
+  "table": "about_singapore_law",
+  "is_view": false,
+  "human_description_en": "",
+  "rows": [
+    [
+      1,
+      "ef50fb826fc3",
+      "https://www.singaporelawwatch.sg/About-Singapore-Law/Overview/ch-01-the-singapore-legal-system",
+      "Ch. 01 The Singapore Legal System",
+      "Overview",
+      "Overview",
+      "2025-09-04 22:09:01",
+      0
+    ],
+    [
+      2,
+      "01fff530cdcc",
+      "https://www.singaporelawwatch.sg/About-Singapore-Law/Overview/ch-02-civil-procedure",
+      "Ch. 02 Civil Procedure",
+      "Overview",
+      "Overview",
+      "2025-09-04 22:09:01",
+      0
+    ],
+    [
+      3,
+      "f4ce9add5760",
+      "https://www.singaporelawwatch.sg/About-Singapore-Law/Overview/ch-03-mediation",
+      "Ch. 03 Mediation",
+      "Overview",
+      "Overview",
+      "2025-09-04 22:09:01",
+      0
+    ],
+    [
+      4,
+      "904b6f3b18d2",
+      "https://www.singaporelawwatch.sg/About-Singapore-Law/Overview/ch-04-international-and-domestic-arbitration-in-singapore",
+      "Ch. 04 International and Domestic Arbitration in Singapore",
+      "Overview",
+      "Overview",
+      "2025-09-04 22:09:01",
+      0
+    ],
+    [
+      5,
+      "a1d22466aeae",
+      "https://www.singaporelawwatch.sg/About-Singapore-Law/Overview/ch-05-singapore-and-international-law",
+      "Ch. 05 Singapore and International Law",
+      "Overview",
+      "Overview",
+      "2025-09-04 22:09:01",
+      0
+    ],
+    [
+      6,
+      "594a44f41d17",
+      "https://www.singaporelawwatch.sg/About-Singapore-Law/Overview/ch-06-the-conflict-of-laws",
+      "Ch. 06 The Conflict of Laws",
+      "Overview",
+      "Overview",
+      "2025-09-04 22:09:01",
+      0
+    ],
+    [
+      7,
+      "394810a6de3c",
+      "https://www.singaporelawwatch.sg/About-Singapore-Law/Overview/ch-07-free-trade-agreements-singapore-legal-developments",
+      "Ch. 07 Free Trade Agreements: Singapore Legal Developments",
+      "Overview",
+      "Overview",
+      "2025-09-04 22:09:01",
+      0
+    ],
+    [
+      8,
+      "4d076bd92fe9",
+      "https://www.singaporelawwatch.sg/About-Singapore-Law/Commercial-Law/ch-08-the-law-of-contract",
+      "Ch. 08 The Law of Contract",
+      "Commercial Law",
+      "Commercial Law",
+      "2025-09-04 22:09:04",
+      0
+    ],
+    [
+      9,
+      "170430cbd374",
+      "https://www.singaporelawwatch.sg/About-Singapore-Law/Commercial-Law/ch-08a-remedies-for-breach-of-contract",
+      "Ch. 08A Remedies for Breach of Contract",
+      "Commercial Law",
+      "Commercial Law",
+      "2025-09-04 22:09:04",
+      0
+    ],
+    [
+      10,
+      "18984a5f02da",
+      "https://www.singaporelawwatch.sg/About-Singapore-Law/Commercial-Law/ch-09-domestic-sale-of-goods",
+      "Ch. 09 Domestic Sale of Goods",
+      "Commercial Law",
+      "Commercial Law",
+      "2025-09-04 22:09:04",
+      0
+    ]
+  ],
+  "truncated": false,
+  "filtered_table_rows_count": 280,
+  "expanded_columns": [],
+  "expandable_columns": [],
+  "columns": [
+    "rowid",
+    "id",
+    "item_url",
+    "title",
+    "section",
+    "home_page",
+    "last_scraped",
+    "content_length"
+  ],
+  "primary_keys": [],
+  "units": {},
+  "query": {
+    "sql": "select rowid, id, item_url, title, section, home_page, last_scraped, content_length from about_singapore_law order by rowid limit 11",
+    "params": {}
+  },
+  "facet_results": {
+    "section": {
+      "name": "section",
+      "type": "column",
+      "hideable": false,
+      "toggle_url": "/sglawwatch/about_singapore_law.json?_size=10",
+      "results": [
+        {
+          "value": "Commercial Law",
+          "label": "Commercial Law",
+          "count": 175,
+          "toggle_url": "http://localhost:8001/sglawwatch/about_singapore_law.json?_size=10&section=Commercial+Law",
+          "selected": false
+        },
+        {
+          "value": "Singapore Legal System",
+          "label": "Singapore Legal System",
+          "count": 56,
+          "toggle_url": "http://localhost:8001/sglawwatch/about_singapore_law.json?_size=10&section=Singapore+Legal+System",
+          "selected": false
+        },
+        {
+          "value": "Overview",
+          "label": "Overview",
+          "count": 49,
+          "toggle_url": "http://localhost:8001/sglawwatch/about_singapore_law.json?_size=10&section=Overview",
+          "selected": false
+        }
+      ],
+      "truncated": false
+    }
+  },
+  "suggested_facets": [
+    {
+      "name": "home_page",
+      "toggle_url": "http://localhost:8001/sglawwatch/about_singapore_law.json?_size=10&_facet=home_page"
+    },
+    {
+      "name": "last_scraped",
+      "toggle_url": "http://localhost:8001/sglawwatch/about_singapore_law.json?_size=10&_facet=last_scraped"
+    },
+    {
+      "name": "last_scraped",
+      "type": "date",
+      "toggle_url": "http://localhost:8001/sglawwatch/about_singapore_law.json?_size=10&_facet_date=last_scraped"
+    }
+  ],
+  "next": "10",
+  "next_url": "http://localhost:8001/sglawwatch/about_singapore_law.json?_size=10&_next=10",
+  "private": false,
+  "allow_execute_sql": true,
+  "source": "Singapore Government Agencies",
+  "source_url": "https://data.zeeker.sg/",
+  "license": "All rights reserved",
+  "license_url": "https://www.mlaw.gov.sg/terms-of-use/"
+}
