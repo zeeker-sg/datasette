@@ -50,6 +50,7 @@ for path in "${PATHS[@]}"; do
   out="$OUT_DIR/${safe#_}.json"
   echo "  -> $path  =>  $out"
   curl -fsS "$BASE_URL${path}" | jq "$JQ_STRIP" > "$out"
+  echo "$path" > "${out%.json}.url"
 done
 
 # Drop a README so future readers know what this directory is.
