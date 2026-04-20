@@ -3163,6 +3163,26 @@ footer {
 
 /* =========== SHELL CHROME — phase 01 ============ */
 
+/* Reset Datasette's generated <header><nav> wrappers so our .db-nav provides all chrome.
+   The old header rule sets a white sticky background that conflicts with the dark nav. */
+header {
+    background: transparent;
+    border-bottom: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    position: static;
+}
+
+/* Reset generic nav a styles — .db-nav .menu a overrides colour/opacity already,
+   but the old rule adds hover backgrounds that bleed into the dark nav. */
+.db-nav nav a,
+.db-nav nav a:hover,
+.db-nav nav a:focus {
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
+}
+
 /* .container — shared layout wrapper for chrome/section blocks */
 .db-nav > .container,
 .db-crumb > .container,
