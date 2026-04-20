@@ -68,7 +68,7 @@ Driven by `prd-zeeker-frontend-split.md` (PRD, Status: Draft) ingested via `/gsd
 
 ### Phases
 
-#### Phase 02 — Dual-service bring-up
+#### Phase 2: Dual-service bring-up
 
 **Goal:** Add `frontend` (FastAPI placeholder) and `caddy` (off-the-shelf) services to `docker-compose.yml`. Caddy still routes everything to datasette; frontend serves a single `/frontend-test` route. Site behavior unchanged.
 
@@ -88,7 +88,7 @@ Driven by `prd-zeeker-frontend-split.md` (PRD, Status: Draft) ingested via `/gsd
 
 ---
 
-#### Phase 03 — Flip suffix-based routing
+#### Phase 3: Flip suffix-based routing
 
 **Goal:** Update Caddyfile so `*.json`, `*.csv`, `*.db`, `/-/*` route to datasette and everything else routes to frontend. Frontend will 404 on HTML routes that aren't ported yet — this is intentional and tested locally before deploy.
 
@@ -101,16 +101,16 @@ Driven by `prd-zeeker-frontend-split.md` (PRD, Status: Draft) ingested via `/gsd
 - `diff` of curl-captured `.json` responses (timestamps and version strings excepted) shows no meaningful changes pre vs post flip.
 - HTML routes that aren't yet ported return 404 from frontend (NOT silent fallthrough to datasette HTML).
 
-**Out:** Production deploy. Phase 03 is local-validation-only; deploy waits for Phase 04's homepage port so HTML users see the new look.
+**Out:** Production deploy. Phase 3 is local-validation-only; deploy waits for Phase 4's homepage port so HTML users see the new look.
 
-**Depends on:** Phase 02.
+**Depends on:** Phase 2.
 **References:** PRD §10 Step 2, §6.
 
 ---
 
-#### Phase 04 — Port home + database pages
+#### Phase 4: Port home + database pages
 
-**Goal:** Implement frontend routes `/` (homepage with hero, stats, database cards) and `/{db}` (database overview with tables, row counts, schema link, SQL examples). Deploy together with the suffix-routing flip from Phase 03.
+**Goal:** Implement frontend routes `/` (homepage with hero, stats, database cards) and `/{db}` (database overview with tables, row counts, schema link, SQL examples). Deploy together with the suffix-routing flip from Phase 3.
 
 **Scope — in:**
 - Frontend handlers + Jinja templates for `/` and `/{db}`.
@@ -124,14 +124,14 @@ Driven by `prd-zeeker-frontend-split.md` (PRD, Status: Draft) ingested via `/gsd
 - All `.json` API URLs continue to return identical bytes (REQ-api-byte-parity holds).
 - No 2025/2026 footer year mismatch.
 
-**Depends on:** Phase 03 (routing must be flipped before deploy).
+**Depends on:** Phase 3 (routing must be flipped before deploy).
 **References:** PRD §10 Step 3 (first tranche), §7.2.
 
-> Per PRD §11 R7, **Phases 02 + 04 together deliver >50% of the perceived UI fix**. Subsequent phases (05–08) are optional continuation if project ROI justifies the work.
+> Per PRD §11 R7, **Phases 2 + 4 together deliver >50% of the perceived UI fix**. Subsequent phases (5–8) are optional continuation if project ROI justifies the work.
 
 ---
 
-#### Phase 05 — Port table browse + row view
+#### Phase 5: Port table browse + row view
 
 **Goal:** Implement frontend routes `/{db}/{table}` (paginated rows, facets, export links, inline query form) and `/{db}/{table}/{pk}` (single row view).
 
@@ -145,12 +145,12 @@ Driven by `prd-zeeker-frontend-split.md` (PRD, Status: Draft) ingested via `/gsd
 - Table page renders with working facets, pagination, sort, FTS, and export links (CSV/JSON download links route directly to datasette).
 - Row page renders single-record view consistent with M1 row-reading layouts.
 
-**Depends on:** Phase 04.
+**Depends on:** Phase 4.
 **References:** PRD §10 Step 3 (second tranche), §7.2, R1.
 
 ---
 
-#### Phase 06 — Port auxiliary pages
+#### Phase 6: Port auxiliary pages
 
 **Goal:** Implement remaining frontend routes: `/developers`, `/status`, `/sources`, `/about`, `/how-to-use`, `/-/search`, `/llms.txt`.
 
@@ -165,12 +165,12 @@ Driven by `prd-zeeker-frontend-split.md` (PRD, Status: Draft) ingested via `/gsd
 - `/-/search` cross-database search works against current databases.
 - `/-/sql` accepts queries and renders results.
 
-**Depends on:** Phase 05.
+**Depends on:** Phase 5.
 **References:** PRD §10 Step 3 (remainder), §7.2, R2, R4.
 
 ---
 
-#### Phase 07 — Prune zeeker-datasette
+#### Phase 7: Prune zeeker-datasette
 
 **Goal:** Delete UI-coupled plugins and template/static directories from `packages/zeeker-datasette/`. The package becomes data-only: `Dockerfile`, `metadata.json`, `scripts/`, `entrypoint.sh`.
 
@@ -184,12 +184,12 @@ Driven by `prd-zeeker-frontend-split.md` (PRD, Status: Draft) ingested via `/gsd
 - All HTML routes still render correctly (frontend owns them now).
 - All API routes still return identical bytes.
 
-**Depends on:** Phase 06 (all HTML routes must be live in frontend before pruning).
+**Depends on:** Phase 6 (all HTML routes must be live in frontend before pruning).
 **References:** PRD §10 Steps 4 + 5, §7.1, §12.
 
 ---
 
-#### Phase 08 — Overlay decision + Matomo migration
+#### Phase 8: Overlay decision + Matomo migration
 
 **Goal:** Resolve the deferred per-database overlay question (PRD R5) and migrate Matomo analytics from datasette plugin to frontend `<script>` include (PRD R6).
 
@@ -202,14 +202,14 @@ Driven by `prd-zeeker-frontend-split.md` (PRD, Status: Draft) ingested via `/gsd
 - Matomo analytics functioning from frontend.
 - Overlay decision documented; if retained, `zeeker assets generate` produces frontend-shaped overlays.
 
-**Depends on:** Phase 07.
+**Depends on:** Phase 7.
 **References:** PRD §10 Step 6, §9, R5, R6.
 
 ---
 
 ### Cross-Milestone Notes
 
-- **Critical path is short:** PRD §11 R7 calls out project-ROI uncertainty. Phases 02 + 04 alone deliver the bulk of the user-facing UI fix in roughly a weekend; everything beyond is optional follow-through.
+- **Critical path is short:** PRD §11 R7 calls out project-ROI uncertainty. Phases 2 + 4 alone deliver the bulk of the user-facing UI fix in roughly a weekend; everything beyond is optional follow-through.
 - **Out-of-scope fences (PRD Appendix B):** This milestone does NOT modify `fetch_data()`, `zeeker.toml`, S3 bucket layout, refresh cron, or the data-scraping projects.
 - **Decision lock state:** PRD Appendix A's 6 architectural choices (DEC-1..DEC-6) are PRD-level proposals, not ratified ADRs. Promote to `docs/adr/0001-suffix-routing.md` etc. with `Status: Accepted` to lock them before phases that depend on them ship.
 
