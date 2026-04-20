@@ -87,8 +87,8 @@ Driven by `prd-zeeker-frontend-split.md` (PRD, Status: Draft) ingested via `/gsd
 **Plans:** 5 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Wave-0 validation infrastructure: capture_baseline.sh, verify_api_parity.sh, verify_phase_02.sh, and committed pre-mutation baselines in .planning/baselines/phase-02/.
-- [ ] 02-02-PLAN.md — Scaffold packages/zeeker-frontend/ (FastAPI placeholder, uv-managed, pinned deps, Dockerfile with no sqlite, pytest smoke tests).
+- [x] 02-01-PLAN.md — Wave-0 validation infrastructure: capture_baseline.sh, verify_api_parity.sh, verify_phase_02.sh, and committed pre-mutation baselines in .planning/baselines/phase-02/.
+- [x] 02-02-PLAN.md — Scaffold packages/zeeker-frontend/ (FastAPI placeholder, uv-managed, pinned deps, Dockerfile with no sqlite, pytest smoke tests).
 - [ ] 02-03-PLAN.md — Author root Caddyfile: single site on :80, reverse_proxy zeeker-datasette:8001, auto_https off, admin bound to localhost:2019, Phase-3 forward-compat commented.
 - [ ] 02-04-PLAN.md — Mutate docker-compose.yml into three-service topology: remove datasette ports, add frontend + caddy services, caddy depends_on service_healthy for both backends, named volumes for cert storage.
 - [ ] 02-05-PLAN.md — Local bring-up + verify_phase_02.sh + verify_api_parity.sh; human checkpoint with ship/no-ship decision; finalize 02-VALIDATION.md.
