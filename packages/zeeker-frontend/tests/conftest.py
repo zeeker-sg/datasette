@@ -6,8 +6,17 @@ from pathlib import Path
 
 import httpx
 import pytest
+from fastapi.testclient import TestClient
+
+from zeeker_frontend.main import app
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
+
+
+@pytest.fixture
+def client() -> TestClient:
+    """FastAPI TestClient bound to the app — used by phase-2 smoke tests."""
+    return TestClient(app)
 
 
 def _load_fixture(name: str) -> dict:
