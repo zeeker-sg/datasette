@@ -1,0 +1,39 @@
+{
+  "database": "sglawwatch",
+  "path": "/sglawwatch",
+  "size": 24666112,
+  "tables": [
+    {
+      "name": "about_singapore_law",
+      "columns": ["id", "title", "category", "content", "source_url", "published_date", "created_at", "updated_at"],
+      "count": 280,
+      "hidden": false,
+      "fts_table": null,
+      "num_relationships_for_table": 0
+    },
+    {
+      "name": "case_summaries",
+      "columns": ["id", "title", "citation", "court", "date", "summary"],
+      "count": 150,
+      "hidden": false,
+      "fts_table": null,
+      "num_relationships_for_table": 0
+    },
+    {
+      "name": "headlines",
+      "columns": ["id", "title", "published_date", "source_url", "summary"],
+      "count": 500,
+      "hidden": false,
+      "fts_table": null,
+      "num_relationships_for_table": 0
+    }
+  ],
+  "views": [],
+  "queries": {},
+  "allow_execute_sql": true,
+  "table_counts": {
+    "about_singapore_law": 280,
+    "case_summaries": 150,
+    "headlines": 500
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "sglawwatch": {
+    "hash": "abc123",
+    "color": "3498db",
+    "path": "/sglawwatch",
+    "tables_count": 3,
+    "tables_truncated": false,
+    "tables": [
+      {"name": "about_singapore_law", "columns": 8, "count": 280, "hidden": false, "fts_table": null, "num_relationships_for_table": 0},
+      {"name": "case_summaries", "columns": 6, "count": 150, "hidden": false, "fts_table": null, "num_relationships_for_table": 0},
+      {"name": "headlines", "columns": 5, "count": 500, "hidden": false, "fts_table": null, "num_relationships_for_table": 0}
+    ],
+    "views": [],
+    "queries": {}
+  },
+  "sg-gov-newsrooms": {
+    "hash": "def456",
+    "color": "e74c3c",
+    "path": "/sg-gov-newsrooms",
+    "tables_count": 2,
+    "tables_truncated": false,
+    "tables": [
+      {"name": "mlaw_news", "columns": 8, "count": 1200, "hidden": false, "fts_table": null, "num_relationships_for_table": 0},
+      {"name": "judiciary_news", "columns": 9, "count": 800, "hidden": false, "fts_table": null, "num_relationships_for_table": 0}
+    ],
+    "views": [],
+    "queries": {}
+  },
+  "zeeker-judgements": {
+    "hash": "ghi789",
+    "color": "2ecc71",
+    "path": "/zeeker-judgements",
+    "tables_count": 1,
+    "tables_truncated": false,
+    "tables": [
+      {"name": "judgments", "columns": 19, "count": 6498, "hidden": false, "fts_table": null, "num_relationships_for_table": 0}
+    ],
+    "views": [],
+    "queries": {}
+  }
+}
