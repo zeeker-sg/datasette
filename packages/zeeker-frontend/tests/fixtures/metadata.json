@@ -1,0 +1,33 @@
+{
+  "title": "data.zeeker.sg",
+  "description": "Open data platform for exploration, analysis, and programmatic access",
+  "license": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "source": "Various curated sources",
+  "source_url": "https://data.zeeker.sg/sources",
+  "about": "Providing free access to structured data for research, analysis, and application development",
+  "about_url": "https://data.zeeker.sg/about",
+  "databases": {
+    "sg-gov-newsrooms": {
+      "title": "SG Government Newsrooms",
+      "description": "News and announcements from Singapore government ministries and the judiciary."
+    },
+    "*": {
+      "allow_sql": true,
+      "allow_facet": true,
+      "allow_download": true
+    }
+  },
+  "plugins": {
+    "datasette-search-all": {
+      "template": "Search across all available data"
+    }
+  },
+  "menu_links": [
+    {"href": "/", "label": "Home"},
+    {"href": "/how-to-use", "label": "How to Use"},
+    {"href": "/developers", "label": "Developers"},
+    {"href": "/about", "label": "About"},
+    {"href": "/status", "label": "Status"}
+  ]
+}

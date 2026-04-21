@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-milestone_name: M2 Frontend / API Split
-status: phase-3-complete
-last_updated: "2026-04-21T10:45:00.000Z"
+milestone_name: milestone
+status: unknown
+last_updated: "2026-04-21T16:56:03.623Z"
 progress:
   total_phases: 7
-  completed_phases: 2
-  total_plans: 9
+  completed_phases: 1
+  total_plans: 15
   completed_plans: 9
-  percent: 100
+  percent: 60
 ---
 
 ## Phase 3: Flip suffix-based routing — SHIPPED 2026-04-21
@@ -17,10 +17,12 @@ progress:
 **Outcome:** Suffix-based routing is LIVE. `*.json`, `*.csv`, `*.db`, and `/-/*` route to datasette; everything else routes to frontend. Frontend currently only serves `/frontend-test` (200) and 404s on all HTML routes — Phase 4+ fill in the real HTML routes. `verify_phase_03.sh` exit 0; `verify_api_parity.sh` against `phase-03-pre/` exit 0 (12/12 byte-parity clean). Zero Category-D regressions.
 
 **Also retired Phase-2 stale checks during this phase** (per operator request):
+
 - `verify_phase_02.sh` check #3: jq filter widened to exclude EXPOSE-only Publishers entries (`PublishedPort: 0`)
 - `verify_phase_02.sh` check #10: polarity inverted from "expects 404 from datasette via Caddy" to "expects 200 from frontend via Caddy" — the new assertion matches Phase-3 semantics
 
 **Live stack (unchanged topology from Phase 2; only Caddy config rewritten):**
+
 - caddy `:80`/`:443` (public, only service exposed) — now routing by suffix
 - zeeker-datasette internal only at `zeeker-datasette:8001`
 - frontend internal only at `frontend:8000`
@@ -55,3 +57,5 @@ progress:
 - 02-03 SHIPPED — root `Caddyfile` (`0b40b86`)
 - 02-04 SHIPPED — `docker-compose.yml` three-service rewrite (single-file commit, `git revert b2a20a0` is rollback)
 - 02-05 SHIPPED — Local bring-up + verifiers + ship checkpoint approved
+
+**Planned Phase:** 4 (Port home + database pages) — 5 plans — 2026-04-21T16:43:25.554Z
