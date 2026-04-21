@@ -168,6 +168,26 @@ Plans:
 
 > Per PRD §11 R7, **Phases 2 + 4 together deliver >50% of the perceived UI fix**. Subsequent phases (5–8) are optional continuation if project ROI justifies the work.
 
+**Requirements:** REQ-frontend-route-set, REQ-eliminate-template-drift, REQ-frontend-data-via-http
+
+**Plans:** 5 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — Scaffold main.py lifespan/mount plumbing + filters.py (3 Jinja filters + s/plural helpers) + datasette_client.py (httpx wrapper + 60s TTL cache on /-/metadata.json) + base.html shell (combines M1 _header+_footer) + pytest-httpx dev dep + fixtures + unit tests.
+- [ ] 04-02-PLAN.md — Harvest CSS from M1 zeeker-base.css (lines 1-163 + 164-350 + 3160-3862 + 4097-4116 = ~2,300 lines) into packages/zeeker-frontend/src/zeeker_frontend/static/css/zeeker.css; copy 3 woff2 fonts (Inter + JetBrains Mono + Fraunces); structural validation (balanced braces, no undefined var tokens, no Phase-5 leak).
+- [ ] 04-03-PLAN.md — Implement GET / (home) — routes_home.py handler + index.html port (with Jinja binding replacements for default: prefix, s()/plural() stubs, tables_count field fix, wildcard `*` metadata filter) + 5 MockTransport route tests.
+- [ ] 04-04-PLAN.md — Implement GET /{db} (database) — routes_database.py handler + database.html port + hidden-table filter using `t["hidden"]` flag (covers `_zeeker_*` AND FTS internals via single predicate) + 7 MockTransport route tests including the load-bearing FTS-not-leaked assertion.
+- [ ] 04-05-PLAN.md — Author scripts/verify_phase_04.sh (inherits verify_phase_03.sh + adds structural HTML + CSS/font + hidden-filter assertions) + docker-compose.prod.yml (minimal Caddy overlay) + Caddyfile.prod (data.zeeker.sg site block with auto-HTTPS + Phase-3 suffix matcher preserved) + 04-05-DEPLOY.md runbook (deploy + four-category A/B/C/D triage + three-layer rollback) + HUMAN CHECKPOINT for production deploy ship/no-ship decision.
+
+**Wave structure:**
+
+| Wave | Plans | Parallelism | Autonomous |
+|------|-------|-------------|------------|
+| 1 | 04-01 | — (foundational scaffolding) | yes |
+| 2 | 04-02 | depends on 04-01 (base.html references /static/css/zeeker.css) | yes |
+| 3 | 04-03, 04-04 | parallel-safe (disjoint route files, templates, tests; both append to main.py at adjacent lines) | yes |
+| 4 | 04-05 | depends on 04-03 + 04-04 being live locally; includes production deploy + human checkpoint | no (checkpoint) |
+
 ---
 
 #### Phase 5: Port table browse + row view
