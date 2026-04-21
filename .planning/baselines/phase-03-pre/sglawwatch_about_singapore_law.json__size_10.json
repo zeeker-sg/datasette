@@ -136,21 +136,21 @@
           "value": "Commercial Law",
           "label": "Commercial Law",
           "count": 175,
-          "toggle_url": "http://localhost:8001/sglawwatch/about_singapore_law.json?_size=10&section=Commercial+Law",
+          "toggle_url": "http://localhost/sglawwatch/about_singapore_law.json?_size=10&section=Commercial+Law",
           "selected": false
         },
         {
           "value": "Singapore Legal System",
           "label": "Singapore Legal System",
           "count": 56,
-          "toggle_url": "http://localhost:8001/sglawwatch/about_singapore_law.json?_size=10&section=Singapore+Legal+System",
+          "toggle_url": "http://localhost/sglawwatch/about_singapore_law.json?_size=10&section=Singapore+Legal+System",
           "selected": false
         },
         {
           "value": "Overview",
           "label": "Overview",
           "count": 49,
-          "toggle_url": "http://localhost:8001/sglawwatch/about_singapore_law.json?_size=10&section=Overview",
+          "toggle_url": "http://localhost/sglawwatch/about_singapore_law.json?_size=10&section=Overview",
           "selected": false
         }
       ],
@@ -160,24 +160,24 @@
   "suggested_facets": [
     {
       "name": "home_page",
-      "toggle_url": "http://localhost:8001/sglawwatch/about_singapore_law.json?_size=10&_facet=home_page"
+      "toggle_url": "http://localhost/sglawwatch/about_singapore_law.json?_size=10&_facet=home_page"
     },
     {
       "name": "last_scraped",
-      "toggle_url": "http://localhost:8001/sglawwatch/about_singapore_law.json?_size=10&_facet=last_scraped"
+      "toggle_url": "http://localhost/sglawwatch/about_singapore_law.json?_size=10&_facet=last_scraped"
     },
     {
       "name": "last_scraped",
       "type": "date",
-      "toggle_url": "http://localhost:8001/sglawwatch/about_singapore_law.json?_size=10&_facet_date=last_scraped"
+      "toggle_url": "http://localhost/sglawwatch/about_singapore_law.json?_size=10&_facet_date=last_scraped"
     }
   ],
   "next": "10",
-  "next_url": "http://localhost:8001/sglawwatch/about_singapore_law.json?_size=10&_next=10",
+  "next_url": "http://localhost/sglawwatch/about_singapore_law.json?_size=10&_next=10",
   "private": false,
   "allow_execute_sql": true,
-  "source": "Singapore Government Agencies",
-  "source_url": "https://data.zeeker.sg/",
-  "license": "All rights reserved",
-  "license_url": "https://www.mlaw.gov.sg/terms-of-use/"
+  "source": "Singapore LawWatch",
+  "source_url": "https://www.singaporelawwatch.sg/",
+  "license": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/"
 }

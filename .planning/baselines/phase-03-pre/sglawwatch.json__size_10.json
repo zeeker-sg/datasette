@@ -41,7 +41,7 @@
       "primary_keys": [
         "id"
       ],
-      "count": 662,
+      "count": 665,
       "hidden": false,
       "fts_table": "headlines_fts",
       "foreign_keys": {
@@ -303,7 +303,7 @@
         "rank"
       ],
       "primary_keys": [],
-      "count": 662,
+      "count": 665,
       "hidden": true,
       "fts_table": "headlines_fts",
       "foreign_keys": {
@@ -339,7 +339,7 @@
       "primary_keys": [
         "id"
       ],
-      "count": 100,
+      "count": 101,
       "hidden": true,
       "fts_table": null,
       "foreign_keys": {
@@ -357,7 +357,7 @@
       "primary_keys": [
         "id"
       ],
-      "count": 662,
+      "count": 665,
       "hidden": true,
       "fts_table": null,
       "foreign_keys": {
@@ -377,7 +377,7 @@
         "segid",
         "term"
       ],
-      "count": 98,
+      "count": 99,
       "hidden": true,
       "fts_table": null,
       "foreign_keys": {
@@ -450,8 +450,8 @@
   "views": [],
   "queries": [],
   "allow_execute_sql": true,
-  "source": "Singapore Government Agencies",
-  "source_url": "https://data.zeeker.sg/",
-  "license": "All rights reserved",
-  "license_url": "https://www.mlaw.gov.sg/terms-of-use/"
+  "source": "Singapore LawWatch",
+  "source_url": "https://www.singaporelawwatch.sg/",
+  "license": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/"
 }

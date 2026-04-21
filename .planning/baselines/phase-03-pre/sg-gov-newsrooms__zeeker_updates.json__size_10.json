@@ -84,20 +84,20 @@
   "suggested_facets": [
     {
       "name": "record_count",
-      "toggle_url": "http://localhost:8001/sg-gov-newsrooms/_zeeker_updates.json?_size=10&_facet=record_count"
+      "toggle_url": "http://localhost/sg-gov-newsrooms/_zeeker_updates.json?_size=10&_facet=record_count"
     },
     {
       "name": "last_updated",
       "type": "date",
-      "toggle_url": "http://localhost:8001/sg-gov-newsrooms/_zeeker_updates.json?_size=10&_facet_date=last_updated"
+      "toggle_url": "http://localhost/sg-gov-newsrooms/_zeeker_updates.json?_size=10&_facet_date=last_updated"
     }
   ],
   "next": null,
   "next_url": null,
   "private": false,
   "allow_execute_sql": true,
-  "source": "Singapore Government Agencies",
-  "source_url": "https://data.zeeker.sg/",
-  "license": "All rights reserved",
-  "license_url": "https://www.mlaw.gov.sg/terms-of-use/"
+  "source": "Singapore LawWatch",
+  "source_url": "https://www.singaporelawwatch.sg/",
+  "license": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/"
 }

@@ -6,10 +6,10 @@
   "rows": [
     [
       "judgments",
-      "2026-04-19T21:12:45.365137",
-      7498,
-      "build_20260419_210720",
-      324465
+      "2026-04-20T21:12:23.505407",
+      8498,
+      "build_20260420_210707",
+      315693
     ]
   ],
   "truncated": false,
@@ -36,15 +36,15 @@
     {
       "name": "last_updated",
       "type": "date",
-      "toggle_url": "http://localhost:8001/zeeker-judgements/_zeeker_updates.json?_size=10&_facet_date=last_updated"
+      "toggle_url": "http://localhost/zeeker-judgements/_zeeker_updates.json?_size=10&_facet_date=last_updated"
     }
   ],
   "next": null,
   "next_url": null,
   "private": false,
   "allow_execute_sql": true,
-  "source": "Singapore Government Agencies",
-  "source_url": "https://data.zeeker.sg/",
-  "license": "All rights reserved",
-  "license_url": "https://www.mlaw.gov.sg/terms-of-use/"
+  "source": "Singapore LawWatch",
+  "source_url": "https://www.singaporelawwatch.sg/",
+  "license": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/"
 }

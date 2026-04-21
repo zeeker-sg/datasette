@@ -82,7 +82,7 @@
         "primary_keys": [
           "id"
         ],
-        "count": 17841,
+        "count": 20037,
         "hidden": false,
         "fts_table": null,
         "num_relationships_for_sorting": 0,
@@ -111,7 +111,7 @@
           "summary_generated_at"
         ],
         "primary_keys": [],
-        "count": 7498,
+        "count": 8498,
         "hidden": false,
         "fts_table": null,
         "num_relationships_for_sorting": 0,
@@ -157,7 +157,7 @@
     ],
     "tables_and_views_more": false,
     "tables_count": 4,
-    "table_rows_sum": 25341,
+    "table_rows_sum": 28537,
     "show_table_row_counts": true,
     "hidden_table_rows_sum": 0,
     "hidden_tables_count": 0,

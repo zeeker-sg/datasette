@@ -1,10 +1,10 @@
 {
-  "title": "Sg Gov Newsrooms Data Portal",
-  "description": "Data portal for the sg-gov-newsrooms project",
-  "license": "All rights reserved",
-  "license_url": "https://www.mlaw.gov.sg/terms-of-use/",
-  "source": "Singapore Government Agencies",
-  "source_url": "https://data.zeeker.sg/",
+  "title": "SG LawWatch",
+  "description": "Singapore legal news and reference articles",
+  "license": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "source": "Singapore LawWatch",
+  "source_url": "https://www.singaporelawwatch.sg/",
   "about": "Providing free access to structured data for research, analysis, and application development",
   "about_url": "https://data.zeeker.sg/about",
   "databases": {
@@ -173,10 +173,10 @@
           }
         }
       },
-      "source": "Singapore Government Agencies",
-      "source_url": "https://data.zeeker.sg/",
-      "license": "All rights reserved",
-      "license_url": "https://www.mlaw.gov.sg/terms-of-use/",
+      "source": "Singapore LawWatch",
+      "source_url": "https://www.singaporelawwatch.sg/",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
       "about": "Providing free access to structured data for research, analysis, and application development",
       "about_url": "https://data.zeeker.sg/about"
     },
@@ -219,7 +219,13 @@
             "summary": "AI-generated summary of the article content",
             "text": "Full extracted text content of the news article",
             "imported_on": "Timestamp when the record was imported into the database"
-          }
+          },
+          "source": "Singapore LawWatch",
+          "source_url": "https://www.singaporelawwatch.sg/",
+          "license": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/",
+          "about": "Providing free access to structured data for research, analysis, and application development",
+          "about_url": "https://data.zeeker.sg/about"
         },
         "about_singapore_law": {
           "description": "Reference articles from the About Singapore Law section, covering legal topics and guides for the public.",

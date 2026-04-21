@@ -37,6 +37,15 @@
     ]
   },
   {
+    "name": "datasette-template-sql",
+    "static": false,
+    "templates": false,
+    "version": "1.0.2",
+    "hooks": [
+      "extra_template_vars"
+    ]
+  },
+  {
     "name": "developers_page.py",
     "static": false,
     "templates": false,

@@ -1,10 +1,10 @@
 {
   "python": {
     "version": "3.12.13",
-    "full": "3.12.13 (main, Mar 16 2026, 23:12:16) [GCC 14.2.0]"
+    "full": "3.12.13 (main, Apr  7 2026, 02:30:41) [GCC 14.2.0]"
   },
   "datasette": {
-    "version": "0.65.1"
+    "version": "0.65.2"
   },
   "asgi": "3.0",
   "uvicorn": "0.34.2",

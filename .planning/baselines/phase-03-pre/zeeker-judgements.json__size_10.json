@@ -2,7 +2,7 @@
   "database": "zeeker-judgements",
   "private": false,
   "path": "/zeeker-judgements",
-  "size": 40366080,
+  "size": 44736512,
   "tables": [
     {
       "name": "_zeeker_schemas",
@@ -70,7 +70,7 @@
         "summary_generated_at"
       ],
       "primary_keys": [],
-      "count": 7498,
+      "count": 8498,
       "hidden": false,
       "fts_table": null,
       "foreign_keys": {
@@ -100,7 +100,7 @@
       "primary_keys": [
         "id"
       ],
-      "count": 17841,
+      "count": 20037,
       "hidden": false,
       "fts_table": null,
       "foreign_keys": {
@@ -114,8 +114,8 @@
   "views": [],
   "queries": [],
   "allow_execute_sql": true,
-  "source": "Singapore Government Agencies",
-  "source_url": "https://data.zeeker.sg/",
-  "license": "All rights reserved",
-  "license_url": "https://www.mlaw.gov.sg/terms-of-use/"
+  "source": "Singapore LawWatch",
+  "source_url": "https://www.singaporelawwatch.sg/",
+  "license": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/"
 }

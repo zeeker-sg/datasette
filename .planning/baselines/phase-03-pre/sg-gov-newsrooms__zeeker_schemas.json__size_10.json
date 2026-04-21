@@ -93,29 +93,29 @@
   "suggested_facets": [
     {
       "name": "schema_hash",
-      "toggle_url": "http://localhost:8001/sg-gov-newsrooms/_zeeker_schemas.json?_size=10&_facet=schema_hash"
+      "toggle_url": "http://localhost/sg-gov-newsrooms/_zeeker_schemas.json?_size=10&_facet=schema_hash"
     },
     {
       "name": "column_definitions",
-      "toggle_url": "http://localhost:8001/sg-gov-newsrooms/_zeeker_schemas.json?_size=10&_facet=column_definitions"
+      "toggle_url": "http://localhost/sg-gov-newsrooms/_zeeker_schemas.json?_size=10&_facet=column_definitions"
     },
     {
       "name": "created_at",
       "type": "date",
-      "toggle_url": "http://localhost:8001/sg-gov-newsrooms/_zeeker_schemas.json?_size=10&_facet_date=created_at"
+      "toggle_url": "http://localhost/sg-gov-newsrooms/_zeeker_schemas.json?_size=10&_facet_date=created_at"
     },
     {
       "name": "updated_at",
       "type": "date",
-      "toggle_url": "http://localhost:8001/sg-gov-newsrooms/_zeeker_schemas.json?_size=10&_facet_date=updated_at"
+      "toggle_url": "http://localhost/sg-gov-newsrooms/_zeeker_schemas.json?_size=10&_facet_date=updated_at"
     }
   ],
   "next": null,
   "next_url": null,
   "private": false,
   "allow_execute_sql": true,
-  "source": "Singapore Government Agencies",
-  "source_url": "https://data.zeeker.sg/",
-  "license": "All rights reserved",
-  "license_url": "https://www.mlaw.gov.sg/terms-of-use/"
+  "source": "Singapore LawWatch",
+  "source_url": "https://www.singaporelawwatch.sg/",
+  "license": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/"
 }
