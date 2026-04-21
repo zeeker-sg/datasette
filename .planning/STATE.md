@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-21T10:06:00.000Z"
+last_updated: "2026-04-21T10:12:20.669Z"
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 9
-  completed_plans: 7
-  percent: 78
+  completed_plans: 8
+  percent: 89
 ---
 
 ## Phase 2: Dual-service bring-up — SHIPPED 2026-04-21
@@ -40,6 +40,7 @@ progress:
 
 - 03-01 SHIPPED 2026-04-21 — Verifier scripts parameterized via `ZEEKER_BASELINE_DIR` env var (default `.planning/baselines/phase-03-pre/`). `scripts/capture_baseline.sh` (`5fd66ab`) + `scripts/verify_api_parity.sh` (`8445c43`); 12/12 byte-parity smoke test PASS against live post-Phase-2 stack; negative override fails fast as designed. No `phase-02` substring remains in `scripts/`. Plan 02 (Caddyfile flip), Plan 03 (verify_phase_03.sh), and Plan 04 (operator gate) all unblocked.
 - 03-02 SHIPPED 2026-04-21 — Caddyfile flipped from transparent reverse_proxy to named `@datasette` matcher router (`*.json|*.csv|*.db|/-/* → zeeker-datasette:8001`, catch-all → `frontend:8000`); validated via Docker-one-shot `caddy validate`; single-file commit `ebf3f52` (1 file changed, 36 insertions, 29 deletions). Caddy NOT restarted — live container still on Phase-2 transparent-proxy config (intentional; Plan 04 owns the restart + verifier-run gate). REQ-suffix-routing-contract on-disk; REQ-incremental-migration single-file rollback discipline verified. `caddy fmt --overwrite` applied for tab-indent consistency.
+- 03-03 SHIPPED 2026-04-21 — `scripts/verify_phase_03.sh` authored (236 lines, executable, passes `bash -n`): 7 check sections covering caddy validate (A), Phase-2 verifier delegation (B), 6 positive routing checks (C), 11 negative routing checks with `zeeker-base.css` body-content fallthrough sniff — 10 page-shape URLs + 1 row-URL shape (D), `/frontend-test` reachability (E), edge cases for multi-dot+query / HEAD-vs-GET symmetry / case-insensitive `.JSON` / CORS header preservation (F), and parity wrap exporting `ZEEKER_BASELINE_DIR=phase-03-pre` then invoking Plan-01-parameterized `verify_api_parity.sh` (G). Script commit `5f9a224`. NOT executed against live stack — Caddy still on Phase-2 transparent-proxy config; running now would surface false negatives in Section D. Plan 04 unblocked: owns `docker compose restart caddy` + verifier-run as one atomic gate. One auto-fix (Rule 1): reworded header comment to avoid literal `restart caddy` substring that would have failed the plan's `! grep -q 'restart caddy'` acceptance check while preserving semantic intent.
 
 ## Phase 3 decisions accumulated
 
@@ -47,3 +48,5 @@ progress:
 - JQ_STRIP filter is the bright line between honest verification and rationalization. Phase 3 inherits Phase 2's discipline: NEVER widen the filter to mask diffs. Triage stays at the human checkpoint (Plan 04).
 - Named matcher `@datasette` (not `@datasette_api`); two `path` lines OR'd inside the matcher (suffix list + `/-/*` prefix on separate lines for legibility); matched-handler before catch-all in file order (Caddy auto-sorts no-matcher last regardless). No snippet refactor (`(api-routes)` + `import`); no static-asset `respond` short-circuits — both deferred per CONTEXT D-XX. Locked in 03-02 commit.
 - Validate-but-don't-restart split: Plan 02 mutates+validates the on-disk Caddyfile; Plan 04 owns `docker compose restart caddy` + verifier-run as one atomic gate (per RESEARCH Pattern 4 / Pitfall 2 — `restart` sidesteps bind-mount inode-swap issues that affect `caddy reload`).
+- Fingerprint-sniff over status codes: routing-correctness assertions grep the response body for an upstream-unique substring (`zeeker-base.css` for datasette's rendered HTML; `"detail":"Not Found"` for frontend's default 404). Status codes alone cannot distinguish a silent fallthrough from a correctly-routed 404. Locked in 03-03 verifier Section D design (RESEARCH Pitfall 1).
+- Verifier composition over duplication: Phase-N verifier scripts invoke the previous phase's verifier as their first big check, rather than re-asserting inherited topology invariants inline. Phase 3's `verify_phase_03.sh` Section B shells out to `verify_phase_02.sh` (RESEARCH Open Q#2 recommendation). Inherits known Phase-2 false-positive in check #3 AS-IS (out of scope to fix).
