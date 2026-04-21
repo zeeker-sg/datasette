@@ -57,8 +57,13 @@ else
   # Shell + layout markers
   echo "$BODY" | grep -q 'db-statband'       && ok "/ contains .db-statband"            || fail "/ missing .db-statband"
   echo "$BODY" | grep -q 'class="cards"'     && ok "/ contains .cards grid"             || fail "/ missing .cards grid"
-  # Italic-accent H1 (Fraunces <em> inside <h1>)
-  echo "$BODY" | grep -qE '<h1>[^<]*<em'     && ok "/ italic-accent H1 renders"         || fail "/ missing italic-accent H1"
+  # Italic-accent H1 (Fraunces <em> inside <h1>). H1 renders across multiple
+  # lines, so collapse whitespace before matching.
+  if echo "$BODY" | tr '\n' ' ' | grep -qE '<h1>[^<]*<em[^>]*>[^<]+</em>'; then
+    ok "/ italic-accent H1 renders"
+  else
+    fail "/ missing italic-accent H1"
+  fi
   # Frontend CSS path
   echo "$BODY" | grep -q '/static/css/zeeker.css' && ok "/ references /static/css/zeeker.css" || fail "/ missing frontend CSS ref"
   # M1 CSS path absent (confirms NOT datasette HTML)
@@ -67,8 +72,9 @@ else
   else
     ok "/ does NOT reference zeeker-base.css (frontend-rendered)"
   fi
-  # Cache-Control header
-  CC=$(curl -fsSI "$BASE_URL/" 2>/dev/null | grep -i '^cache-control:' | tr -d '\r')
+  # Cache-Control header — check via GET (uvicorn returns 405 on HEAD for
+  # routes registered with @router.get), pulling headers with -D -.
+  CC=$(curl -fsS -D - -o /dev/null "$BASE_URL/" 2>/dev/null | grep -i '^cache-control:' | tr -d '\r')
   if echo "$CC" | grep -qi 'max-age=60' && echo "$CC" | grep -qi 'stale-while-revalidate=300'; then
     ok "/ Cache-Control: max-age=60 + swr=300"
   else
@@ -102,8 +108,12 @@ else
     ok "/sglawwatch does NOT leak FTS internals"
   fi
 
-  # Italic-accent H1
-  echo "$BODY" | grep -qE '<h1>[^<]*<em'   && ok "/sglawwatch italic-accent H1 renders"    || fail "/sglawwatch missing italic-accent H1"
+  # Italic-accent H1 — collapse whitespace to match across rendered newlines.
+  if echo "$BODY" | tr '\n' ' ' | grep -qE '<h1>[^<]*<em[^>]*>[^<]+</em>'; then
+    ok "/sglawwatch italic-accent H1 renders"
+  else
+    fail "/sglawwatch missing italic-accent H1"
+  fi
 fi
 
 # ===== D. NEGATIVE — unknown database returns 404 (not 500, not 200) =====

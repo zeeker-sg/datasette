@@ -66,6 +66,14 @@
       "hidden": true,
       "fts_table": null,
       "num_relationships_for_table": 0
+    },
+    {
+      "name": "_zeeker_updates",
+      "columns": ["id", "ts", "note"],
+      "count": 5,
+      "hidden": false,
+      "fts_table": null,
+      "num_relationships_for_table": 0
     }
   ],
   "views": [],

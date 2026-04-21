@@ -26,10 +26,14 @@ async def database(request: Request, db: str):
         # Pitfall 1 revisited: explicit 404 — NOT a generic 500 traceback.
         raise HTTPException(status_code=404, detail="Database not found")
 
-    # Pitfall 5: trust Datasette's `hidden: true` flag. It covers BOTH
-    # `_zeeker_*` metadata tables AND FTS internals (*_fts, *_fts_data,
-    # *_fts_docsize, *_fts_idx). Do NOT prefix-check — it misses FTS.
-    visible_tables = [t for t in payload.get("tables", []) if not t.get("hidden")]
+    # Datasette's `hidden: true` flag covers FTS internals (*_fts, *_fts_data,
+    # *_fts_docsize, *_fts_idx) but NOT the `_zeeker_*` platform tables — those
+    # are only hidden when per-database metadata.json opts them in (M1 did
+    # this; not every overlay carries it). Match both: flag AND prefix.
+    visible_tables = [
+        t for t in payload.get("tables", [])
+        if not t.get("hidden") and not t.get("name", "").startswith("_zeeker")
+    ]
 
     # Per-DB title/description live in /-/metadata.json.databases[db]. Source/license
     # are already merged into /{db}.json top-level by datasette — pass both up.
