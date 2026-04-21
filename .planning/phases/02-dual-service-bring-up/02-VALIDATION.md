@@ -1,11 +1,14 @@
 ---
 phase: 2
 slug: dual-service-bring-up
-status: draft
+status: shipped
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-04-20
-updated: 2026-04-20
+updated: 2026-04-21
+shipped: 2026-04-21
+ship_decision: approved
+ship_notes: "All 5 plans complete. verify_phase_02.sh exit 1 and verify_api_parity.sh exit 1 both triaged as non-regressions: (a) localhost:8001 → localhost host-base-URL drift in next_url/toggle_url is invisible in production where hostname is data.zeeker.sg both pre- and post-Phase-2; (b) S3 metadata refresh + datasette 0.65.1→0.65.2 + daily zeeker-judgements row import drift are environmental and would have happened without the topology change. Zero topology-induced API regressions. Row counts identical (10/10) on direct comparison. Re-baseline against post-Caddy stack recommended before Phase 3 starts."
 ---
 
 # Phase 2 — Validation Strategy
