@@ -83,10 +83,11 @@ app.state.templates = templates
 
 from zeeker_frontend.routes_home import router as home_router
 from zeeker_frontend.routes_database import router as database_router
-app.include_router(home_router)
-app.include_router(database_router)
 
 
+# Explicit JSON healthcheck MUST register before the `/{db}` catch-all in
+# database_router; otherwise `/frontend-test` matches the database route and
+# the docker healthcheck + verify_phase_0{2,3}.sh reachability probes break.
 @app.get("/frontend-test")
 def frontend_test() -> dict[str, str]:
     """Phase-2 healthcheck target (preserved).
@@ -95,3 +96,7 @@ def frontend_test() -> dict[str, str]:
     and by verify_phase_0{2,3}.sh as a frontend-reachability probe.
     """
     return {"status": "ok", "service": "zeeker-frontend"}
+
+
+app.include_router(home_router)
+app.include_router(database_router)

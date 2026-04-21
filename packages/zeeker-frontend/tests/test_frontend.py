@@ -1,7 +1,9 @@
-"""Phase 2 smoke tests for the zeeker-frontend placeholder."""
-import sys
+"""Phase 2 smoke tests for the zeeker-frontend placeholder.
 
-import pytest
+The Phase-2 `test_unknown_path_returns_404` guard was retired in Phase 4:
+`/{db}` is now an intentional catch-all (see routes_database). The healthcheck
+and the sqlite3 fence still apply.
+"""
 from fastapi.testclient import TestClient
 
 
@@ -10,16 +12,6 @@ def test_frontend_test_returns_ok(client: TestClient) -> None:
     response = client.get("/frontend-test")
     assert response.status_code == 200
     assert response.json() == {"status": "ok", "service": "zeeker-frontend"}
-
-
-def test_unknown_path_returns_404(client: TestClient) -> None:
-    """Phase 2 frontend has only one route; everything else is 404.
-
-    This guards against someone accidentally adding a catch-all handler
-    that would change Phase 3's forward-compat assumptions.
-    """
-    response = client.get("/some-other-path")
-    assert response.status_code == 404
 
 
 def test_module_does_not_top_level_import_sqlite3() -> None:
