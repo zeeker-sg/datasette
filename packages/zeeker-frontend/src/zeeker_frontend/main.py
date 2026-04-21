@@ -77,6 +77,13 @@ templates.env.filters["safe_format"] = zfilters.safe_format
 templates.env.globals["s"] = zfilters.s
 templates.env.globals["plural"] = zfilters.plural
 
+# Expose templates on app.state so route modules can render without importing
+# `templates` directly (avoids circular imports once 04-04 adds its own router).
+app.state.templates = templates
+
+from zeeker_frontend.routes_home import router as home_router
+app.include_router(home_router)
+
 
 @app.get("/frontend-test")
 def frontend_test() -> dict[str, str]:
