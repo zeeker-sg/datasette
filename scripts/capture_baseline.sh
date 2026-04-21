@@ -2,7 +2,8 @@
 # Phase 2 — capture baseline JSON against the PRE-MUTATION single-service stack.
 #
 # Run this BEFORE plan 04 removes `ports:` from datasette. It captures
-# representative JSON responses to .planning/baselines/phase-02/ and commits
+# representative JSON responses to $ZEEKER_BASELINE_DIR (default
+# .planning/baselines/phase-03-pre/) and commits
 # them to git so verify_api_parity.sh has something to diff against post-deploy.
 #
 # Pre-req: `docker compose up -d` of the CURRENT (pre-Phase-2) compose, with
@@ -10,7 +11,7 @@
 set -euo pipefail
 
 BASE_URL="${ZEEKER_BASELINE_URL:-http://localhost:8001}"
-OUT_DIR="$(git rev-parse --show-toplevel)/.planning/baselines/phase-02"
+OUT_DIR="${ZEEKER_BASELINE_DIR:-$(git rev-parse --show-toplevel)/.planning/baselines/phase-03-pre}"
 mkdir -p "$OUT_DIR"
 
 # Strip volatile fields (timing, request IDs) so diffs are meaningful.
