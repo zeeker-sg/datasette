@@ -185,8 +185,11 @@ Plans:
 |------|-------|-------------|------------|
 | 1 | 04-01 | — (foundational scaffolding) | yes |
 | 2 | 04-02 | depends on 04-01 (base.html references /static/css/zeeker.css) | yes |
-| 3 | 04-03, 04-04 | parallel-safe (disjoint route files, templates, tests; both append to main.py at adjacent lines) | yes |
-| 4 | 04-05 | depends on 04-03 + 04-04 being live locally; includes production deploy + human checkpoint | no (checkpoint) |
+| 3 | 04-03 | depends on 04-01 + 04-02; edits main.py | yes |
+| 4 | 04-04 | depends on 04-03 (serialized to avoid main.py merge race) | yes |
+| 5 | 04-05 | depends on 04-03 + 04-04; production deploy + human checkpoint | no (checkpoint) |
+
+Note: originally planned Wave 3 as parallel 04-03 + 04-04, but both append `include_router` to `main.py` — serialized to avoid worktree merge conflict risk. Adds ~5 min wall time; buys merge safety.
 
 ---
 

@@ -1056,27 +1056,27 @@ visible_tables = [t for t in payload.get("tables", []) if not t.get("hidden")]
 | A8 | Datasette's top-level `/{db}.json` `source`/`license` fields are merged from metadata.json at datasette-request time — so we don't need to also fetch `/-/metadata.json` just to show these in the database hero | Datasette JSON Contract | Low — VERIFIED via live curl. But: per-DB title/description ARE NOT in `/{db}.json` and DO require the metadata.json fetch. |
 | A9 | The production host runs Docker Compose v2+ (supporting the `-f file1 -f file2` overlay pattern) | Production Deploy | Low — Phase 2/3 production is already using docker compose v2 per the healthcheck syntax. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Does production have a CI/CD pipeline, or is it manual git-pull + compose up?**
    - What we know: CONTEXT.md says "`docker compose up -d --build` on the production host after git pull". No CI files (`.github/workflows/`, etc.) visible in the repo root.
    - What's unclear: if a deploy automation exists off-repo (GitOps agent, Watchtower, etc.), the deploy plan needs adjustment.
-   - Recommendation: **Ask user at plan-time** (one-line question) or assume manual and document in Plan 04-05's verification notes.
+   - RESOLVED: assume manual git-pull + compose up. Plan 04-05's `04-05-DEPLOY.md` documents the exact commands; if downstream automation exists, the plan is still valid (compose up is idempotent).
 
 2. **Should the frontend respect datasette's `extra_css_urls` / `extra_js_urls` from `/-/metadata.json`?**
    - What we know: M1's `index.html` and `database.html` don't reference these (metadata.json sets them but templates don't iterate them in the body — Datasette's `default:` base template did). After the port, we have a choice.
    - What's unclear: are there downstream users relying on per-DB custom CSS loaded via this mechanism?
-   - Recommendation: **NO — drop it in Phase 4.** CONTEXT explicitly says per-DB overlays are a Phase-8 decision. Plan 04-05 can document the trade-off.
+   - RESOLVED: NO — drop it in Phase 4. CONTEXT explicitly says per-DB overlays are a Phase-8 decision. Plan 04-05's DEPLOY.md documents the trade-off.
 
 3. **Should Phase 4 re-baseline `phase-04-pre` BEFORE deploy or AFTER?**
    - What we know: CONTEXT.md says re-baseline "AFTER the deploy … wait until production is stable".
    - What's unclear: whether the Phase-3 baselines (`phase-03-pre`) remain valid through Phase 4. Answer: yes — Phase 4 adds frontend HTML routes only; `*.json` URLs still route to datasette unchanged. So `verify_api_parity.sh` with `ZEEKER_BASELINE_DIR=phase-03-pre` continues to pass.
-   - Recommendation: Phase 4's verifier uses `phase-03-pre` (established baselines). Capture `phase-04-pre` post-deploy in Plan 04-05 as a Phase-5 preparation step.
+   - RESOLVED: Phase 4's verifier uses `phase-03-pre` (established baselines). Capture `phase-04-pre` post-deploy in Plan 04-05 as a Phase-5 preparation step.
 
 4. **Is there a test framework scaffolded in `packages/zeeker-frontend/tests/`?**
    - What we know: `tests/` directory exists (Phase 2 scaffold). `pytest==9.0.3` is a dev dep. No test files authored.
    - What's unclear: whether Phase 4 should author minimal tests (Jinja render smoke, httpx mock unit tests) or defer.
-   - Recommendation: **Author minimal tests — 1 per route** — `tests/test_home.py` and `tests/test_database.py` with an `httpx.MockTransport` that returns fixture JSON, asserts the template renders without error and key strings are present. Low cost, high value for refactor-confidence.
+   - RESOLVED: Author minimal tests — 1 per route — `tests/test_home.py` and `tests/test_database.py` with an `httpx.MockTransport` that returns fixture JSON, asserts the template renders without error and key strings are present. Low cost, high value for refactor-confidence. Plan 01 ships the test framework + unit tests; Plans 03/04 add route-specific tests.
 
 ## Environment Availability
 
