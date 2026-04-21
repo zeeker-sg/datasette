@@ -7,7 +7,7 @@
 set -euo pipefail
 
 BASE_URL="${ZEEKER_VERIFY_URL:-http://localhost}"
-BASELINE_DIR="$(git rev-parse --show-toplevel)/.planning/baselines/phase-02"
+BASELINE_DIR="${ZEEKER_BASELINE_DIR:-$(git rev-parse --show-toplevel)/.planning/baselines/phase-03-pre}"
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
