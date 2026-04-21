@@ -1,0 +1,264 @@
+===== verify_api_parity.sh =====
+Date: 2026-04-21T00:12:08Z
+Caddy URL: http://localhost
+Baselines: .planning/baselines/phase-02/
+
+Baseline files: 12
+
+FAIL: byte diff for /-/metadata.json
+2,7c2,7
+<   "title": "Sg Gov Newsrooms Data Portal",
+<   "description": "Data portal for the sg-gov-newsrooms project",
+<   "license": "All rights reserved",
+<   "license_url": "https://www.mlaw.gov.sg/terms-of-use/",
+<   "source": "Singapore Government Agencies",
+<   "source_url": "https://data.zeeker.sg/",
+---
+>   "title": "SG LawWatch",
+>   "description": "Singapore legal news and reference articles",
+>   "license": "CC-BY-4.0",
+>   "license_url": "https://creativecommons.org/licenses/by/4.0/",
+>   "source": "Singapore LawWatch",
+>   "source_url": "https://www.singaporelawwatch.sg/",
+176,179c176,179
+<       "source": "Singapore Government Agencies",
+<       "source_url": "https://data.zeeker.sg/",
+<       "license": "All rights reserved",
+<       "license_url": "https://www.mlaw.gov.sg/terms-of-use/",
+---
+>       "source": "Singapore LawWatch",
+>       "source_url": "https://www.singaporelawwatch.sg/",
+>       "license": "CC-BY-4.0",
+>       "license_url": "https://creativecommons.org/licenses/by/4.0/",
+FAIL: byte diff for /-/plugins.json
+39a40,48
+>     "name": "datasette-template-sql",
+>     "static": false,
+>     "templates": false,
+>     "version": "1.0.2",
+>     "hooks": [
+>       "extra_template_vars"
+>     ]
+>   },
+>   {
+OK (structural):  /-/versions.json
+FAIL: byte diff for /sg-gov-newsrooms/_zeeker_schemas.json?_size=10
+96c96
+<       "toggle_url": "http://localhost:8001/sg-gov-newsrooms/_zeeker_schemas.json?_size=10&_facet=schema_hash"
+---
+>       "toggle_url": "http://localhost/sg-gov-newsrooms/_zeeker_schemas.json?_size=10&_facet=schema_hash"
+100c100
+<       "toggle_url": "http://localhost:8001/sg-gov-newsrooms/_zeeker_schemas.json?_size=10&_facet=column_definitions"
+---
+>       "toggle_url": "http://localhost/sg-gov-newsrooms/_zeeker_schemas.json?_size=10&_facet=column_definitions"
+105c105
+<       "toggle_url": "http://localhost:8001/sg-gov-newsrooms/_zeeker_schemas.json?_size=10&_facet_date=created_at"
+---
+>       "toggle_url": "http://localhost/sg-gov-newsrooms/_zeeker_schemas.json?_size=10&_facet_date=created_at"
+110c110
+<       "toggle_url": "http://localhost:8001/sg-gov-newsrooms/_zeeker_schemas.json?_size=10&_facet_date=updated_at"
+---
+>       "toggle_url": "http://localhost/sg-gov-newsrooms/_zeeker_schemas.json?_size=10&_facet_date=updated_at"
+117,120c117,120
+<   "source": "Singapore Government Agencies",
+<   "source_url": "https://data.zeeker.sg/",
+<   "license": "All rights reserved",
+<   "license_url": "https://www.mlaw.gov.sg/terms-of-use/"
+---
+>   "source": "Singapore LawWatch",
+>   "source_url": "https://www.singaporelawwatch.sg/",
+>   "license": "CC-BY-4.0",
+>   "license_url": "https://creativecommons.org/licenses/by/4.0/"
+FAIL: byte diff for /sg-gov-newsrooms/_zeeker_updates.json?_size=10
+87c87
+<       "toggle_url": "http://localhost:8001/sg-gov-newsrooms/_zeeker_updates.json?_size=10&_facet=record_count"
+---
+>       "toggle_url": "http://localhost/sg-gov-newsrooms/_zeeker_updates.json?_size=10&_facet=record_count"
+92c92
+<       "toggle_url": "http://localhost:8001/sg-gov-newsrooms/_zeeker_updates.json?_size=10&_facet_date=last_updated"
+---
+>       "toggle_url": "http://localhost/sg-gov-newsrooms/_zeeker_updates.json?_size=10&_facet_date=last_updated"
+99,102c99,102
+<   "source": "Singapore Government Agencies",
+<   "source_url": "https://data.zeeker.sg/",
+<   "license": "All rights reserved",
+<   "license_url": "https://www.mlaw.gov.sg/terms-of-use/"
+---
+>   "source": "Singapore LawWatch",
+>   "source_url": "https://www.singaporelawwatch.sg/",
+>   "license": "CC-BY-4.0",
+>   "license_url": "https://creativecommons.org/licenses/by/4.0/"
+FAIL: byte diff for /sg-gov-newsrooms.json?_size=10
+232,235c232,235
+<   "source": "Singapore Government Agencies",
+<   "source_url": "https://data.zeeker.sg/",
+<   "license": "All rights reserved",
+<   "license_url": "https://www.mlaw.gov.sg/terms-of-use/"
+---
+>   "source": "Singapore LawWatch",
+>   "source_url": "https://www.singaporelawwatch.sg/",
+>   "license": "CC-BY-4.0",
+>   "license_url": "https://creativecommons.org/licenses/by/4.0/"
+FAIL: byte diff for /sglawwatch/about_singapore_law.json?_size=10
+139c139
+<           "toggle_url": "http://localhost:8001/sglawwatch/about_singapore_law.json?_size=10&section=Commercial+Law",
+---
+>           "toggle_url": "http://localhost/sglawwatch/about_singapore_law.json?_size=10&section=Commercial+Law",
+146c146
+<           "toggle_url": "http://localhost:8001/sglawwatch/about_singapore_law.json?_size=10&section=Singapore+Legal+System",
+---
+>           "toggle_url": "http://localhost/sglawwatch/about_singapore_law.json?_size=10&section=Singapore+Legal+System",
+153c153
+<           "toggle_url": "http://localhost:8001/sglawwatch/about_singapore_law.json?_size=10&section=Overview",
+---
+>           "toggle_url": "http://localhost/sglawwatch/about_singapore_law.json?_size=10&section=Overview",
+163c163
+<       "toggle_url": "http://localhost:8001/sglawwatch/about_singapore_law.json?_size=10&_facet=home_page"
+---
+>       "toggle_url": "http://localhost/sglawwatch/about_singapore_law.json?_size=10&_facet=home_page"
+167c167
+<       "toggle_url": "http://localhost:8001/sglawwatch/about_singapore_law.json?_size=10&_facet=last_scraped"
+---
+>       "toggle_url": "http://localhost/sglawwatch/about_singapore_law.json?_size=10&_facet=last_scraped"
+172c172
+<       "toggle_url": "http://localhost:8001/sglawwatch/about_singapore_law.json?_size=10&_facet_date=last_scraped"
+---
+>       "toggle_url": "http://localhost/sglawwatch/about_singapore_law.json?_size=10&_facet_date=last_scraped"
+176c176
+<   "next_url": "http://localhost:8001/sglawwatch/about_singapore_law.json?_size=10&_next=10",
+---
+>   "next_url": "http://localhost/sglawwatch/about_singapore_law.json?_size=10&_next=10",
+179,182c179,182
+<   "source": "Singapore Government Agencies",
+<   "source_url": "https://data.zeeker.sg/",
+<   "license": "All rights reserved",
+<   "license_url": "https://www.mlaw.gov.sg/terms-of-use/"
+---
+>   "source": "Singapore LawWatch",
+>   "source_url": "https://www.singaporelawwatch.sg/",
+>   "license": "CC-BY-4.0",
+>   "license_url": "https://creativecommons.org/licenses/by/4.0/"
+FAIL: byte diff for /sglawwatch/headlines.json?_size=10
+152c152
+<           "toggle_url": "http://localhost:8001/sglawwatch/headlines.json?_size=10&category=Straits+Times",
+---
+>           "toggle_url": "http://localhost/sglawwatch/headlines.json?_size=10&category=Straits+Times",
+159c159
+<           "toggle_url": "http://localhost:8001/sglawwatch/headlines.json?_size=10&category=Business+Times",
+---
+>           "toggle_url": "http://localhost/sglawwatch/headlines.json?_size=10&category=Business+Times",
+166c166
+<           "toggle_url": "http://localhost:8001/sglawwatch/headlines.json?_size=10&category=Lianhe+Zaobao",
+---
+>           "toggle_url": "http://localhost/sglawwatch/headlines.json?_size=10&category=Lianhe+Zaobao",
+173c173
+<           "toggle_url": "http://localhost:8001/sglawwatch/headlines.json?_size=10&category=MinLaw",
+---
+>           "toggle_url": "http://localhost/sglawwatch/headlines.json?_size=10&category=MinLaw",
+180c180
+<           "toggle_url": "http://localhost:8001/sglawwatch/headlines.json?_size=10&category=Academy+Publishing",
+---
+>           "toggle_url": "http://localhost/sglawwatch/headlines.json?_size=10&category=Academy+Publishing",
+187c187
+<           "toggle_url": "http://localhost:8001/sglawwatch/headlines.json?_size=10&category=Law.com",
+---
+>           "toggle_url": "http://localhost/sglawwatch/headlines.json?_size=10&category=Law.com",
+194c194
+<           "toggle_url": "http://localhost:8001/sglawwatch/headlines.json?_size=10&category=Singapore+Academy+of+Law",
+---
+>           "toggle_url": "http://localhost/sglawwatch/headlines.json?_size=10&category=Singapore+Academy+of+Law",
+205c205
+<       "toggle_url": "http://localhost:8001/sglawwatch/headlines.json?_size=10&_facet_date=date"
+---
+>       "toggle_url": "http://localhost/sglawwatch/headlines.json?_size=10&_facet_date=date"
+210c210
+<       "toggle_url": "http://localhost:8001/sglawwatch/headlines.json?_size=10&_facet_date=imported_on"
+---
+>       "toggle_url": "http://localhost/sglawwatch/headlines.json?_size=10&_facet_date=imported_on"
+214c214
+<   "next_url": "http://localhost:8001/sglawwatch/headlines.json?_size=10&_next=2026-04-15T00~3A01~3A00%2Cb9e43c2fb9b4d6ddf4dd065d5ed51199&_sort_desc=date",
+---
+>   "next_url": "http://localhost/sglawwatch/headlines.json?_size=10&_next=2026-04-15T00~3A01~3A00%2Cb9e43c2fb9b4d6ddf4dd065d5ed51199&_sort_desc=date",
+FAIL: byte diff for /sglawwatch.json?_size=10
+453,456c453,456
+<   "source": "Singapore Government Agencies",
+<   "source_url": "https://data.zeeker.sg/",
+<   "license": "All rights reserved",
+<   "license_url": "https://www.mlaw.gov.sg/terms-of-use/"
+---
+>   "source": "Singapore LawWatch",
+>   "source_url": "https://www.singaporelawwatch.sg/",
+>   "license": "CC-BY-4.0",
+>   "license_url": "https://creativecommons.org/licenses/by/4.0/"
+FAIL: byte diff for /zeeker-judgements/_zeeker_schemas.json?_size=10
+41c41
+<       "toggle_url": "http://localhost:8001/zeeker-judgements/_zeeker_schemas.json?_size=10&_facet_date=created_at"
+---
+>       "toggle_url": "http://localhost/zeeker-judgements/_zeeker_schemas.json?_size=10&_facet_date=created_at"
+46c46
+<       "toggle_url": "http://localhost:8001/zeeker-judgements/_zeeker_schemas.json?_size=10&_facet_date=updated_at"
+---
+>       "toggle_url": "http://localhost/zeeker-judgements/_zeeker_schemas.json?_size=10&_facet_date=updated_at"
+53,56c53,56
+<   "source": "Singapore Government Agencies",
+<   "source_url": "https://data.zeeker.sg/",
+<   "license": "All rights reserved",
+<   "license_url": "https://www.mlaw.gov.sg/terms-of-use/"
+---
+>   "source": "Singapore LawWatch",
+>   "source_url": "https://www.singaporelawwatch.sg/",
+>   "license": "CC-BY-4.0",
+>   "license_url": "https://creativecommons.org/licenses/by/4.0/"
+FAIL: byte diff for /zeeker-judgements/_zeeker_updates.json?_size=10
+9,12c9,12
+<       "2026-04-19T21:12:45.365137",
+<       7498,
+<       "build_20260419_210720",
+<       324465
+---
+>       "2026-04-20T21:12:23.505407",
+>       8498,
+>       "build_20260420_210707",
+>       315693
+39c39
+<       "toggle_url": "http://localhost:8001/zeeker-judgements/_zeeker_updates.json?_size=10&_facet_date=last_updated"
+---
+>       "toggle_url": "http://localhost/zeeker-judgements/_zeeker_updates.json?_size=10&_facet_date=last_updated"
+46,49c46,49
+<   "source": "Singapore Government Agencies",
+<   "source_url": "https://data.zeeker.sg/",
+<   "license": "All rights reserved",
+<   "license_url": "https://www.mlaw.gov.sg/terms-of-use/"
+---
+>   "source": "Singapore LawWatch",
+>   "source_url": "https://www.singaporelawwatch.sg/",
+>   "license": "CC-BY-4.0",
+>   "license_url": "https://creativecommons.org/licenses/by/4.0/"
+FAIL: byte diff for /zeeker-judgements.json?_size=10
+5c5
+<   "size": 40366080,
+---
+>   "size": 44736512,
+73c73
+<       "count": 7498,
+---
+>       "count": 8498,
+103c103
+<       "count": 17841,
+---
+>       "count": 20037,
+117,120c117,120
+<   "source": "Singapore Government Agencies",
+<   "source_url": "https://data.zeeker.sg/",
+<   "license": "All rights reserved",
+<   "license_url": "https://www.mlaw.gov.sg/terms-of-use/"
+---
+>   "source": "Singapore LawWatch",
+>   "source_url": "https://www.singaporelawwatch.sg/",
+>   "license": "CC-BY-4.0",
+>   "license_url": "https://creativecommons.org/licenses/by/4.0/"
+
+REQ-api-byte-parity: FAIL — see diffs above.
+
+--- verify_api_parity.sh exit= ---
+verify_api_parity.sh exit code: 1 (FAIL)
