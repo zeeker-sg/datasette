@@ -123,6 +123,23 @@ Plans:
 
 **Out:** Production deploy. Phase 3 is local-validation-only; deploy waits for Phase 4's homepage port so HTML users see the new look.
 
+**Plans:** 4 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Parameterize scripts/capture_baseline.sh + scripts/verify_api_parity.sh via ZEEKER_BASELINE_DIR env var (default phase-03-pre); smoke-test parity against current pre-flip stack.
+- [ ] 03-02-PLAN.md — Replace transparent reverse_proxy in Caddyfile with named @datasette matcher (path *.json *.csv *.db + path /-/*) + matched-handler + catch-all reverse_proxy frontend:8000; validate with caddy validate; single-file commit (rollback = git revert).
+- [ ] 03-03-PLAN.md — Author scripts/verify_phase_03.sh: positive routing + negative routing with body-content fallthrough sniff for zeeker-base.css + frontend reachability + edge cases (multi-dot, HEAD/GET, case-insensitivity, CORS) + parity wrap; delegates to verify_phase_02.sh for topology invariants. NOT executed against live stack in this plan.
+- [ ] 03-04-PLAN.md — docker compose restart caddy + wait healthy + run verify_phase_03.sh + standalone verify_api_parity.sh against phase-03-pre; capture forensic logs (bringup-log + parity-log); author 03-TEST-PLAN.md repeatable recipe; HUMAN CHECKPOINT for ship/no-ship using Phase-2 four-category triage (A/B/C/D); on ship → update STATE/ROADMAP/REQUIREMENTS atomically; on no-ship → git revert Plan-02 + restart caddy + verify rollback via verify_phase_02.sh.
+
+**Wave structure:**
+
+| Wave | Plans | Parallelism | Autonomous |
+|------|-------|-------------|------------|
+| 1 | 03-01 | — (sequential prereq for parity baseline pointer) | yes |
+| 2 | 03-02 | depends on 03-01 (uses parameterized parity script downstream) | yes |
+| 3 | 03-03 | depends on 03-01 (script param prerequisite); parallel-safe with 03-02 (no files_modified overlap: scripts/verify_phase_03.sh vs Caddyfile) | yes |
+| 4 | 03-04 | depends on 03-02 + 03-03 (needs both Caddyfile flip and verifier in place) | no (human checkpoint) |
+
 **Depends on:** Phase 2.
 **References:** PRD §10 Step 2, §6.
 

@@ -1,10 +1,11 @@
 ---
 phase: 3
 slug: flip-suffix-based-routing
-status: draft
-nyquist_compliant: false
+status: planned
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-04-21
+updated: 2026-04-21
 ---
 
 # Phase 3 — Validation Strategy
@@ -36,14 +37,17 @@ created: 2026-04-21
 
 ## Per-Task Verification Map
 
-> Will be populated by gsd-planner against actual plan task IDs. Below is the structural template the planner should fill. The 3 phase REQ-* IDs (REQ-suffix-routing-contract, REQ-api-byte-parity, REQ-incremental-migration) MUST each map to at least one row.
+> Populated by gsd-planner against actual plan task IDs. The 3 phase REQ-* IDs (REQ-suffix-routing-contract, REQ-api-byte-parity, REQ-incremental-migration) each map to at least one row.
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 03-01-XX | 01 | 1 | REQ-incremental-migration | T-03-01 | scripts/capture_baseline.sh + scripts/verify_api_parity.sh accept ZEEKER_BASELINE_DIR env var so Phase-3+ can target their own baseline dirs | shell | `ZEEKER_BASELINE_DIR=/tmp/test bash -n scripts/capture_baseline.sh && grep -q 'ZEEKER_BASELINE_DIR' scripts/verify_api_parity.sh` | ❌ W0 | ⬜ pending |
-| 03-02-XX | 02 | 2 | REQ-suffix-routing-contract | T-03-02, T-03-03 | Caddyfile uses named `@datasette` matcher with all four path predicates; matched-handler before catch-all (auto-sorted but written matched-first); validates clean | shell | `docker run --rm -v "$(pwd)/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2.11.2-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile && grep -qE '^\s*@datasette' Caddyfile && grep -qE 'reverse_proxy frontend:8000' Caddyfile` | ❌ W0 | ⬜ pending |
-| 03-03-XX | 03 | 3 | REQ-suffix-routing-contract, REQ-api-byte-parity | T-03-04 | scripts/verify_phase_03.sh exists + executable + valid syntax + asserts both positive routing (datasette) and negative routing (frontend 404 with body-content sniff for fallthrough) | shell | `test -x scripts/verify_phase_03.sh && bash -n scripts/verify_phase_03.sh && grep -q 'fallthrough\|datasette' scripts/verify_phase_03.sh` | ❌ W0 | ⬜ pending |
-| 03-04-XX | 04 | 4 | REQ-suffix-routing-contract, REQ-api-byte-parity, REQ-incremental-migration | T-03-05, T-03-06 | After Caddyfile edit + caddy restart: verify_phase_03.sh exits 0; verify_api_parity.sh against phase-03-pre baselines exits 0; HTML routes (/, /sglawwatch) return 404 with frontend body, not datasette HTML | shell | `docker compose restart caddy && sleep 3 && bash scripts/verify_phase_03.sh && ZEEKER_BASELINE_DIR=.planning/baselines/phase-03-pre bash scripts/verify_api_parity.sh` | ❌ W0 | ⬜ pending |
+| 03-01-T1 | 01 | 1 | REQ-incremental-migration | T-03-01 | scripts/capture_baseline.sh OUT_DIR honors ZEEKER_BASELINE_DIR env var with phase-03-pre default; no remaining hardcoded `phase-02` | shell | `bash -n scripts/capture_baseline.sh && grep -qE 'OUT_DIR="\$\{ZEEKER_BASELINE_DIR:-.*phase-03-pre\}"' scripts/capture_baseline.sh && ! grep -q 'phase-02' scripts/capture_baseline.sh` | ✅ planned | ⬜ pending |
+| 03-01-T2 | 01 | 1 | REQ-incremental-migration | T-03-01, T-03-02, T-03-03 | scripts/verify_api_parity.sh BASELINE_DIR honors ZEEKER_BASELINE_DIR env var with phase-03-pre default; nonexistent override correctly fails fast with documented error | shell | `bash -n scripts/verify_api_parity.sh && grep -qE 'BASELINE_DIR="\$\{ZEEKER_BASELINE_DIR:-.*phase-03-pre\}"' scripts/verify_api_parity.sh && ! grep -q 'phase-02' scripts/verify_api_parity.sh && ZEEKER_BASELINE_DIR=/tmp/zeeker-no-such-dir-$$ bash scripts/verify_api_parity.sh 2>&1 \| grep -q "no baselines found"` | ✅ planned | ⬜ pending |
+| 03-02-T1 | 02 | 2 | REQ-suffix-routing-contract, REQ-incremental-migration | T-03-02, T-03-03, T-03-07, T-03-09 | Caddyfile uses named `@datasette` matcher with both `path` lines (suffix list + `/-/*` prefix); matched-handler before catch-all in file order; passes `caddy validate`; commit modifies ONLY Caddyfile (single-file rollback) | shell | `docker run --rm -v "$(pwd)/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2.11.2-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile && grep -qE '^\s*@datasette\s*\{' Caddyfile && grep -qE '^\s*path \*\.json \*\.csv \*\.db\s*$' Caddyfile && grep -qE '^\s*path /-/\*\s*$' Caddyfile && grep -qE '^\s*reverse_proxy @datasette zeeker-datasette:8001\s*$' Caddyfile && grep -qE '^\s*reverse_proxy frontend:8000\s*$' Caddyfile && [ "$(git show --stat HEAD \| grep -cE '^ [^\|]+\\\| ')" = "1" ] && git show --stat HEAD \| grep -qE '^ Caddyfile\s*\\\|'` | ✅ planned | ⬜ pending |
+| 03-03-T1 | 03 | 3 | REQ-suffix-routing-contract, REQ-api-byte-parity | T-03-04, T-03-12, T-03-15, T-03-16 | scripts/verify_phase_03.sh exists + executable + bash -n valid + ≥100 lines + has check_positive/check_negative + body-content fallthrough sniff for `zeeker-base.css` + 11 negative-routing checks (incl. 3-segment row-URL shape) + Phase-2 verifier delegation + parity wrap with ZEEKER_BASELINE_DIR=phase-03-pre + does NOT restart caddy | shell | `test -x scripts/verify_phase_03.sh && bash -n scripts/verify_phase_03.sh && grep -q 'zeeker-base.css' scripts/verify_phase_03.sh && grep -q 'check_negative' scripts/verify_phase_03.sh && grep -q 'check_positive' scripts/verify_phase_03.sh && grep -q 'verify_phase_02.sh' scripts/verify_phase_03.sh && grep -q 'ZEEKER_BASELINE_DIR.*phase-03-pre' scripts/verify_phase_03.sh && grep -q 'verify_api_parity.sh' scripts/verify_phase_03.sh && [ "$(grep -c 'check_negative ' scripts/verify_phase_03.sh)" = "11" ] && [ "$(wc -l < scripts/verify_phase_03.sh)" -gt 100 ] && ! grep -q 'restart caddy' scripts/verify_phase_03.sh` | ✅ planned | ⬜ pending |
+| 03-04-T1 | 04 | 4 | REQ-suffix-routing-contract, REQ-api-byte-parity | T-03-08, T-03-17, T-03-18, T-03-21 | After `docker compose restart caddy`: 3/3 services healthy; in-container Caddyfile contains `@datasette` (bind-mount picked up the new file); verify_phase_03.sh ran end-to-end with explicit exit code captured to forensic log; live stack reachable at http://localhost/-/versions.json | shell | `test -s .planning/phases/03-flip-suffix-based-routing/03-04-bringup-log.txt && grep -q 'docker compose restart caddy' .planning/phases/03-flip-suffix-based-routing/03-04-bringup-log.txt && grep -qE 'poll [0-9]+: 3/3 healthy' .planning/phases/03-flip-suffix-based-routing/03-04-bringup-log.txt && grep -qE '^exit code: [0-9]+' .planning/phases/03-flip-suffix-based-routing/03-04-bringup-log.txt && curl -fsS http://localhost/-/versions.json \| jq -e '.datasette' >/dev/null` | ✅ planned | ⬜ pending |
+| 03-04-T2 | 04 | 4 | REQ-api-byte-parity | T-03-05, T-03-20 | Standalone verify_api_parity.sh log exists with exit code; 03-TEST-PLAN.md authored at CONTEXT-locked path with all 5 sections + Phase-2 four-category triage + rollback recipe | shell | `test -s .planning/phases/03-flip-suffix-based-routing/03-04-parity-log.txt && grep -q 'ZEEKER_BASELINE_DIR' .planning/phases/03-flip-suffix-based-routing/03-04-parity-log.txt && grep -qE '^exit code: [0-9]+' .planning/phases/03-flip-suffix-based-routing/03-04-parity-log.txt && test -f .planning/phases/03-flip-suffix-based-routing/03-TEST-PLAN.md && grep -q 'docker compose restart caddy' .planning/phases/03-flip-suffix-based-routing/03-TEST-PLAN.md && grep -q 'verify_phase_03.sh' .planning/phases/03-flip-suffix-based-routing/03-TEST-PLAN.md && grep -q 'git revert' .planning/phases/03-flip-suffix-based-routing/03-TEST-PLAN.md` | ✅ planned | ⬜ pending |
+| 03-04-T3 | 04 | 4 | REQ-suffix-routing-contract, REQ-api-byte-parity, REQ-incremental-migration | T-03-05, T-03-06, T-03-19 | HUMAN CHECKPOINT: operator reads forensic logs + does manual visual smoke + replies ship/no-ship; SUMMARY documents decision + four-category triage; if ship → STATE/ROADMAP/REQUIREMENTS updated atomically; if no-ship → rollback executed and verified by verify_phase_02.sh against rolled-back stack | manual + shell | `test -f .planning/phases/03-flip-suffix-based-routing/03-04-SUMMARY.md && grep -qE 'ship\|no-ship' .planning/phases/03-flip-suffix-based-routing/03-04-SUMMARY.md` | ⏳ awaiting human | ⬜ pending |
 
 ---
 
@@ -51,11 +55,11 @@ created: 2026-04-21
 
 These artifacts MUST exist before downstream waves can claim "done":
 
-- [ ] `scripts/capture_baseline.sh` — already exists from Phase 2; needs ONE-LINE EDIT to honor `ZEEKER_BASELINE_DIR` env var (currently hardcodes `phase-02`). Change line 13: `OUT_DIR="${ZEEKER_BASELINE_DIR:-$(git rev-parse --show-toplevel)/.planning/baselines/phase-02}"`. Plan 01 covers this.
-- [ ] `scripts/verify_api_parity.sh` — same fix; line 10 hardcodes `phase-02`. Plan 01 covers this.
-- [ ] `scripts/verify_phase_03.sh` — NEW file; adapts `verify_phase_02.sh` pattern with positive-routing + negative-routing assertions. Includes body-content sniff guard against silent fallthrough (datasette HTML signature: `<link rel="stylesheet" href="/static/css/zeeker-base.css">` or table HTML rows). Plan 03 covers this.
-- [ ] `Caddyfile` — modified per Plan 02 (the actual routing flip).
-- [ ] `.planning/baselines/phase-03-pre/` — already exists from the post-Phase-2 re-baseline (commit `ee3f3ad`); 13 JSON + 13 .url files captured against the post-Caddy stack. No Wave-0 work needed beyond reading.
+- [ ] `scripts/capture_baseline.sh` — already exists from Phase 2; needs ONE-LINE EDIT to honor `ZEEKER_BASELINE_DIR` env var (currently hardcodes `phase-02`). Change line 13: `OUT_DIR="${ZEEKER_BASELINE_DIR:-$(git rev-parse --show-toplevel)/.planning/baselines/phase-03-pre}"`. **Plan 01 Task 1 covers this.**
+- [ ] `scripts/verify_api_parity.sh` — same fix; line 10 hardcodes `phase-02`. **Plan 01 Task 2 covers this.**
+- [ ] `scripts/verify_phase_03.sh` — NEW file; adapts `verify_phase_02.sh` pattern with positive-routing + negative-routing assertions. Includes body-content sniff guard against silent fallthrough (datasette HTML signature: `<link rel="stylesheet" href="/static/css/zeeker-base.css">` or table HTML rows). **Plan 03 Task 1 covers this.**
+- [ ] `Caddyfile` — modified per **Plan 02 Task 1** (the actual routing flip; single-file commit).
+- [x] `.planning/baselines/phase-03-pre/` — already exists from the post-Phase-2 re-baseline (commit `ee3f3ad`); 13 JSON + 13 .url files captured against the post-Caddy stack. No Wave-0 work needed beyond reading.
 
 ---
 
@@ -63,18 +67,18 @@ These artifacts MUST exist before downstream waves can claim "done":
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| Visual confirmation that browser-loaded `http://localhost/` shows the FastAPI 404 (not the datasette HTML) | REQ-suffix-routing-contract | Browser rendering of frontend's default 404 vs datasette's "Database" page is the most decisive single user-visible signal | After Plan 04 ships: open `http://localhost/` in a browser. Should see `{"detail":"Not Found"}` JSON or a plain text 404. Should NOT see the datasette homepage. Document outcome in `03-04-SUMMARY.md`. |
-| Production-overlay compatibility | REQ-incremental-migration | The Phase-3 Caddyfile must remain compatible with whatever Phase 4's production deploy does (TLS at `data.zeeker.sg`). Can't be tested locally. | Manual review by author when Phase 4 plans land: confirm Phase 4's `docker-compose.prod.yml` overlay (or equivalent) wraps the Phase-3 Caddyfile site block without rewriting it. |
+| Visual confirmation that browser-loaded `http://localhost/` shows the FastAPI 404 (not the datasette HTML) | REQ-suffix-routing-contract | Browser rendering of frontend's default 404 vs datasette's "Database" page is the most decisive single user-visible signal | After Plan 04 Task 1 ships: open `http://localhost/` in a browser. Should see `{"detail":"Not Found"}` JSON or a plain text 404. Should NOT see the datasette homepage. **Plan 04 Task 3 (human checkpoint) explicitly requires this**; outcome documented in `03-04-SUMMARY.md`. |
+| Production-overlay compatibility | REQ-incremental-migration | The Phase-3 Caddyfile must remain compatible with whatever Phase 4's production deploy does (TLS at `data.zeeker.sg`). Can't be tested locally. | Manual review by author when Phase 4 plans land: confirm Phase 4's `docker-compose.prod.yml` overlay (or equivalent) wraps the Phase-3 Caddyfile site block without rewriting it. RESEARCH Pattern 2 sketches the forward-compat shape. |
 
 ---
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references (script param edits + verify_phase_03.sh)
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 10s
-- [ ] `nyquist_compliant: true` set in frontmatter (planner sets this once Per-Task Verification Map is populated against actual plan task IDs)
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies (Plans 01-04 all include automated verify commands)
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify (every task in every plan has automated verify)
+- [x] Wave 0 covers all MISSING references (script param edits in Plan 01 + verify_phase_03.sh in Plan 03 + Caddyfile in Plan 02)
+- [x] No watch-mode flags
+- [x] Feedback latency < 10s
+- [x] `nyquist_compliant: true` set in frontmatter (planner sets this once Per-Task Verification Map is populated against actual plan task IDs)
 
-**Approval:** pending
+**Approval:** approved by planner; gate runs at Plan 04 Task 3 with operator
