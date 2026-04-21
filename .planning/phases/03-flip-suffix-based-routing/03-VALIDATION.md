@@ -1,11 +1,14 @@
 ---
 phase: 3
 slug: flip-suffix-based-routing
-status: planned
+status: shipped
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-04-21
 updated: 2026-04-21
+shipped: 2026-04-21
+ship_decision: approved
+ship_notes: "All 4 plans complete. verify_phase_03.sh exit 0 post-fix. verify_api_parity.sh exit 0 (12/12 clean). Phase-2 verifier checks #3 + #10 retired in same phase (operator-directed). Zero Category-D regressions. Live smoke: / → 404 frontend, /sglawwatch.json → 200 datasette, /frontend-test → 200 frontend, /sglawwatch HTML → 404 frontend (no zeeker-base.css fingerprint)."
 ---
 
 # Phase 3 — Validation Strategy

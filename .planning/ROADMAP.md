@@ -129,7 +129,9 @@ Plans:
 - [x] 03-01-PLAN.md — Parameterize scripts/capture_baseline.sh + scripts/verify_api_parity.sh via ZEEKER_BASELINE_DIR env var (default phase-03-pre); smoke-test parity against current pre-flip stack.
 - [x] 03-02-PLAN.md — Replace transparent reverse_proxy in Caddyfile with named @datasette matcher (path *.json *.csv *.db + path /-/*) + matched-handler + catch-all reverse_proxy frontend:8000; validate with caddy validate; single-file commit (rollback = git revert).
 - [x] 03-03-PLAN.md — Author scripts/verify_phase_03.sh: positive routing + negative routing with body-content fallthrough sniff for zeeker-base.css + frontend reachability + edge cases (multi-dot, HEAD/GET, case-insensitivity, CORS) + parity wrap; delegates to verify_phase_02.sh for topology invariants. NOT executed against live stack in this plan.
-- [ ] 03-04-PLAN.md — docker compose restart caddy + wait healthy + run verify_phase_03.sh + standalone verify_api_parity.sh against phase-03-pre; capture forensic logs (bringup-log + parity-log); author 03-TEST-PLAN.md repeatable recipe; HUMAN CHECKPOINT for ship/no-ship using Phase-2 four-category triage (A/B/C/D); on ship → update STATE/ROADMAP/REQUIREMENTS atomically; on no-ship → git revert Plan-02 + restart caddy + verify rollback via verify_phase_02.sh.
+- [x] 03-04-PLAN.md — docker compose restart caddy + wait healthy + run verify_phase_03.sh + standalone verify_api_parity.sh against phase-03-pre; capture forensic logs (bringup-log + parity-log); author 03-TEST-PLAN.md repeatable recipe; HUMAN CHECKPOINT for ship/no-ship using Phase-2 four-category triage (A/B/C/D); on ship → update STATE/ROADMAP/REQUIREMENTS atomically; on no-ship → git revert Plan-02 + restart caddy + verify rollback via verify_phase_02.sh.
+
+**Status:** SHIPPED 2026-04-21. Suffix routing live; 11/11 negative + 7/7 positive routing checks pass; 12/12 byte-parity baselines clean. Also retired `verify_phase_02.sh` stale checks #3 (EXPOSE-only port jq filter) and #10 (polarity-inverted post-Phase-3). See `.planning/phases/03-flip-suffix-based-routing/03-04-SUMMARY.md`.
 
 **Wave structure:**
 

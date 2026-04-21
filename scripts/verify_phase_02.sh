@@ -34,8 +34,11 @@ fi
 
 echo
 echo "3. REQ-internal-only-datasette-exposure: only caddy publishes ports at runtime"
+# Filter out EXPOSE-only entries (PublishedPort: 0 = container exposes the port to
+# the bridge network but does NOT bind it on the host). Without this filter,
+# any service with EXPOSE in its Dockerfile is falsely flagged as publishing.
 NON_CADDY_PUBLISHERS=$(docker compose ps --format json \
-  | jq -r 'select(.Publishers != null) | select((.Publishers | length) > 0) | select(.Service != "caddy") | .Service' \
+  | jq -r 'select(.Publishers != null) | select(([.Publishers[] | select(.PublishedPort > 0)] | length) > 0) | select(.Service != "caddy") | .Service' \
   | sort -u)
 if [ -z "$NON_CADDY_PUBLISHERS" ]; then
   ok "only caddy publishes ports"
@@ -102,12 +105,19 @@ else
 fi
 
 echo
-echo "10. Phase-3 forward-compat: Caddy still routes /frontend-test to datasette (returns 404)"
-HTTP_CODE=$(curl -s -o /dev/null -w '%{http_code}' http://localhost/frontend-test || true)
-if [ "$HTTP_CODE" = "404" ]; then
-  ok "/frontend-test via Caddy returns 404 (datasette has no such route — proves Caddy not yet routing to frontend)"
+# Check 10 was inverted post-Phase-3 (suffix-routing flip activated 2026-04-21).
+# Pre-Phase-3 semantics: Caddy transparent-proxied everything to datasette, so
+# /frontend-test returned 404 from datasette (no such route there).
+# Post-Phase-3 semantics: Caddy routes everything-not-API to frontend, so
+# /frontend-test returns 200 from frontend with the placeholder JSON body.
+echo "10. REQ-suffix-routing-contract: Caddy routes /frontend-test to frontend (returns 200 with placeholder JSON)"
+RESP=$(curl -s -w '\n%{http_code}' http://localhost/frontend-test || true)
+HTTP_CODE=$(printf '%s\n' "$RESP" | tail -n1)
+BODY=$(printf '%s\n' "$RESP" | sed '$d')
+if [ "$HTTP_CODE" = "200" ] && printf '%s' "$BODY" | grep -q '"service":"zeeker-frontend"'; then
+  ok "/frontend-test via Caddy returns 200 from frontend with placeholder JSON (suffix routing active)"
 else
-  fail "expected 404 for /frontend-test via Caddy, got $HTTP_CODE"
+  fail "expected 200 + frontend JSON body for /frontend-test via Caddy; got status=$HTTP_CODE body=$(printf '%s' "$BODY" | head -c 60)"
 fi
 
 echo

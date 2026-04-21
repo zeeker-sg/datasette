@@ -1,0 +1,23 @@
+== Phase 3 Plan 04 — standalone parity forensic log ==
+Started: 2026-04-21T10:16:09Z
+Baseline: .planning/baselines/phase-03-pre/
+
+--- ZEEKER_BASELINE_DIR=phase-03-pre bash scripts/verify_api_parity.sh ---
+OK:               /-/metadata.json
+OK:               /-/plugins.json
+OK (structural):  /-/versions.json
+OK:               /sg-gov-newsrooms/_zeeker_schemas.json?_size=10
+OK:               /sg-gov-newsrooms/_zeeker_updates.json?_size=10
+OK:               /sg-gov-newsrooms.json?_size=10
+OK:               /sglawwatch/about_singapore_law.json?_size=10
+OK:               /sglawwatch/headlines.json?_size=10
+OK:               /sglawwatch.json?_size=10
+OK:               /zeeker-judgements/_zeeker_schemas.json?_size=10
+OK:               /zeeker-judgements/_zeeker_updates.json?_size=10
+OK:               /zeeker-judgements.json?_size=10
+
+REQ-api-byte-parity: PASS
+
+exit code: 0 (PASS if 0; FAIL if non-zero)
+
+Completed: 2026-04-21T10:16:09Z
