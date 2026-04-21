@@ -82,7 +82,9 @@ templates.env.globals["plural"] = zfilters.plural
 app.state.templates = templates
 
 from zeeker_frontend.routes_home import router as home_router
+from zeeker_frontend.routes_database import router as database_router
 app.include_router(home_router)
+app.include_router(database_router)
 
 
 @app.get("/frontend-test")

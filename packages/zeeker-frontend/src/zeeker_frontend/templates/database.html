@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block head %}
+{% if metadata and metadata.description %}
+<meta name="description" content="{{ metadata.description }}">
+{% elif metadata and metadata.title %}
+<meta name="description" content="Explore the {{ metadata.title }} database">
+{% endif %}
+{% endblock %}
+
+{% block content %}
+{# --- Visible tables — handler already filtered by Datasette's `hidden` flag --- #}
+{% set vt = tables %}
+
+{# --- Editorial hero ------------------------------------------- #}
+<header class="db-header">
+  <div class="container">
+    <div class="db-header-grid">
+      <div>
+        <div class="kicker">№ 01 · Database</div>
+        <h1>
+          {% set db_title = metadata.title if metadata and metadata.title else (database|replace('-', ' ')|replace('_', ' ')|title) %}
+          {# Italicize only the trailing word (M1 WARN-04 logic) #}
+          {% if ' ' in db_title %}
+            {% set idx = db_title.rfind(' ') %}
+            {{ db_title[:idx] }} <em>{{ db_title[idx+1:] }}</em>
+          {% else %}
+            <em>{{ db_title }}</em>
+          {% endif %}
+        </h1>
+        {% if metadata and metadata.description %}
+        <p class="lede">{{ metadata.description }}</p>
+        {% endif %}
+      </div>
+      <dl class="meta-col">
+        {% if size is defined and size %}
+        <dt>Size</dt>
+        <dd>{{ size|filesizeformat }}</dd>
+        {% endif %}
+        {% if metadata and metadata.license %}
+        <dt>Licence</dt>
+        <dd>
+          {% if metadata.license_url %}<a href="{{ metadata.license_url }}">{{ metadata.license }}</a>
+          {% else %}{{ metadata.license }}{% endif %}
+        </dd>
+        {% endif %}
+        {% if metadata and metadata.source %}
+        <dt>Source</dt>
+        <dd>
+          {% if metadata.source_url %}<a href="{{ metadata.source_url }}">{{ metadata.source }}</a>
+          {% else %}{{ metadata.source }}{% endif %}
+        </dd>
+        {% endif %}
+        <dt>Export</dt>
+        <dd class="export-links">
+          <a href="/{{ database }}.csv">CSV</a>
+          <a href="/{{ database }}.json">JSON</a>
+          <a href="/{{ database }}.db">SQLite</a>
+        </dd>
+      </dl>
+    </div>
+  </div>
+</header>
+
+{# --- Petrol stat band ---------------------------------------- #}
+{% set total_rows_ns = namespace(total=0) %}
+{% for t in vt %}
+  {% if t.count is not none %}
+    {% set total_rows_ns.total = total_rows_ns.total + t.count %}
+  {% endif %}
+{% endfor %}
+<div class="db-statband">
+  <div class="container">
+    <div>
+      <div class="stat-num">{{ vt|length }}</div>
+      <span class="stat-label">{{ plural(vt|length, 'plural_table', 'plural_tables') }}</span>
+    </div>
+    {% if total_rows_ns.total > 0 %}
+    <div>
+      <div class="stat-num">{{ "{:,}".format(total_rows_ns.total) }}</div>
+      <span class="stat-label">total rows</span>
+    </div>
+    {% endif %}
+    {% if size is defined and size %}
+    <div>
+      <div class="stat-num">{{ size|filesizeformat }}</div>
+      <span class="stat-label">on disk</span>
+    </div>
+    {% endif %}
+    <div>
+      <div class="stat-num">SQL</div>
+      <span class="stat-label">
+        <a href="/{{ database }}?sql=SELECT+name+FROM+sqlite_master+WHERE+type%3D%27table%27" style="color: inherit; text-decoration: underline;">open query</a>
+      </span>
+    </div>
+  </div>
+</div>
+
+{# --- Sticky sub-toolbar --------------------------------------- #}
+<div class="db-toolbar">
+  <div class="container">
+    <form class="db-toolbar-search" method="get" action="/{{ database }}" role="search">
+      <label for="db-table-filter" class="visually-hidden">Filter tables</label>
+      <input id="db-table-filter" type="search" name="_search"
+             value=""
+             placeholder="Filter tables by name or description…"
+             autocomplete="off">
+      <button type="submit">Filter</button>
+    </form>
+    <a class="fts-badge" href="/{{ database }}?sql=SELECT+*+FROM+sqlite_master+WHERE+type%3D%27table%27">Schema</a>
+  </div>
+</div>
+
+{# --- № 01 · Tables (editorial rows) -------------------------- #}
+{% if vt %}
+<section class="section">
+  <div class="container">
+    <div class="section-num">№ 01 · Tables</div>
+    <div class="list">
+      {% for table in vt %}
+        {% set table_meta = (metadata.tables[table.name] if metadata and metadata.tables and table.name in metadata.tables else {}) %}
+        <div class="row">
+          <div class="idx">{{ "{:02d}".format(loop.index) }}</div>
+          <div class="name-col">
+            <a href="/{{ database }}/{{ table.name }}" class="name">
+              {% if table_meta.title %}{{ table_meta.title }}{% else %}{{ table.name|replace('_', ' ')|title }}{% endif %}
+            </a>
+            {% if table_meta.description %}
+            <div class="desc">{{ table_meta.description }}</div>
+            {% elif table.human_description_en %}
+            <div class="desc">{{ table.human_description_en }}</div>
+            {% endif %}
+          </div>
+          <div class="cols">
+            {% if table.columns %}
+              {% for col in table.columns[:8] %}{% if not loop.first %} · {% endif %}<span class="{% if col in (table.primary_keys or []) %}pk{% endif %}">{{ col }}</span>{% endfor %}
+              {% if table.columns|length > 8 %} <span class="more">+{{ table.columns|length - 8 }}</span>{% endif %}
+            {% endif %}
+          </div>
+          <div class="count-col">
+            {% if table.count is not none %}
+            <span class="count">{{ "{:,}".format(table.count) }}</span>
+            <span class="label">rows</span>
+            {% else %}
+            <span class="count">—</span>
+            <span class="label">rows</span>
+            {% endif %}
+          </div>
+          <div class="date-col">
+            {% if table.fts_table or table.fts %}<span class="fts-badge">FTS</span><br>{% endif %}
+            <a href="/{{ database }}/{{ table.name }}.csv">CSV</a> ·
+            <a href="/{{ database }}/{{ table.name }}.json">JSON</a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% else %}
+<section class="section">
+  <div class="container">
+    <p>No tables yet in this database.</p>
+  </div>
+</section>
+{% endif %}
+
+{# --- Views --------------------------------------------------- #}
+{% if views %}
+<section class="section alt">
+  <div class="container">
+    <div class="section-num">№ 02 · Views</div>
+    <div class="list">
+      {% for view in views %}
+      <div class="row">
+        <div class="idx">{{ "{:02d}".format(loop.index) }}</div>
+        <div class="name-col">
+          <a href="/{{ database }}/{{ view.name }}" class="name">{{ view.name|replace('_', ' ')|title }}</a>
+          {% if view.description %}<div class="desc">{{ view.description }}</div>{% endif %}
+        </div>
+        <div class="cols"></div>
+        <div class="count-col"><span class="count">view</span><span class="label">&nbsp;</span></div>
+        <div class="date-col"><a href="/{{ database }}/{{ view.name }}.json">JSON</a></div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{# --- Canned queries ---------------------------------------- #}
+{% if canned_queries %}
+<section class="section">
+  <div class="container">
+    <div class="section-num">№ 03 · Saved queries</div>
+    <div class="list">
+      {% for query in canned_queries %}
+      <div class="row">
+        <div class="idx">{{ "{:02d}".format(loop.index) }}</div>
+        <div class="name-col">
+          <a href="/{{ database }}/{{ query.name }}" class="name">{{ query.title }}</a>
+          {% if query.description %}<div class="desc">{{ query.description }}</div>{% endif %}
+        </div>
+        <div class="cols"></div>
+        <div class="count-col"></div>
+        <div class="date-col"><a href="/{{ database }}/{{ query.name }}.json">JSON</a></div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

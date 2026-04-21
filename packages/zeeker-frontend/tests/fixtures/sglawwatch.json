@@ -24,6 +24,46 @@
       "columns": ["id", "title", "published_date", "source_url", "summary"],
       "count": 500,
       "hidden": false,
+      "fts_table": "headlines_fts",
+      "num_relationships_for_table": 0
+    },
+    {
+      "name": "headlines_fts",
+      "columns": ["content"],
+      "count": null,
+      "hidden": true,
+      "fts_table": null,
+      "num_relationships_for_table": 0
+    },
+    {
+      "name": "headlines_fts_data",
+      "columns": ["id", "block"],
+      "count": null,
+      "hidden": true,
+      "fts_table": null,
+      "num_relationships_for_table": 0
+    },
+    {
+      "name": "headlines_fts_idx",
+      "columns": ["segid", "term", "pgno"],
+      "count": null,
+      "hidden": true,
+      "fts_table": null,
+      "num_relationships_for_table": 0
+    },
+    {
+      "name": "_zeeker_schemas",
+      "columns": ["id", "table_name", "schema_json"],
+      "count": 3,
+      "hidden": true,
+      "fts_table": null,
+      "num_relationships_for_table": 0
+    },
+    {
+      "name": "_zeeker_metadata",
+      "columns": ["key", "value"],
+      "count": 10,
+      "hidden": true,
       "fts_table": null,
       "num_relationships_for_table": 0
     }
