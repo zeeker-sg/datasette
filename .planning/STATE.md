@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-21T09:59:46.483Z"
+last_updated: "2026-04-21T10:06:00.000Z"
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 9
-  completed_plans: 6
-  percent: 67
+  completed_plans: 7
+  percent: 78
 ---
 
 ## Phase 2: Dual-service bring-up — SHIPPED 2026-04-21
@@ -39,8 +39,11 @@ progress:
 ## Phase 3 plan completion
 
 - 03-01 SHIPPED 2026-04-21 — Verifier scripts parameterized via `ZEEKER_BASELINE_DIR` env var (default `.planning/baselines/phase-03-pre/`). `scripts/capture_baseline.sh` (`5fd66ab`) + `scripts/verify_api_parity.sh` (`8445c43`); 12/12 byte-parity smoke test PASS against live post-Phase-2 stack; negative override fails fast as designed. No `phase-02` substring remains in `scripts/`. Plan 02 (Caddyfile flip), Plan 03 (verify_phase_03.sh), and Plan 04 (operator gate) all unblocked.
+- 03-02 SHIPPED 2026-04-21 — Caddyfile flipped from transparent reverse_proxy to named `@datasette` matcher router (`*.json|*.csv|*.db|/-/* → zeeker-datasette:8001`, catch-all → `frontend:8000`); validated via Docker-one-shot `caddy validate`; single-file commit `ebf3f52` (1 file changed, 36 insertions, 29 deletions). Caddy NOT restarted — live container still on Phase-2 transparent-proxy config (intentional; Plan 04 owns the restart + verifier-run gate). REQ-suffix-routing-contract on-disk; REQ-incremental-migration single-file rollback discipline verified. `caddy fmt --overwrite` applied for tab-indent consistency.
 
 ## Phase 3 decisions accumulated
 
 - Parameterize phase-scoped paths via env-var-with-default pattern (`${VAR:-default}`) rather than re-hardcoding per phase. Default points to current-phase directory so no-args invocation is always safe; downstream phases override via `export ZEEKER_BASELINE_DIR=...` before invoking. Locked in 03-CONTEXT D-XX (option b).
 - JQ_STRIP filter is the bright line between honest verification and rationalization. Phase 3 inherits Phase 2's discipline: NEVER widen the filter to mask diffs. Triage stays at the human checkpoint (Plan 04).
+- Named matcher `@datasette` (not `@datasette_api`); two `path` lines OR'd inside the matcher (suffix list + `/-/*` prefix on separate lines for legibility); matched-handler before catch-all in file order (Caddy auto-sorts no-matcher last regardless). No snippet refactor (`(api-routes)` + `import`); no static-asset `respond` short-circuits — both deferred per CONTEXT D-XX. Locked in 03-02 commit.
+- Validate-but-don't-restart split: Plan 02 mutates+validates the on-disk Caddyfile; Plan 04 owns `docker compose restart caddy` + verifier-run as one atomic gate (per RESEARCH Pattern 4 / Pitfall 2 — `restart` sidesteps bind-mount inode-swap issues that affect `caddy reload`).
