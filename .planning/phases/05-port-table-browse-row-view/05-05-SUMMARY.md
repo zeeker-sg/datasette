@@ -28,9 +28,16 @@ decisions:
 metrics:
   duration_seconds: 233
   completed_date: "2026-04-25"
-  tasks_completed: 3
+  tasks_completed: 4
   tasks_total: 4
-  files_changed: 3
+  files_changed: 4
+checkpoint_outcome:
+  decision: "option 2 — continue deferring deploy"
+  verifier_exit: 1
+  failed_assertions: ["verify_api_parity.sh / phase-03-pre baseline"]
+  triage: ["all category C (stale check) or B (env drift); zero category A"]
+  action: "retired verify_phase_02.sh check #11 (REQ-api-byte-parity) per phase-3 stale-check-retirement-in-same-phase rule"
+  retirement_commit: "4c39405"
 ---
 
 # Phase 05 Plan 05: Metadata Display Hints + Phase-5 Verifier + Deploy Notes Summary
