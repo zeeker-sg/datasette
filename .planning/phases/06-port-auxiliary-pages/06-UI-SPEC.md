@@ -1,10 +1,11 @@
 ---
 phase: 6
 slug: port-auxiliary-pages
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-04-25
+reviewed_at: 2026-04-25
 ---
 
 # Phase 6 — UI Design Contract: Auxiliary Pages + `/search` + `/sql`
@@ -765,11 +766,11 @@ ported (multiple instances per the M1 file scan).
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS (locked-system exception documented)
+- [x] Dimension 5 Spacing: PASS (3 documented exceptions, all multiples of 4 or non-spacing)
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved (2026-04-25, gsd-ui-checker)
