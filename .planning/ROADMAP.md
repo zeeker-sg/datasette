@@ -210,6 +210,27 @@ Note: originally planned Wave 3 as parallel 04-03 + 04-04, but both append `incl
 **Depends on:** Phase 4.
 **References:** PRD §10 Step 3 (second tranche), §7.2, R1.
 
+**Requirements:** REQ-frontend-route-set, REQ-frontend-data-via-http, REQ-api-byte-parity, REQ-eliminate-template-drift
+
+**Plans:** 5 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — Foundation: extend datasette_client.py with fetch_table + fetch_row + querystring allowlist; new urls.py module (port datasette path_with_*_args + tilde_encode + row_url helpers); register Jinja globals + both new routers in main.py up-front (avoids 05-02/05-03 main.py merge race); Wave 0 fixtures (headlines_table, about_singapore_law_table, headlines_row, judgments_row) + extended conftest + 22+ unit tests + stub routes_table.py / routes_row.py with hidden-table prefix+suffix guard active.
+- [ ] 05-02-PLAN.md — GET /{db}/{table}: full handler (fetch_table allowlist consumer, next_url Pitfall-2 rewrite, Cache-Control, 503/404 contracts) + table.html mode-dispatch shell + 6 partials (table_feed.html sketch 004-A, table_tabular.html sketch 002-B / D-04 default, table_longform_list.html, facet_sidebar.html, applied_facets.html, pagination.html) + 18+ ASGI integration tests (feed mode, tabular fallback, facets, applied chips, pagination relative-href, export-direct D-05, hidden-table 404, FTS no-results, rowid-PK fallback, Cache-Control, italic-H1).
+- [ ] 05-03-PLAN.md — GET /{db}/{table}/{pk}: full handler with row_mode dispatch (article/judgment/longform/tabular), pk_label truncation to 12 chars + ellipsis, 3-segment breadcrumb + row.html shell + 4 row partials (row_article.html sketch 003-A magazine, row_judgment.html sketch 003-B broadsheet with .dateline + .tag-chip + .coda, row_longform.html article-without-aside, row_tabular.html with native <details>/<summary> long-text expand for >200-char fields) + 15+ ASGI integration tests across all 4 row_modes.
+- [ ] 05-04-PLAN.md — Append /* === TABLE BROWSE + ROW VIEW — phase 05 === */ section to zeeker.css (~390 lines: 121 direct M1 harvest for .va-feed/.va-item; ~270 newly authored from sketch references for .feed-layout, .facets, .filter-chip, .pagination, .data-table, .article-grid + .article-body Fraunces opsz 11 + drop cap, .aside, .dateline + .tag-chip + .coda double-rule, .row-dl + .row-dd-long). Insert before existing FOOTER LINK OVERRIDE block — preserves WARN-05 cascade tail. NO new design tokens.
+- [ ] 05-05-PLAN.md — metadata.json display.* hints for 11 in-scope tables (sglawwatch.headlines feed/article, sglawwatch.about_singapore_law longform-list/longform, Zeeker-Judgements.judgments tabular/judgment, 8 sg-gov-newsrooms.*_news feed/article); scripts/verify_phase_05.sh authored mirroring verify_phase_04.sh (sections A-O: feed mode, tabular fallback, facets, applied chip, pagination relative href, FTS, sort, export direct via Caddy, row article + tabular, hidden-table 404 at table+row routes, Phase-6 boundary asserts for 8 routes, API parity wrap); 05-DEPLOY-NOTES.md captures three-option deploy decision matrix; HUMAN CHECKPOINT runs verifier + four-category triage + ship-or-no-ship.
+
+**Wave structure:**
+
+| Wave | Plans | Parallelism | Autonomous |
+|------|-------|-------------|------------|
+| 1 | 05-01 | — (foundation: urls.py + datasette_client extension + main.py wiring + Wave 0 tests + stub routers) | yes |
+| 2 | 05-02, 05-03, 05-04 | parallel-safe (no files_modified overlap; main.py edit was lifted into 05-01 to serialize) | yes (yes, yes) |
+| 3 | 05-05 | depends on 05-02 + 05-03 + 05-04 (verifier needs templates + CSS + handlers in place); production deploy decision human checkpoint | no (checkpoint) |
+
+Note: main.py shared edit between 05-02 and 05-03 was factored into Plan 05-01 (option (a) from plan_split_recommendation) so 05-02 and 05-03 are file-disjoint and parallel-safe in Wave 2. Plan 05-04 (CSS append) is also Wave-2 parallel-safe — only zeeker.css is modified, which 05-02/05-03 do not touch.
+
 ---
 
 #### Phase 6: Port auxiliary pages

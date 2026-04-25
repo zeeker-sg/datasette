@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-22T15:11:47.871Z"
+last_updated: "2026-04-25T07:20:37.515Z"
 progress:
   total_phases: 7
   completed_phases: 2
-  total_plans: 15
+  total_plans: 20
   completed_plans: 14
-  percent: 93
+  percent: 70
 ---
 
 ## Phase 3: Flip suffix-based routing — SHIPPED 2026-04-21
@@ -58,4 +58,4 @@ progress:
 - 02-04 SHIPPED — `docker-compose.yml` three-service rewrite (single-file commit, `git revert b2a20a0` is rollback)
 - 02-05 SHIPPED — Local bring-up + verifiers + ship checkpoint approved
 
-**Planned Phase:** 4 (Port home + database pages) — 5 plans — 2026-04-21T16:43:25.554Z
+**Planned Phase:** 5 (port-table-browse-row-view) — 5 plans — 2026-04-25T06:28:28.024Z

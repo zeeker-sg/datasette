@@ -1099,27 +1099,31 @@ Framework already installed (Phase 4); no install commands needed.
 | A5 | The Phase-6 boundary URLs (`/developers`, `/status`, etc.) are not yet handled by any frontend route in `main.py` | §Phase-6 Boundary Assertions | If Phase-4 or earlier accidentally registered one, the 404 assertion fails — verifier catches this. Reviewed `main.py` at research time: only `home_router` + `database_router` + `/frontend-test` mounted; safe |
 | A6 | Tables with no declared PK (rowid-only) are reachable at `/{db}/{table}/{rowid_value}` and datasette resolves via implicit rowid | §Pitfall 4 | If datasette doesn't resolve rowid this way for the row endpoint, the row link from `about_singapore_law` table page 404s — fixture-based unit test catches |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **`<mark>` highlight policy for FTS results**
    - What we know: UI-SPEC §Interaction Contracts and CONTEXT §Claude's Discretion both reference `_search_highlight`; that field doesn't exist in datasette 0.65.x JSON.
    - What's unclear: Does the user want client-side JS highlight (adds ~30 LoC of JS), or accept "skip highlight in v1, document as gap"?
    - Recommendation: Skip highlight in v1; planner surfaces this as Plan 05-02 Claude's-discretion item. If user later finds scanning fatigue painful, add JS in Phase 6.
+   - **RESOLVED:** Adopted in Plan 05-02 threat T-05-04 (FTS `<mark>` highlight NOT implemented in v1; Jinja autoescape preserved on all row content) and surfaced for manual sweep via the Phase-5 VALIDATION.md / 05-DEPLOY-NOTES.md operator checklist. Deferred to Phase 6 if scanning fatigue is observed in production.
 
 2. **`suggested_facets` rendering**
    - What we know: Datasette's JSON exposes a `suggested_facets` list of "you might want to facet on this" hints.
    - What's unclear: Should the sidebar render these as "Add facet" CTAs, or is the explicit `?_facet=col` URL the only way to get a facet to show?
    - Recommendation: Phase 5 ignores `suggested_facets`; user must opt-in to a facet by adding `?_facet=col` to the URL. Future enhancement.
+   - **RESOLVED:** Adopted in Plan 05-02 Task 1 (handler passes `suggested_facets` into the template context as a no-op for forward compatibility) and Plan 05-02 Task 2 (table.html / facet_sidebar.html consume only `payload.facet_results`; `suggested_facets` is ignored at render time). Future enhancement deferred to Phase 6.
 
 3. **`metadata.json` edits — who owns the diff?**
    - What we know: D-02 says display hints live in metadata.json; the file is in repo root (`metadata.json`).
    - What's unclear: Plan 05-05 will edit `metadata.json` to add 3 `display.*` blocks. Is this a project-instructions-clean-edit (touches one file) or does it need to coordinate with S3 overlay regeneration?
    - Recommendation: Edit base `metadata.json` directly; the file is loaded by datasette at startup; no S3 overlay change needed for Phase 5. Plan should call out the file rename / edit explicitly so reviewer notices.
+   - **RESOLVED:** Adopted in Plan 05-05 Task 1 (single edit to base `metadata.json` adding 11 `display.*` blocks; no S3 overlay coordination needed — datasette loads `metadata.json` at startup directly from the repo root).
 
 4. **Compound-PK fixture for testing**
    - What we know: All in-scope tables (sglawwatch.headlines, sglawwatch.about_singapore_law, Zeeker-Judgements.judgments, sg-gov-newsrooms.*_news) have single-column PKs (or no PK = rowid).
    - What's unclear: Without a compound-PK table in current data, the compound-PK URL helper is unit-tested but not integration-tested.
    - Recommendation: Plan 05-01 includes a synthetic test fixture for compound PK + tilde encoding (no live data dependency).
+   - **RESOLVED:** Adopted in Plan 05-01 Task 2 (`test_compound_pk_tilde_encodes_each` — synthetic fixture exercising compound-PK tilde encoding without live-data dependency, since no in-scope Phase-5 table has a compound PK).
 
 ## Sources
 
