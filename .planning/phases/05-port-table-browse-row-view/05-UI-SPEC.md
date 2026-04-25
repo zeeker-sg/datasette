@@ -78,6 +78,9 @@ Additional rules (from skill):
 - Drop cap on first paragraph of `article-body` (article + longform row modes only, skip when body < 3 paragraphs)
 - Max-width 62ch on all reading columns (article-body / longform body) — never wider
 
+**Exception clause — locked design-system override:**
+The 6-size scale (`--text-6xl`, `--text-3xl`, `--text-2xl`, 1.125rem article body, `--text-sm`, `--text-xs`) exceeds the generic 4-size cap. This is intentional: the scale is LOCKED by `sketch-findings-zeeker-datasette/references/theme-system.md` and reflects three distinct typeface roles serving non-overlapping content (display headings in Fraunces, UI in Inter, code in JetBrains Mono). The 4-size cap applies to bespoke per-phase scales; the project design system supersedes it.
+
 ---
 
 ## Color
