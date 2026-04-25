@@ -1,0 +1,25 @@
+{# Longform reading — article variant without aside. Max-width 62ch reading column. #}
+{% set body_col = display_columns.get("body") %}
+{% set date_col = display_columns.get("date") %}
+{% set source_url_col = display_columns.get("source_url") %}
+
+<article class="article read longform-article">
+  {% if date_col and row.get(date_col) %}
+  <p class="byline"><time>{{ row[date_col] }}</time></p>
+  {% endif %}
+  {% if body_col and row.get(body_col) %}
+  <div class="article-body">
+    {% set body_text = row[body_col]|striptags|trim %}
+    {% for para in body_text.split('\n\n') %}
+      {% if para.strip() %}<p>{{ para.strip() }}</p>{% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% if source_url_col and row.get(source_url_col) %}
+  <div class="coda">
+    <p class="coda-label">Original source</p>
+    <p><a href="{{ row[source_url_col] }}" rel="noopener noreferrer">{{ row[source_url_col] }}</a></p>
+  </div>
+  {% endif %}
+  <p class="back-link"><a href="/{{ database }}/{{ table }}">← Back to {{ breadcrumb_table }}</a></p>
+</article>

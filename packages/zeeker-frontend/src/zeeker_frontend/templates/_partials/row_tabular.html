@@ -1,0 +1,35 @@
+{# Default tabular fallback — key-value <dl>; long-text fields use native <details>. #}
+<div class="article-grid row-tabular-grid">
+  <article class="article row-tabular">
+    <dl class="row-dl">
+      {% for col in columns %}
+      <dt>{{ col }}</dt>
+      <dd>
+        {% set val = row[col] %}
+        {% if val is none %}
+          <span class="muted">—</span>
+        {% elif long_text_columns.get(col) %}
+          <details>
+            <summary>Show full content</summary>
+            <div class="row-dd-long">{{ val }}</div>
+          </details>
+          <div class="row-dd-preview">{{ val[:200] }}…</div>
+        {% else %}
+          {{ val }}
+        {% endif %}
+      </dd>
+      {% endfor %}
+    </dl>
+  </article>
+  <aside class="aside">
+    <div class="aside-block">
+      <h3>Export this record</h3>
+      <ul class="export-links">
+        <li><a href="/{{ database }}/{{ table }}/{{ pk }}.json">View as JSON ↗</a></li>
+      </ul>
+    </div>
+    <div class="aside-block">
+      <a class="back-link" href="/{{ database }}/{{ table }}">← Back to {{ breadcrumb_table }}</a>
+    </div>
+  </aside>
+</div>

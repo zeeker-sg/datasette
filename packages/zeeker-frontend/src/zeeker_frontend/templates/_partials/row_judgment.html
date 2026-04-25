@@ -1,0 +1,58 @@
+{# Judgment broadsheet — sketch 003-B. Full-width centered, dark dateline strip, tag chips. #}
+{% set court_col = display_columns.get("kicker") %}
+{% set citation_col = display_columns.get("citation") %}
+{% set date_col = display_columns.get("date") %}
+{% set body_col = display_columns.get("body") %}
+{% set source_url_col = display_columns.get("source_url") %}
+
+<div class="dateline">
+  <div class="container">
+    {% if court_col and row.get(court_col) %}
+    <span class="dateline-agency">{{ row[court_col] }}</span>
+    {% endif %}
+    {% if date_col and row.get(date_col) %}
+    <time class="dateline-date">{{ row[date_col] }}</time>
+    {% endif %}
+  </div>
+</div>
+
+<article class="article judgment">
+  <dl class="judgment-meta">
+    {% if court_col and row.get(court_col) %}<dt>Court</dt><dd>{{ row[court_col] }}</dd>{% endif %}
+    {% if citation_col and row.get(citation_col) %}<dt>Citation</dt><dd>{{ row[citation_col] }}</dd>{% endif %}
+    {% if date_col and row.get(date_col) %}<dt>Date</dt><dd>{{ row[date_col] }}</dd>{% endif %}
+  </dl>
+
+  {% if body_col and row.get(body_col) %}
+  <div class="article-body judgment-body">
+    {% set body_text = row[body_col]|striptags|trim %}
+    {% for para in body_text.split('\n\n') %}
+      {% if para.strip() %}<p>{{ para.strip() }}</p>{% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {# Subject tags row — try common column names, fall back gracefully #}
+  {% set tags_raw = row.get("subject_tags") or row.get("tags") or "" %}
+  {% if tags_raw %}
+  <div class="tag-chips">
+    {# subject_tags is often a JSON-array string; split safely #}
+    {% set tags_clean = tags_raw|replace('[', '')|replace(']', '')|replace('"', '') %}
+    {% for t in tags_clean.split(',') %}
+      {% if t.strip() %}<span class="tag-chip">{{ t.strip() }}</span>{% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="coda">
+    {% if source_url_col and row.get(source_url_col) %}
+    <p class="coda-label">Original source</p>
+    <p><a href="{{ row[source_url_col] }}" rel="noopener noreferrer">{{ row[source_url_col] }}</a></p>
+    {% endif %}
+    {% if primary_keys %}
+    <p class="coda-fingerprint">{{ primary_keys[0] }}: {{ row[primary_keys[0]] }}</p>
+    {% endif %}
+  </div>
+
+  <p class="back-link"><a href="/{{ database }}/{{ table }}">← Back to {{ breadcrumb_table }}</a></p>
+</article>
