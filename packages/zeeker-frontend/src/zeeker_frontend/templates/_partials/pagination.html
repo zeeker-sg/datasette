@@ -1,0 +1,23 @@
+{# Cursor pagination + page-size selector. Datasette next_url is opaque cursor. #}
+<nav class="pagination" aria-label="Pagination">
+  <div class="pagination-nav">
+    {% if next_url %}
+      <a class="pagination-next" href="{{ next_url }}">Next →</a>
+    {% else %}
+      <span class="pagination-next disabled">Next →</span>
+    {% endif %}
+  </div>
+  <div class="pagination-size">
+    <span class="pagination-size-label">Show:</span>
+    {% for n in [25, 50, 100] %}
+      {% set this_qs = path_with_replaced_args('/' ~ database ~ '/' ~ table, request_qs, {'_size': n|string}) %}
+      {% set current_size = (request_qs|string and ('_size=' ~ n|string) in (request_qs|string)) %}
+      {% if current_size %}
+      <span class="pagination-size-current">{{ n }}</span>
+      {% else %}
+      <a href="{{ this_qs }}">{{ n }}</a>
+      {% endif %}
+      {% if not loop.last %} · {% endif %}
+    {% endfor %}
+  </div>
+</nav>

@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block head %}
+{% if table_meta and table_meta.description %}
+<meta name="description" content="{{ table_meta.description }}">
+{% elif table_meta and table_meta.title %}
+<meta name="description" content="Browse {{ table_meta.title }} in the {{ database }} database">
+{% endif %}
+{% endblock %}
+
+{% block content %}
+{# --- Editorial hero ------------------------------------------- #}
+<header class="db-header">
+  <div class="container">
+    <div class="db-header-grid">
+      <div>
+        <div class="kicker">№ 01 · {{ breadcrumb_table }}</div>
+        <h1>
+          {% set page_title = breadcrumb_table %}
+          {% if ' ' in page_title %}
+            {% set idx = page_title.rfind(' ') %}
+            {{ page_title[:idx] }} <em>{{ page_title[idx+1:] }}</em>
+          {% else %}
+            <em>{{ page_title }}</em>
+          {% endif %}
+        </h1>
+        {% if table_meta and table_meta.description %}
+        <p class="lede">{{ table_meta.description }}</p>
+        {% elif human_description_en %}
+        <p class="lede">{{ human_description_en }}</p>
+        {% endif %}
+      </div>
+      <dl class="meta-col">
+        <dt>Database</dt>
+        <dd><a href="/{{ database }}">{{ metadata.title or database }}</a></dd>
+        {% if filtered_table_rows_count is not none %}
+        <dt>Rows shown</dt>
+        <dd>{{ "{:,}".format(filtered_table_rows_count) }}</dd>
+        {% endif %}
+        <dt>Columns</dt>
+        <dd>{{ columns|length }}</dd>
+      </dl>
+    </div>
+  </div>
+</header>
+
+{# --- Petrol stat band ---------------------------------------- #}
+<div class="db-statband">
+  <div class="container">
+    {% if filtered_table_rows_count is not none %}
+    <div>
+      <div class="stat-num">{{ "{:,}".format(filtered_table_rows_count) }}</div>
+      <span class="stat-label">{{ plural(filtered_table_rows_count, 'plural_row', 'plural_rows') }}</span>
+    </div>
+    {% endif %}
+    <div>
+      <div class="stat-num">{{ columns|length }}</div>
+      <span class="stat-label">{{ plural(columns|length, 'plural_column', 'plural_columns') }}</span>
+    </div>
+    {% if active_search %}
+    <div>
+      <div class="stat-num">FTS</div>
+      <span class="stat-label">filtering "{{ active_search }}"</span>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{# --- Sticky sub-toolbar --------------------------------------- #}
+<div class="db-toolbar">
+  <div class="container">
+    <form class="db-toolbar-search" method="get" action="/{{ database }}/{{ table }}" role="search">
+      <label for="t-search" class="visually-hidden">Search this table</label>
+      <input id="t-search" type="search" name="_search"
+             value="{{ active_search }}"
+             placeholder="Search this table…"
+             autocomplete="off">
+      <button type="submit">Search</button>
+      {# Preserve other querystring keys across search submissions #}
+      {% for k, v in applied_filters %}
+      <input type="hidden" name="{{ k }}" value="{{ v }}">
+      {% endfor %}
+    </form>
+    {% include "_partials/applied_facets.html" %}
+    <div class="db-toolbar-export">
+      <a href="{{ export_url(database, table, 'csv', request_qs) }}">CSV ↗</a>
+      <a href="{{ export_url(database, table, 'json', request_qs) }}">JSON ↗</a>
+    </div>
+  </div>
+</div>
+
+{# --- Two-column feed layout: main content + sticky facet sidebar --- #}
+<section class="section">
+  <div class="container">
+    <div class="feed-layout">
+      <main class="feed-main">
+        {% if rows %}
+          {% if table_mode == "feed" %}
+            {% include "_partials/table_feed.html" %}
+          {% elif table_mode == "longform-list" %}
+            {% include "_partials/table_longform_list.html" %}
+          {% else %}
+            {# D-04 default: tabular fallback #}
+            {% include "_partials/table_tabular.html" %}
+          {% endif %}
+          {% include "_partials/pagination.html" %}
+        {% else %}
+          <div class="empty-state">
+            {% if active_search %}
+            <h2>No results for '{{ active_search }}' in {{ breadcrumb_table }}.</h2>
+            <p>Try broadening your search.</p>
+            {% else %}
+            <h2>No records found</h2>
+            <p>This table has no data yet, or all records were filtered out. Try removing filters.</p>
+            {% endif %}
+          </div>
+        {% endif %}
+      </main>
+      {% if facet_results %}
+      <aside class="facets" aria-label="Facets">
+        {% include "_partials/facet_sidebar.html" %}
+      </aside>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}
