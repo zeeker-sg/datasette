@@ -121,12 +121,16 @@ else
 fi
 
 echo
-echo "11. REQ-api-byte-parity: verify_api_parity.sh"
-if bash scripts/verify_api_parity.sh; then
-  ok "verify_api_parity.sh passed"
-else
-  fail "verify_api_parity.sh failed"
-fi
+echo "11. REQ-api-byte-parity: RETIRED 2026-04-25 in Phase 5"
+# RETIRED in Phase 5 (operator decision, ship checkpoint 2026-04-25):
+# the phase-03-pre/ baseline was captured before two rounds of intentional
+# metadata.json content evolution (Phase 4 platform branding rewrite +
+# Phase 5 display.* hint blocks) plus natural data refresh in
+# _zeeker_updates / row counts. The remaining diffs were all Category B
+# (env drift) or Category C (stale check) — zero Category-A regressions.
+# verify_api_parity.sh is preserved on disk for future phases that need
+# byte-parity guarantees; capture a fresh baseline first if reactivating.
+ok "REQ-api-byte-parity check retired (see comment + .planning/phases/05-port-table-browse-row-view/05-DEPLOY-NOTES.md)"
 
 echo
 if [ "$FAILED" -eq 0 ]; then

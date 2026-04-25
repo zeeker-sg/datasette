@@ -54,17 +54,25 @@ Three options the operator may take after `verify_phase_05.sh` exits 0:
             phase (do NOT defer).
       - **D. Cosmetic:** ship; track in next phase.
 
-## Ship checkpoint outcome (filled in after the human checkpoint)
+## Ship checkpoint outcome
 
 | Field | Value |
 |-------|-------|
-| Date / time |  |
-| Decision (1, 2, 3) |  |
-| verify_phase_05.sh exit code |  |
-| Failed assertions (if any) |  |
-| Triage category for each failure |  |
-| Rollback executed? |  |
-| STATE.md / ROADMAP.md updated? |  |
+| Date / time | 2026-04-25 ~16:00 SGT |
+| Decision (1, 2, 3) | **2 — continue deferring deploy** (with stale-check retirement) |
+| verify_phase_05.sh exit code | 1 (failures all in Phase-2 check #11 delegation; zero failures in Phase-5-specific sections) |
+| Failed assertions (if any) | `verify_api_parity.sh` (all 6 byte-diff fails — `/-/metadata.json`, `/sg-gov-newsrooms/_zeeker_schemas.json`, `/sg-gov-newsrooms/_zeeker_updates.json`, `/sg-gov-newsrooms.json`, `/sglawwatch/about_singapore_law.json`, `/sglawwatch/headlines.json`) |
+| Triage category for each failure | All **C — stale check** (intentional metadata.json content evolution since `phase-03-pre/` baseline capture: Phase-4 platform branding rewrite + Phase-5 `display.*` blocks; pre-edit metadata at commit `4f79811^` already had the live branding) plus a few **B — env drift** (timestamps + counts in `_zeeker_updates`/`sg-gov-newsrooms`) — zero Category-A regressions |
+| Rollback executed? | No |
+| STATE.md / ROADMAP.md updated? | Yes (after retirement commit) |
+
+### Action taken
+
+`verify_phase_02.sh` check #11 (`REQ-api-byte-parity` invoking `verify_api_parity.sh`) was retired at the Phase-5 boundary, following the locked Phase-3 decision recorded in `STATE.md`: *"Stale-check retirement in same phase — if a Phase-(N-1) sentinel's polarity flips by Phase-N's design, retire it in Phase N rather than defer."* Same pattern as Phase-3's retirement of Phase-2 checks #3 and #10.
+
+`scripts/verify_api_parity.sh` is preserved on disk; future phases that want byte-parity guarantees can capture a fresh `phase-N-pre/` baseline first and re-point the script.
+
+**Production deploy of Phase-4 + Phase-5 continues to be deferred** (option 2). Justification carries forward from Plan 04-05's deferral: ship-when-Phase-6-is-ready so the editorial UX is end-to-end coherent before public users see it.
 
 ## References
 
