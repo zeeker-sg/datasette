@@ -77,12 +77,27 @@ templates.env.filters["safe_format"] = zfilters.safe_format
 templates.env.globals["s"] = zfilters.s
 templates.env.globals["plural"] = zfilters.plural
 
+# Phase 5 — querystring + tilde-encoding helpers exposed to Jinja so
+# table.html / row.html call them as plain function names.
+from zeeker_frontend import urls as zurls
+templates.env.globals["path_with_added_args"] = zurls.path_with_added_args
+templates.env.globals["path_with_replaced_args"] = zurls.path_with_replaced_args
+templates.env.globals["path_with_removed_args"] = zurls.path_with_removed_args
+templates.env.globals["toggle_facet_value"] = zurls.toggle_facet_value
+templates.env.globals["clear_facet_value"] = zurls.clear_facet_value
+templates.env.globals["set_sort"] = zurls.set_sort
+templates.env.globals["export_url"] = zurls.export_url
+templates.env.globals["row_url"] = zurls.row_url
+templates.env.globals["tilde_encode"] = zurls.tilde_encode
+
 # Expose templates on app.state so route modules can render without importing
 # `templates` directly (avoids circular imports once 04-04 adds its own router).
 app.state.templates = templates
 
 from zeeker_frontend.routes_home import router as home_router
 from zeeker_frontend.routes_database import router as database_router
+from zeeker_frontend.routes_table import router as table_router
+from zeeker_frontend.routes_row import router as row_router
 
 
 # Explicit JSON healthcheck MUST register before the `/{db}` catch-all in
@@ -100,3 +115,5 @@ def frontend_test() -> dict[str, str]:
 
 app.include_router(home_router)
 app.include_router(database_router)
+app.include_router(table_router)
+app.include_router(row_router)
