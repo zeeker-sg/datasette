@@ -852,32 +852,32 @@ Note: `/llms.txt` deliberately keeps the legacy `/-/search.json?q=…` reference
 | A5 | Daily container restart is sufficient cache invalidation for `app.state.searchable_tables` (no in-day FTS topology changes). | D-04 (locked in CONTEXT.md) | Risk owned by user via D-04. If a new FTS table is added mid-day, search misses it until the next deploy. Acceptable per CONTEXT.md. |
 | A6 | The Phase-6 verifier should AUTHOR a new `verify_phase_06.sh` and not destructively edit `verify_phase_05.sh`. | Pitfall 11 | Low. Mirrors the Phase-5 model that delegated to Phase-4. Plan locks this; alternate (env-var polarity flip) called out. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should `/sql/{db}` GET render an empty editor (no `sql` param), and does `Reset` link rely on this?**
    - What we know: UI-SPEC §Interaction Contracts explicitly says "Reset link: GET to `/sql/{db}` with no query — clears the textarea (handler-side: the template renders empty textarea when `sql is None`)." So GET handler MUST exist and render an empty form.
    - What's unclear: should GET also accept `?sql=…` and pre-populate (for shareable URLs)? CONTEXT.md is silent.
-   - Recommendation: yes. Implement `GET /sql/{db}` as render-only (no execution; just template with `sql=request.query_params.get("sql")`) so URLs like `/sql/sglawwatch?sql=SELECT…` render the textarea pre-filled but do NOT auto-run. Auto-run only on POST. This matches Datasette's `/-/sql?sql=…` UX convention.
+   - **RESOLVED:** yes. Implement `GET /sql/{db}` as render-only (no execution; just template with `sql=request.query_params.get("sql")`) so URLs like `/sql/sglawwatch?sql=SELECT…` render the textarea pre-filled but do NOT auto-run. Auto-run only on POST. This matches Datasette's `/-/sql?sql=…` UX convention. Implemented by Plan 06-05 task `sql_db_get`.
 
 2. **Empty FTS-discovery cache on boot — render `/search` how?**
    - What we know: UI-SPEC §Error states says 503 with friendly copy when discovery fails AND `q` is non-empty.
    - What's unclear: `q` empty (State A) — should it still render with the hero + tips even when discovery is empty? Yes. State A is informational; no fan-out happens.
-   - Recommendation: 503 only on State B with empty cache. State A always renders. Plan-author confirms.
+   - **RESOLVED:** 503 only on State B with empty cache. State A always renders. Plan-author confirms. Implemented by Plan 06-04 `routes_search.py` empty-cache branch.
 
 3. **Does `/about` still link to `/-/metadata`?**
    - What we know: M1 `about.html` line 102: `<a href="/-/metadata">API Documentation</a>`. UI-SPEC §Copywriting says button should be "API Documentation" → `/developers`.
    - What's unclear: is the M1 link a bug worth fixing during the port (yes per UI-SPEC), or a separate concern?
-   - Recommendation: fix during the port. This is exactly the kind of "stale reference" CONTEXT.md §Discretion authorizes deviation for. New target: `/developers`.
+   - **RESOLVED:** fix during the port. This is exactly the kind of "stale reference" CONTEXT.md §Discretion authorizes deviation for. New target: `/developers`. Implemented by Plan 06-03 `about.html` template port.
 
 4. **Should canned-query params be exposed as `<input type=text>` for all types, or typed (number, date)?**
    - What we know: D-09 says supported in v1; UI-SPEC says one input per param.
    - What's unclear: the metadata schema (`databases.{db}.queries.{name}.params`) doesn't carry types — Datasette's canned-query system is untyped. Submitting "abc" for an integer param produces a SQL error message handled by Pattern 4.
-   - Recommendation: ship `<input type="text">` only. Datasette's error message ("invalid input") renders as the friendly error block. Typed inputs are Phase 8 if requested.
+   - **RESOLVED:** ship `<input type="text">` only. Datasette's error message ("invalid input") renders as the friendly error block. Typed inputs are Phase 8 if requested. Implemented by Plan 06-05 `sql_db.html` template.
 
 5. **Should the `/sql/{db}` results table use `<table>` or a `<div>`-based pseudo-table?**
    - What we know: UI-SPEC names a `.sql-results-table` class, harvest pattern `.api-table` baseline.
    - What's unclear: column-overflow on wide queries — `<table>` with `overflow-x: auto` parent.
-   - Recommendation: `<table class="sql-results-table">` inside `<div class="sql-results-wrap" style="overflow-x:auto; max-height:60vh; overflow-y:auto">`. Standard pattern. UI-checker accepts.
+   - **RESOLVED:** `<table class="sql-results-table">` inside `<div class="sql-results-wrap" style="overflow-x:auto; max-height:60vh; overflow-y:auto">`. Standard pattern. UI-checker accepts. Implemented by Plan 06-05 `sql_db.html` results block + Plan 06-06 CSS append for `.sql-results-wrap` / `.sql-results-table`.
 
 ## Environment Availability
 
