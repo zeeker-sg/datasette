@@ -1,0 +1,173 @@
+{
+  "database": "sglawwatch",
+  "table": "headlines",
+  "is_view": false,
+  "human_description_en": "sorted by date descending",
+  "rows": [
+    {
+      "id": "fdd3ea972982da1e8326e4233586bd8e",
+      "category": "Business Times",
+      "title": "DBS deploys AI-driven 'Alpha' squads to blend legal, compliance, risk roles",
+      "source_link": "https://www.singaporelawwatch.sg/Headlines/DBS-deploys-AI-driven-Alpha-squads-to-blend-legal-compliance-risk-roles",
+      "author": "Business Times: Renald Yeo",
+      "date": "2026-04-21T00:01:00",
+      "summary": "DBS is dismantling traditional silos with its new \"Alpha\" squads, integrating legal, compliance, and risk specialists into multidisciplinary units.",
+      "text": "DBS deploys AI squads full text...",
+      "imported_on": "2026-04-21T05:01:09.340326"
+    },
+    {
+      "id": "0e63567979724039be9aa837aed55c0b",
+      "category": "Straits Times",
+      "title": "Rule of law and norms needed for successful social governance: Ong Ye Kung at China forum",
+      "source_link": "https://www.singaporelawwatch.sg/Headlines/Rule-of-law-and-norms-needed-for-successful-social-governance-Ong-Ye-Kung-at-China-forum",
+      "author": "Straits Times: Joyce ZK Lim",
+      "date": "2026-04-21T00:01:00",
+      "summary": "At the recent Singapore-China Social Governance Forum, Minister Ong Ye Kung emphasized a strategic equilibrium between the rule of law and social norms.",
+      "text": "Rule of law article full text...",
+      "imported_on": "2026-04-21T05:01:09.295848"
+    },
+    {
+      "id": "06d84d59cc0441496e4f6a99018547bd",
+      "category": "Straits Times",
+      "title": "Leadership key to helping young lawyers face challenges of AI, work pressures: Chief Justice",
+      "source_link": "https://www.singaporelawwatch.sg/Headlines/Leadership-key-to-helping-young-lawyers-face-challenges-of-AI-work-pressures-Chief-Justice",
+      "author": "Straits Times: Selina Lum",
+      "date": "2026-04-21T00:01:00",
+      "summary": "Chief Justice Menon is sounding the alarm on how GenAI and relentless billing targets threaten the next generation of lawyers.",
+      "text": "Chief Justice article full text...",
+      "imported_on": "2026-04-21T05:01:08.941808"
+    },
+    {
+      "id": "6611318ae2c7a8a85cd26763f3361d0d",
+      "category": "Business Times",
+      "title": "Why the best general counsels shape risk, not avoid it: Opinion",
+      "source_link": "https://www.singaporelawwatch.sg/Headlines/Why-the-best-general-counsels-shape-risk-not-avoid-it-Opinion",
+      "author": "Business Times: Jeffrey Tan",
+      "date": "2026-04-20T00:01:00",
+      "summary": "Forget the \"chief no officer\" stereotype; the modern General Counsel must evolve from a mere legal gatekeeper to a strategic risk shaper.",
+      "text": "General counsels article full text...",
+      "imported_on": "2026-04-20T05:02:23.938126"
+    },
+    {
+      "id": "194dd9137a7c55cf8218a727dfe7aabc",
+      "category": "Straits Times",
+      "title": "Nickel scam: Jail for man who was Ng Yu Zhi's surety for bail despite not having enough cash, assets",
+      "source_link": "https://www.singaporelawwatch.sg/Headlines/Nickel-scam-Jail-for-man-who-was-Ng-Yu-Zhis-surety-for-bail-despite-not-having-enough-cash-assets",
+      "author": "Straits Times: Shaffiq Alkhatib",
+      "date": "2026-04-20T00:01:00",
+      "summary": "In a stark warning against bail misconduct, Chua Eng Kiam was sentenced to two months' jail for misleading the court as a $1.5 million surety.",
+      "text": "Nickel scam article full text...",
+      "imported_on": "2026-04-20T05:02:23.877423"
+    },
+    {
+      "id": "c3085a0480d869e9b003b6fdc818651a",
+      "category": "Straits Times",
+      "title": "Illegal weaponisation of Strait of Hormuz would set dangerous precedent: PM Wong",
+      "source_link": "https://www.singaporelawwatch.sg/Headlines/Illegal-weaponisation-of-Strait-of-Hormuz-would-set-dangerous-precedent-PM-Wong",
+      "author": "Straits Times: Ng Wei Kai",
+      "date": "2026-04-20T00:01:00",
+      "summary": "Prime Minister Lawrence Wong is warning that the illegal weaponization of the Strait of Hormuz could trigger a dangerous domino effect for global maritime law.",
+      "text": "Strait of Hormuz article full text...",
+      "imported_on": "2026-04-20T05:02:22.771805"
+    },
+    {
+      "id": "57d8c33bff546f667b1c1b5f2f38b502",
+      "category": "Straits Times",
+      "title": "Cybersecurity alert in S'pore as Claude-maker Anthropic tests new AI model",
+      "source_link": "https://www.singaporelawwatch.sg/Headlines/Cybersecurity-alert-in-Spore-as-Claude-maker-Anthropic-tests-new-AI-model",
+      "author": "Straits Times: Sarah Koh",
+      "date": "2026-04-17T00:01:00",
+      "summary": "The CSA has issued a high-alert advisory following news that Anthropic's \"Claude Mythos\" can autonomously exploit software flaws in hours rather than months.",
+      "text": "Cybersecurity alert full text...",
+      "imported_on": "2026-04-17T04:01:22.313057"
+    },
+    {
+      "id": "033fd31e7b31015e4bcf2841b117b704",
+      "category": "Law.com",
+      "title": "In-house Lawyers: Are You Getting the Best Work from Your External Law Firms?",
+      "source_link": "https://www.singaporelawwatch.sg/Portals/0/lawdotcom 7 April 2026.pdf",
+      "author": "Law.com: Richard Martin",
+      "date": "2026-04-17T00:01:00",
+      "summary": "Are your external firms truly delivering their best work, or is high-pressure management undermining your legal security?",
+      "text": "In-house lawyers article full text...",
+      "imported_on": "2026-04-17T04:01:22.292037"
+    },
+    {
+      "id": "f9fe3894da1fbaacf825afc357b477e3",
+      "category": "Business Times",
+      "title": "Never mind the ozone layer, mind your dividends: Opinion",
+      "source_link": "https://www.singaporelawwatch.sg/Headlines/Never-mind-the-ozone-layer-mind-your-dividends-Opinion",
+      "author": "Business Times: Jude Chan",
+      "date": "2026-04-16T00:01:00",
+      "summary": "Forget the ozone layer; focus on the bottom line. As carbon regulation shifts from a sustainability metric to a direct financial threat, heavy emitters face rising operational costs.",
+      "text": "Carbon article full text...",
+      "imported_on": "2026-04-16T05:00:24.952197"
+    },
+    {
+      "id": "7655924e92ed043c1fa41eafd8d674bf",
+      "category": "Business Times",
+      "title": "AI deployment has 'stalled' for most Asia companies: report",
+      "source_link": "https://www.singaporelawwatch.sg/Headlines/AI-deployment-has-stalled-for-most-Asia-companies-report",
+      "author": "Business Times: Koh Kim Xuan",
+      "date": "2026-04-16T00:01:00",
+      "summary": "While AI interest is high across Asia, a new report highlights a critical \"deployment gap,\" with only 1% of firms successfully embedding AI.",
+      "text": "AI deployment article full text...",
+      "imported_on": "2026-04-16T05:00:24.915017"
+    }
+  ],
+  "truncated": false,
+  "filtered_table_rows_count": 665,
+  "expanded_columns": [],
+  "expandable_columns": [],
+  "columns": [
+    "id",
+    "category",
+    "title",
+    "source_link",
+    "author",
+    "date",
+    "summary",
+    "text",
+    "imported_on"
+  ],
+  "primary_keys": ["id"],
+  "units": {},
+  "query": {
+    "sql": "select id, category, title, source_link, author, date, summary, text, imported_on from headlines order by date desc limit 11",
+    "params": {}
+  },
+  "facet_results": {
+    "category": {
+      "name": "category",
+      "type": "column",
+      "hideable": false,
+      "toggle_url": "http://zeeker-datasette:8001/sglawwatch/headlines.json?_shape=objects&_size=10",
+      "results": [
+        {
+          "value": "Straits Times",
+          "label": "Straits Times",
+          "count": 6,
+          "toggle_url": "http://zeeker-datasette:8001/sglawwatch/headlines.json?_shape=objects&_size=10&category=Straits+Times",
+          "selected": false
+        },
+        {
+          "value": "Business Times",
+          "label": "Business Times",
+          "count": 4,
+          "toggle_url": "http://zeeker-datasette:8001/sglawwatch/headlines.json?_shape=objects&_size=10&category=Business+Times",
+          "selected": false
+        }
+      ],
+      "truncated": false
+    }
+  },
+  "suggested_facets": [],
+  "next": "2026-04-16T00~3A01~3A00,7655924e92ed043c1fa41eafd8d674bf",
+  "next_url": "http://zeeker-datasette:8001/sglawwatch/headlines.json?_size=10&_next=2026-04-16T00~3A01~3A00%2C7655924e92ed043c1fa41eafd8d674bf&_sort_desc=date",
+  "is_view": false,
+  "human_description_en": "sorted by date descending",
+  "source": "Singapore LawWatch",
+  "source_url": "https://www.singaporelawwatch.sg/",
+  "license": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/"
+}

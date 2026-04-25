@@ -39,6 +39,26 @@ def metadata_fixture() -> dict:
 
 
 @pytest.fixture
+def headlines_table_fixture() -> dict:
+    return _load_fixture("headlines_table.json")
+
+
+@pytest.fixture
+def about_singapore_law_table_fixture() -> dict:
+    return _load_fixture("about_singapore_law_table.json")
+
+
+@pytest.fixture
+def headlines_row_fixture() -> dict:
+    return _load_fixture("headlines_row.json")
+
+
+@pytest.fixture
+def judgments_row_fixture() -> dict:
+    return _load_fixture("judgments_row.json")
+
+
+@pytest.fixture
 def mock_datasette(databases_fixture, sglawwatch_fixture, metadata_fixture):
     """Returns an httpx.AsyncClient backed by MockTransport.
 

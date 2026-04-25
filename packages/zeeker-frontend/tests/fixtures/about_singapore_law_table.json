@@ -1,0 +1,138 @@
+{
+  "database": "sglawwatch",
+  "table": "about_singapore_law",
+  "is_view": false,
+  "human_description_en": "",
+  "rows": [
+    {
+      "rowid": 1,
+      "id": "ef50fb826fc3",
+      "item_url": "https://www.singaporelawwatch.sg/About-Singapore-Law/Overview/ch-01-the-singapore-legal-system",
+      "title": "Ch. 01 The Singapore Legal System",
+      "section": "Overview",
+      "home_page": "Overview",
+      "last_scraped": "2025-09-04 22:09:01",
+      "content_length": 0
+    },
+    {
+      "rowid": 2,
+      "id": "01fff530cdcc",
+      "item_url": "https://www.singaporelawwatch.sg/About-Singapore-Law/Overview/ch-02-civil-procedure",
+      "title": "Ch. 02 Civil Procedure",
+      "section": "Overview",
+      "home_page": "Overview",
+      "last_scraped": "2025-09-04 22:09:01",
+      "content_length": 0
+    },
+    {
+      "rowid": 3,
+      "id": "f4ce9add5760",
+      "item_url": "https://www.singaporelawwatch.sg/About-Singapore-Law/Overview/ch-03-mediation",
+      "title": "Ch. 03 Mediation",
+      "section": "Overview",
+      "home_page": "Overview",
+      "last_scraped": "2025-09-04 22:09:01",
+      "content_length": 0
+    },
+    {
+      "rowid": 4,
+      "id": "904b6f3b18d2",
+      "item_url": "https://www.singaporelawwatch.sg/About-Singapore-Law/Overview/ch-04-international-and-domestic-arbitration-in-singapore",
+      "title": "Ch. 04 International and Domestic Arbitration in Singapore",
+      "section": "Overview",
+      "home_page": "Overview",
+      "last_scraped": "2025-09-04 22:09:01",
+      "content_length": 0
+    },
+    {
+      "rowid": 5,
+      "id": "a1d22466aeae",
+      "item_url": "https://www.singaporelawwatch.sg/About-Singapore-Law/Overview/ch-05-singapore-and-international-law",
+      "title": "Ch. 05 Singapore and International Law",
+      "section": "Overview",
+      "home_page": "Overview",
+      "last_scraped": "2025-09-04 22:09:01",
+      "content_length": 0
+    },
+    {
+      "rowid": 6,
+      "id": "594a44f41d17",
+      "item_url": "https://www.singaporelawwatch.sg/About-Singapore-Law/Overview/ch-06-the-conflict-of-laws",
+      "title": "Ch. 06 The Conflict of Laws",
+      "section": "Overview",
+      "home_page": "Overview",
+      "last_scraped": "2025-09-04 22:09:01",
+      "content_length": 0
+    },
+    {
+      "rowid": 7,
+      "id": "394810a6de3c",
+      "item_url": "https://www.singaporelawwatch.sg/About-Singapore-Law/Overview/ch-07-free-trade-agreements-singapore-legal-developments",
+      "title": "Ch. 07 Free Trade Agreements: Singapore Legal Developments",
+      "section": "Overview",
+      "home_page": "Overview",
+      "last_scraped": "2025-09-04 22:09:01",
+      "content_length": 0
+    },
+    {
+      "rowid": 8,
+      "id": "4d076bd92fe9",
+      "item_url": "https://www.singaporelawwatch.sg/About-Singapore-Law/Commercial-Law/ch-08-the-law-of-contract",
+      "title": "Ch. 08 The Law of Contract",
+      "section": "Commercial Law",
+      "home_page": "Commercial Law",
+      "last_scraped": "2025-09-04 22:09:04",
+      "content_length": 0
+    },
+    {
+      "rowid": 9,
+      "id": "170430cbd374",
+      "item_url": "https://www.singaporelawwatch.sg/About-Singapore-Law/Commercial-Law/ch-08a-remedies-for-breach-of-contract",
+      "title": "Ch. 08A Remedies for Breach of Contract",
+      "section": "Commercial Law",
+      "home_page": "Commercial Law",
+      "last_scraped": "2025-09-04 22:09:04",
+      "content_length": 0
+    },
+    {
+      "rowid": 10,
+      "id": "18984a5f02da",
+      "item_url": "https://www.singaporelawwatch.sg/About-Singapore-Law/Commercial-Law/ch-09-domestic-sale-of-goods",
+      "title": "Ch. 09 Domestic Sale of Goods",
+      "section": "Commercial Law",
+      "home_page": "Commercial Law",
+      "last_scraped": "2025-09-04 22:09:04",
+      "content_length": 0
+    }
+  ],
+  "truncated": false,
+  "filtered_table_rows_count": 280,
+  "expanded_columns": [],
+  "expandable_columns": [],
+  "columns": [
+    "rowid",
+    "id",
+    "item_url",
+    "title",
+    "section",
+    "home_page",
+    "last_scraped",
+    "content_length"
+  ],
+  "primary_keys": [],
+  "units": {},
+  "query": {
+    "sql": "select rowid, id, item_url, title, section, home_page, last_scraped, content_length from about_singapore_law order by rowid limit 11",
+    "params": {}
+  },
+  "facet_results": {},
+  "suggested_facets": [],
+  "next": null,
+  "next_url": null,
+  "is_view": false,
+  "human_description_en": "",
+  "source": "Singapore LawWatch",
+  "source_url": "https://www.singaporelawwatch.sg/",
+  "license": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/"
+}
