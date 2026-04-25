@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block head %}
+<meta name="description" content="{{ page_title }} — {{ breadcrumb_table }} in {{ database }}">
+{% endblock %}
+
+{% block content %}
+{# --- Editorial hero (NO stat band on row page per UI-SPEC) --- #}
+<header class="db-header row-header">
+  <div class="container">
+    <div class="db-header-grid">
+      <div>
+        <div class="kicker">
+          {% if row_mode == "judgment" and display_columns.get("kicker") and row[display_columns.get("kicker")] %}
+            {{ row[display_columns.get("kicker")] }}
+          {% elif display_columns.get("kicker") and row.get(display_columns.get("kicker")) %}
+            {{ row[display_columns.get("kicker")] }}
+          {% else %}
+            Record
+          {% endif %}
+        </div>
+        <h1>
+          {% if ' ' in page_title %}
+            {% set idx = page_title.rfind(' ') %}
+            {{ page_title[:idx] }} <em>{{ page_title[idx+1:] }}</em>
+          {% else %}
+            <em>{{ page_title }}</em>
+          {% endif %}
+        </h1>
+      </div>
+    </div>
+  </div>
+</header>
+
+{# --- row_mode dispatch (D-03 + D-04) --- #}
+<section class="section row-section">
+  <div class="container">
+    {% if row_mode == "article" %}
+      {% include "_partials/row_article.html" %}
+    {% elif row_mode == "judgment" %}
+      {% include "_partials/row_judgment.html" %}
+    {% elif row_mode == "longform" %}
+      {% include "_partials/row_longform.html" %}
+    {% else %}
+      {# D-04 default: tabular fallback #}
+      {% include "_partials/row_tabular.html" %}
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
