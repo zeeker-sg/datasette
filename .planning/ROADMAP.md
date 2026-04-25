@@ -235,21 +235,63 @@ Note: main.py shared edit between 05-02 and 05-03 was factored into Plan 05-01 (
 
 #### Phase 6: Port auxiliary pages
 
-**Goal:** Implement remaining frontend routes: `/developers`, `/status`, `/sources`, `/about`, `/how-to-use`, `/-/search`, `/llms.txt`.
+**Goal:** Implement remaining frontend HTML routes — `/developers`, `/status`, `/sources`, `/about`, `/how-to-use`, `/llms.txt`, `/robots.txt` (1:1 ports of M1 plugin pages) plus two new user-facing surfaces: `/search` (cross-database FTS UI fanning out via `asyncio.gather(return_exceptions=True)` over a boot-time-discovered FTS table cache, replacing M1's `/-/search`) and `/sql` + `/sql/{db}` (thin SQL editor with `<textarea>` POST → `execute_sql` against Datasette's read-only mode + 3s ms_limit + 1000-row cap, with canned-queries listing from `/-/metadata.json`). Caddy `/-/*` matcher remains untouched per D-01/D-02 — Datasette's native `/-/search` and `/-/sql` stay reachable as developer-facing surfaces. After Phase 6, every public HTML surface on `data.zeeker.sg` is rendered by the frontend service.
 
 **Scope — in:**
-- Frontend handlers + Jinja templates for all 7 routes.
-- `/-/search` calls `datasette-search-all` JSON output (PRD R4 recommendation: don't re-implement).
-- `/-/sql` thin replacement: `<textarea>` POSTing to `/-/sql?format=json`, results rendered as a table (PRD R2 v1 spec).
-- `/llms.txt` machine-readable description.
+- Frontend handlers + Jinja templates for all 9 surfaces (`/developers`, `/status`, `/sources`, `/about`, `/how-to-use`, `/llms.txt`, `/search`, `/sql`, `/sql/{db}`) + `/robots.txt` static.
+- New `datasette_client.py` helpers: `discover_searchable_tables` (one-shot at lifespan boot — cache lives on `app.state.searchable_tables`), `search_table`, `execute_sql` (handles HTTP-400-with-body per RESEARCH Pitfall 1).
+- New `changelog.py` module loading `data/changelog.yaml` (port from M1 `plugins/strings.yaml recent_updates`).
+- Append-only Phase-6 CSS section in `zeeker.css` (body-class scoped: `.page-developers`, `.page-status`, `.page-sources`, `.page-about`, `.page-how-to-use`, `.page-search`, `.page-sql`, `.page-sql-db`); NO new design tokens.
+- `pyyaml>=6.0,<7.0` added to `packages/zeeker-frontend/pyproject.toml` (RESEARCH Pitfall 12).
+- `base.html` one-line edits: `<body class="{{ page_class or '' }}">` binding + nav `Search` link re-pointed from `/-/search` to `/search` (D-01).
+- New `scripts/verify_phase_06.sh` extending Phase 4 verifier; flips Phase-5 boundary asserts (aux routes 404 → 200 + civic-broadsheet body); negative-asserts `/-/search` and `/-/sql` STILL reach Datasette via Caddy (D-01); wraps `verify_api_parity.sh` against `phase-03-pre/` baseline.
+
+**Scope — out:**
+- Inline query form on `/{db}/{table}` page (D-10 keeps Phase 5 D-06 deferred — `/sql/{db}` is the single SQL surface).
+- Cross-database SQL JOINs (Datasette doesn't support them; v1 is per-db only).
+- `/-/search` redirect to `/search` (would require Caddyfile carve-out; contradicts D-01).
+- SQL syntax highlighting (PRD Appendix B; D-09 keeps deferred).
+- Recent / popular searches on empty `/search` (Discretion default: omit; no telemetry).
+- A11y audit pass on auxiliary pages (Phase 8 follow-up).
+- Production deploy decision (lives at the verifier checkpoint or Phase 7 prep, not in this phase).
 
 **Success criteria:**
-- All 7 routes return 200 with rendered HTML.
-- `/-/search` cross-database search works against current databases.
-- `/-/sql` accepts queries and renders results.
+- All 9 user-facing routes (`/developers`, `/status`, `/sources`, `/about`, `/how-to-use`, `/llms.txt`, `/search`, `/sql`, `/sql/{db}`) plus `/robots.txt` return 200 with rendered HTML/text per Content-Type.
+- Italic-accent `<em>` H1 on every aux page; civic-broadsheet shell inherited from `base.html`; `/static/css/zeeker.css` referenced (no `zeeker-base.css` leak).
+- `/search?q=...` fans out across `app.state.searchable_tables`; partial failure (one mocked-fail table) does NOT empty results; reflected XSS on `q` echoed in response body is HTML-escaped (`<script>` → no raw `<script>` in body).
+- `/sql/{db}` POST executes via `execute_sql`; 400 errors render as inline `.sql-error` block (HTTP 200, NOT 503); truncated=true renders banner with CSV deep-link routed direct via Caddy suffix; param-binding via `_param_<name>=<value>` URL keys (NOT string concat); querystring allowlist drops every form field outside `sql` + `_sql_param_<valid_name>`.
+- `/llms.txt` returns `Content-Type: text/plain; charset=utf-8`; body starts with `# data.zeeker.sg`; `_zeeker_*` tables filtered out.
+- Hidden-table dual predicate (`t.get("hidden") or t.get("name", "").startswith("_zeeker")`) applied on `/sources`, `/developers`, `/llms.txt`, and `/sql/{db}` canned-queries listing (D-15).
+- `Cache-Control: public, max-age=60, stale-while-revalidate=300` on every aux GET; `Cache-Control: no-store` on POST `/sql/{db}`.
+- main.py router order: `home_router → aux_router → search_router → sql_router → database_router → table_router → row_router` (Phase-6 routers all precede the catch-all `/{db}` per RESEARCH Pitfall 3).
+- `bash scripts/verify_phase_06.sh` exits 0; `bash scripts/verify_api_parity.sh` (against `phase-03-pre/`) exits 0.
+- All Phase 4-5 + new Phase-6 unit tests green; no regressions.
 
 **Depends on:** Phase 5.
 **References:** PRD §10 Step 3 (remainder), §7.2, R2, R4.
+
+**Requirements:** REQ-frontend-route-set, REQ-eliminate-template-drift, REQ-frontend-data-via-http, REQ-api-byte-parity
+
+**Plans:** 6 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — Wave-0 scaffolding: declare `pyyaml>=6.0,<7.0` in `packages/zeeker-frontend/pyproject.toml`; port M1 `plugins/strings.yaml recent_updates` block verbatim into `packages/zeeker-frontend/src/zeeker_frontend/data/changelog.yaml`; create 4 test fixtures (`searchable_databases.json`, `headlines_search_results.json`, `metadata_with_canned_queries.json`, `sql_error_400.json`); author 5 collectable test stub files (test_routes_aux, test_routes_search, test_routes_sql, test_datasette_client_phase06, test_changelog) — every test pytest.skips with the implementing plan number cited. Wave 0 BLOCKING for all subsequent plans.
+- [ ] 06-02-PLAN.md — Extend `datasette_client.py` with `discover_searchable_tables` (uses live-verified `fts_table` field; applies dual hidden+_zeeker filter), `search_table`, `execute_sql` (handles HTTP-400-with-body BEFORE raise_for_status — Pitfall 1; `_param_<name>` URL binding, NEVER string concat); create `changelog.py` module (yaml.safe_load only; degrades to empty list on missing/invalid file); extend `main.py` lifespan to populate `app.state.searchable_tables` (via `await discover_searchable_tables`) and `app.state.changelog` (via `load_changelog()`); fill in 9 unit tests in test_datasette_client_phase06.py + 4 in test_changelog.py.
+- [ ] 06-03-PLAN.md — Author `routes_aux.py` with 7 GET handlers (`/developers`, `/status`, `/sources`, `/about`, `/how-to-use`, `/llms.txt`, `/robots.txt`); 5 HTML templates + 1 .txt template (port M1 `templates/pages/*` 1:1 with `{% extends "base.html" %}`, `{% block nav/footer %}` includes DROPPED, italic-accent H1 hard-coded per UI-SPEC §Copywriting Contract, `/-/metadata` link in about.html re-pointed to `/developers`, `/-/search` references in how-to-use.html re-pointed to `/search`); copy `templates/pages/robots.txt` verbatim into `static/robots.txt`; register `aux_router` in main.py BEFORE `database_router`; 9 integration tests including 503-on-upstream-error + Cache-Control coverage + `_zeeker_` leak negative.
+- [ ] 06-04-PLAN.md — Author `routes_search.py` (GET /search with State A empty-q + State B fan-out via `asyncio.gather(*tasks, return_exceptions=True)` — NEVER TaskGroup per RESEARCH Pitfall 2; `_safe_search_one` converts httpx.HTTPError + ValueError to None sentinel; 503 when empty cache + non-empty q per Pitfall 10; results grouped by (db, table) alphabetically with count + top-10 + see-all link); `templates/pages/search.html` (two-state) + `templates/_partials/search_result.html`; register `search_router` in main.py after `aux_router` and before `database_router`; 6 integration tests including the load-bearing partial-failure-tolerance + Reflected-XSS-via-q-echo + 503-empty-cache + State-A-renders-when-cache-empty assertions.
+- [ ] 06-05-PLAN.md — Author `routes_sql.py` (GET /sql landing, GET /sql/{db} editor, POST /sql/{db} execution); `_PARAM_RE = re.compile(r":([a-zA-Z_][a-zA-Z0-9_]*)")` + `_detect_params` dedup + querystring allowlist (only `sql` + `_shape=objects` + `_param_<name>` for detected params reach upstream — RESEARCH Pitfall 7); POST handler renders 400-with-body as inline `.sql-error` block (HTTP 200, NOT 503 — Pitfall 1); truncation banner + URL-encoded export anchors `/{db}.csv?sql=...` + `/{db}.json?sql=...` route via Caddy suffix; `templates/pages/sql_landing.html` + `sql_db.html` (with canned-queries `<details>` block + textarea + results/error/truncation states); register `sql_router` in main.py after `search_router` and before `database_router`; Cache-Control: no-store on POST; 10 integration tests including SQL-injection-via-param-binding-prevention + querystring-smuggling-allowlist + 400-handled-as-200 + truncation-banner + export-link-URL-encoding assertions.
+- [ ] 06-06-PLAN.md — Append Phase-6 CSS section to `zeeker.css` BEFORE the FOOTER LINK OVERRIDE block; harvest from M1 `static/css/zeeker-base.css` lines 700-2900 per UI-SPEC §CSS Harvest with token substitution (M1 `--color-bg-surface` → frontend `--color-surface`, etc.); body-class-scoped (`.page-developers .api-table`, etc.); NO `:root` edits, NO new tokens; brace balance preserved. base.html one-line edits: `<body class="{{ page_class or '' }}">` binding + `href="/-/search"` → `href="/search"`. Author `scripts/verify_phase_06.sh` (delegates to verify_phase_04.sh; flips Phase-5 boundary asserts; positive structural asserts on every aux route — italic H1 + zeeker.css link + no _zeeker_ leak; D-01 negative asserts that `/-/search` + `/-/sql` STILL reach Datasette; main.py router-order line-number invariant; wraps verify_api_parity.sh against phase-03-pre baseline). Phase-6 ready for HUMAN UAT.
+
+**Wave structure:**
+
+| Wave | Plans | Parallelism | Autonomous |
+|------|-------|-------------|------------|
+| 0 | 06-01 | — (Wave-0 scaffolding: deps + fixtures + test stubs; BLOCKING) | yes |
+| 1 | 06-02, 06-03 | parallel-safe (file-disjoint: 06-02 owns datasette_client.py + changelog.py + main.py lifespan; 06-03 owns routes_aux.py + aux templates + robots.txt + main.py router include for aux_router); both depend on 06-01 | yes (yes) |
+| 2 | 06-04, 06-05 | parallel-safe (file-disjoint: 06-04 owns routes_search.py + search.html + search partial; 06-05 owns routes_sql.py + sql_landing.html + sql_db.html); both depend on 06-02 (need datasette_client extensions + app.state.searchable_tables); each adds its own include_router line in main.py — file-shared but line-disjoint, low merge risk | yes (yes) |
+| 3 | 06-06 | depends on 06-03 + 06-04 + 06-05 (verifier asserts every Phase-6 route 200 + structural; CSS append + base.html nav re-point; main.py router-order audit) | yes |
+
+Note: Plans 06-02 and 06-03 both touch `main.py`, but 06-02 edits the lifespan block and 06-03 adds an `include_router(aux_router)` line — disjoint regions of the file. Likewise 06-04 and 06-05 each add one `include_router(...)` line. Merge-safe in practice; if a worktree merge race surfaces, the affected plan re-applies its single-line edit. No need to serialize.
 
 ---
 
