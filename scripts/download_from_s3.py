@@ -1,7 +1,18 @@
 #!/usr/bin/env python
 """
-Download SQLite databases and assets from S3 with three-pass merge system.
-Enhanced version of the original script with asset management capabilities.
+Download SQLite databases + base/per-database metadata from S3.
+
+Phase-7 prune (07-RESEARCH Q3 Option A) reduced the original three-pass
+merge system to a data-only sync:
+  - Pass 1: download .db files from latest/*.db
+  - Pass 2: download/sync the base metadata.json
+            (templates/, static/, and plugins/ overlays are no longer
+            touched — the frontend service owns HTML rendering, and
+            the surviving plugins/cache_headers.py is baked into the
+            image at build time per Dockerfile).
+  - Pass 3: per-database metadata merge from
+            assets/databases/{db}/metadata.json (still active — the
+            scrape pipeline writes display.* hints there).
 """
 import json
 import logging
@@ -157,11 +168,16 @@ class ZeekerS3Downloader:
             return False
 
     def _check_base_assets_exist(self) -> bool:
-        """Check if base assets exist in S3."""
+        """Check if base metadata exists in S3.
+
+        Phase-7 prune (07-RESEARCH Q3 Option A): the legacy M1 overlay
+        (templates/index.html + static/css/zeeker-base.css) is no longer
+        downloaded — the frontend service owns HTML rendering. Only
+        metadata.json is checked here; if absent we fall through to
+        upload_base_assets() which mirrors the local metadata.json up.
+        """
         required_files = [
             f"{self.s3_assets_default_path}/metadata.json",
-            f"{self.s3_assets_default_path}/templates/index.html",
-            f"{self.s3_assets_default_path}/static/css/zeeker-base.css"
         ]
 
         for file_key in required_files:
@@ -174,34 +190,27 @@ class ZeekerS3Downloader:
         return True
 
     def _download_base_assets(self) -> bool:
-        """Download base assets from S3."""
+        """Download base metadata from S3.
+
+        Phase-7 prune (07-RESEARCH Q3 Option A): templates/, static/, and
+        plugins/ overlays are no longer downloaded. The frontend service
+        owns HTML; the surviving plugins/ files (cache_headers.py +
+        __init__.py) are baked into the Docker image at build time
+        (Dockerfile narrowed in Plan 07-04). Only metadata.json is
+        pulled — it is the merged base for the data-layer overlay
+        in _merge_all_metadata.
+        """
         try:
-            # Download base templates
-            self._download_s3_directory(
-                f"{self.s3_assets_default_path}/templates/",
-                self.templates_dir
-            )
-
-            # Download base static files
-            self._download_s3_directory(
-                f"{self.s3_assets_default_path}/static/",
-                self.static_dir
-            )
-
-            # Download base plugins
-            self._download_s3_directory(
-                f"{self.s3_assets_default_path}/plugins/",
-                self.plugins_dir
-            )
-
-            # Download base metadata
             self.s3_client.download_file(
                 self.s3_bucket,
                 f"{self.s3_assets_default_path}/metadata.json",
                 str(self.metadata_file)
             )
 
-            logger.info("Successfully downloaded base assets from S3")
+            logger.info(
+                "Successfully downloaded base metadata from S3 "
+                "(templates/static/plugins skipped — Phase-7 prune)"
+            )
             return True
 
         except Exception as e:
@@ -209,30 +218,16 @@ class ZeekerS3Downloader:
             return False
 
     def upload_base_assets(self) -> bool:
-        """Upload local assets to S3 as base assets."""
+        """Upload local metadata to S3 as base metadata.
+
+        Phase-7 prune (07-RESEARCH Q3 Option A): templates/, static/, and
+        plugins/ uploads are disabled. After Plan 07-04 ships, the local
+        templates/ and static/ directories are deleted; an upload from
+        those (now-empty) dirs would wipe any S3-side overlay used by
+        other consumers. Only metadata.json is mirrored up so the
+        scrape-pipeline overlay continues to function.
+        """
         try:
-            # Upload templates
-            if self.templates_dir.exists():
-                self._upload_directory_to_s3(
-                    self.templates_dir,
-                    f"{self.s3_assets_default_path}/templates/"
-                )
-
-            # Upload static files
-            if self.static_dir.exists():
-                self._upload_directory_to_s3(
-                    self.static_dir,
-                    f"{self.s3_assets_default_path}/static/"
-                )
-
-            # Upload plugins
-            if self.plugins_dir.exists():
-                self._upload_directory_to_s3(
-                    self.plugins_dir,
-                    f"{self.s3_assets_default_path}/plugins/"
-                )
-
-            # Upload metadata
             if self.metadata_file.exists():
                 self.s3_client.upload_file(
                     str(self.metadata_file),
@@ -240,7 +235,10 @@ class ZeekerS3Downloader:
                     f"{self.s3_assets_default_path}/metadata.json"
                 )
 
-            logger.info("Successfully uploaded base assets to S3")
+            logger.info(
+                "Successfully uploaded base metadata to S3 "
+                "(templates/static/plugins skipped — Phase-7 prune)"
+            )
             return True
 
         except Exception as e:
@@ -248,36 +246,31 @@ class ZeekerS3Downloader:
             return False
 
     def _apply_database_customizations(self, db_name: str) -> bool:
-        """Download and apply database-specific customizations."""
+        """Apply database-specific customizations.
+
+        Phase-7 prune (07-RESEARCH Q3 Option A): per-database template/
+        static overlays are no longer applied — the frontend owns HTML
+        and reads per-table display hints via display.* in metadata.
+        The metadata-side merge happens later in _merge_all_metadata
+        (still active). This method now only logs for forensic
+        continuity and returns True.
+        """
         try:
             db_assets_path = f"{self.s3_assets_databases_path}/{db_name}"
 
-            # Check if database has custom assets
             if not self._check_s3_path_exists(db_assets_path):
                 logger.info(f"No custom assets found for database: {db_name}")
                 return True
 
-            logger.info(f"Applying customizations for database: {db_name}")
-
-            # Download custom templates (overlay on base templates)
-            templates_path = f"{db_assets_path}/templates/"
-            if self._check_s3_path_exists(templates_path):
-                self._download_s3_directory(templates_path, self.templates_dir)
-                logger.info(f"Applied custom templates for {db_name}")
-
-            # Download custom static files
-            static_path = f"{db_assets_path}/static/"
-            if self._check_s3_path_exists(static_path):
-                # Create database-specific static directory
-                db_static_dir = self.static_dir / "databases" / db_name
-                db_static_dir.mkdir(parents=True, exist_ok=True)
-                self._download_s3_directory(static_path, db_static_dir)
-                logger.info(f"Applied custom static files for {db_name}")
-
+            logger.info(
+                f"Skipping template/static overlay for {db_name} "
+                f"(Phase-7 prune — frontend owns HTML; metadata still "
+                f"merged in _merge_all_metadata)"
+            )
             return True
 
         except Exception as e:
-            logger.error(f"Error applying customizations for {db_name}: {e}")
+            logger.error(f"Error during customization check for {db_name}: {e}")
             return False
 
     def _merge_all_metadata(self, databases: Set[str]) -> bool:
