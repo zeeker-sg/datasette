@@ -1,47 +1,29 @@
-# Recent updates timeline for the /status page.
-# Source: ported from plugins/strings.yaml `recent_updates:` block (M1) per
-# Phase 6 D-12. The first two entries are the verbatim M1 list (lines 78-86 of
-# plugins/strings.yaml as of 2026-04-25). Subsequent entries record the M2
-# frontend split (Phases 2-5 SHIPPED, captured from .planning/STATE.md +
-# per-phase SUMMARY.md outcomes) so the public timeline reflects platform
-# changes since launch. New entries get added via PR.
+# /status timeline — public-facing content milestones.
+#
+# Editorial principle: this page is for visitors, not engineers. Each entry
+# should answer "what new content can I read or search now?" — not "what
+# did we change on the build pipeline this week." Platform and
+# infrastructure work stays out of this file; it lives in commit history
+# and engineering docs.
 #
 # Schema:
-#   date         -- ISO-8601 string (quoted)
-#   type         -- one of feature | data | technical | bugfix
+#   date         -- ISO-8601 string (quoted); loader sorts desc, latest first
+#   type         -- one of feature | data
 #   title        -- short headline
-#   description  -- one-or-two-sentence body
+#   description  -- one or two sentences, plain language
 
 recent_updates:
-  - date: "2025-06-09"
-    type: "feature"
-    title: "data.zeeker.sg launches!"
-    description: "Everything is new and shiny here!"
   - date: "2025-05-16"
     type: "data"
-    title: "Sglawwatch -- headlines starts"
-    description: "Legal News in Singapore selected by Editors starts compiling and automatic updates"
-  - date: "2026-04-21"
-    type: "technical"
-    title: "Suffix-based routing flips live"
-    description: "Caddy now routes *.json, *.csv, *.db, and /-/* directly to Datasette while serving every HTML route from the new frontend service. Zero API regressions in 12/12 byte-parity checks."
-  - date: "2026-04-22"
-    type: "technical"
-    title: "Home and database pages ported to FastAPI"
-    description: "The civic-broadsheet shell and the per-database overview now render from the FastAPI/Jinja frontend, with locked palette and typography tokens."
-  - date: "2026-04-25"
-    type: "technical"
-    title: "Table browse and row reading pages ported"
-    description: "Table feeds, applied facet chips, pagination and the full-bleed row-reading layout are now served by the frontend. Exports continue to stream from Datasette via Caddy."
-  - date: "2026-04-21"
-    type: "technical"
-    title: "Dual-service Docker topology"
-    description: "Internal-only Datasette behind Caddy plus a FastAPI placeholder ship as three composed services. Local bring-up scripts verify topology before each deploy."
-  - date: "2026-04-26"
+    title: "Singapore legal news goes online"
+    description: "Editor-curated headlines from Singapore's legal news sources begin compiling daily — title, source, publication date, a short summary, and full text for every story."
+
+  - date: "2025-06-09"
     type: "feature"
-    title: "Auxiliary pages and global search"
-    description: "Developer portal, status, sources, about, how-to-use, /llms.txt, /search and /sql land on the frontend, completing the M2 user-visible surface."
-  - date: "2026-04-26"
+    title: "data.zeeker.sg launches"
+    description: "The site goes live. Alongside the daily legal news, a reference shelf of articles on Singapore law is available at launch — about forty topics, with searchable fragments."
+
+  - date: "2026-04-13"
     type: "data"
-    title: "FTS-indexed tables surface in /search"
-    description: "/search fans out across every full-text-indexed table on data.zeeker.sg and groups results by database and table, ranked by FTS5 relevance."
+    title: "Singapore government newsrooms come online"
+    description: "Press releases, speeches, and announcements from several Singapore government agencies — covering law, the judiciary, intellectual property, competition policy, corporate regulation, and manpower — start being collected and made searchable from 2026 onwards."
