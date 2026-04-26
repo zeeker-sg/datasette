@@ -299,25 +299,29 @@ Note: Plans 06-02 and 06-03 both touch `main.py`, but 06-02 edits the lifespan b
 
 #### Phase 7: Prune zeeker-datasette
 
-**Goal:** Delete UI-coupled plugins and template/static directories from `packages/zeeker-datasette/`. The package becomes data-only: `Dockerfile`, `metadata.json`, `scripts/`, `entrypoint.sh`.
+**Goal:** Delete UI-coupled plugins and the entire top-level `templates/` and `static/` directories from the Datasette image build context (repository root — the Datasette container is built from `docker-compose.yml` `context: .`). The image becomes data-only: `Dockerfile`, `metadata.json`, `scripts/`, `entrypoint.sh`, and `plugins/{__init__.py,cache_headers.py}` (the surviving non-UI ASGI cache wrapper).
 
 **Scope — in:**
-- Delete `developers_page.py`, `status_page.py`, `sources_page.py`, `string_manager.py`, `template_filters.py`.
-- Delete `templates/` (all of it) and `static/` (all of it) from `packages/zeeker-datasette/`.
+- Delete `plugins/{developers_page.py, status_page.py, sources_page.py, string_manager.py, template_filters.py, strings.yaml}` (5 UI plugins + the orphan YAML config consumed only by `string_manager.py`). KEEP `plugins/__init__.py` (empty package marker) and `plugins/cache_headers.py` (pure ASGI Cloudflare wrapper, verified line-by-line — no template/static refs).
+- Delete top-level `templates/` (entire directory, ~20 files including `_table-{db}-{table}.html` partials and `pages/`) and top-level `static/` (entire directory: `css/`, `js/`, `fonts/`).
+- Edit `metadata.json`: drop `extra_css_urls` array (currently references `/static/css/vendor/prism.css` + `/static/css/zeeker-base.css`) and `extra_js_urls` array (currently references three `/static/js/...` paths). KEEP `menu_links` (consumed by frontend `base.html` line 18-25 to render the dark editorial nav), KEEP `plugins.datasette-search-all` block (data-layer plugin behind D-01-preserved `/-/search`), KEEP `databases.*` config block.
+- Edit `Dockerfile` lines 30-32: drop `COPY templates/`, `COPY static/`, narrow `COPY plugins/` to a whitelist of the two surviving files (`__init__.py` + `cache_headers.py`).
+- Edit `scripts/download_from_s3.py` lines 159-202: stop redownloading `templates/`/`static/`/`plugins/` from S3 on container restart (per 07-RESEARCH Q3 Option A — without this edit the prune is cosmetic-only at runtime because S3 re-overlays the deleted files on every restart). PRESERVE the database `.db` file pull path (lines 108-142, the `_download_database_files` method) — that is the load-bearing data-sync behaviour.
 - Rebuild datasette image, deploy.
 
 **Success criteria:**
-- `packages/zeeker-datasette/` contains 0 UI plugins, no `templates/`, no `static/`.
+- Repository root contains 0 UI plugins under `plugins/` (only `__init__.py` + `cache_headers.py` remain), no top-level `templates/` directory, no top-level `static/` directory. Datasette image rebuilds clean.
 - All HTML routes still render correctly (frontend owns them now).
 - All API routes still return identical bytes.
 
 **Depends on:** Phase 6 (all HTML routes must be live in frontend before pruning).
 **References:** PRD §10 Steps 4 + 5, §7.1, §12.
+**Requirements:** REQ-api-byte-parity, REQ-eliminate-template-drift, REQ-frontend-route-set, REQ-internal-only-datasette-exposure, REQ-escape-datasette-template-surface, REQ-reduce-plugin-count
 
 **Plans:** 5 plans
 
 Plans:
-- [ ] 07-01-PLAN.md — Wave-0 scaffolding: tag `pre-phase-7-prune`; fix ROADMAP scope description (top-level repo paths, NOT non-existent `packages/zeeker-datasette/`); rebase verify_phase_03.sh fingerprint from `zeeker-base.css` (M1 overlay, deleted in 07-04) to Datasette-bundled `/-/static/datasette-manager.js` + "Powered by Datasette".
+- [ ] 07-01-PLAN.md — Wave-0 scaffolding: tag `pre-phase-7-prune`; fix ROADMAP scope description (rewrite to top-level repo paths — the `packages/zeeker-datasette` subpath does not exist on disk); rebase verify_phase_03.sh fingerprint from `zeeker-base.css` (M1 overlay, deleted in 07-04) to Datasette-bundled `/-/static/datasette-manager.js` + "Powered by Datasette".
 - [ ] 07-02-PLAN.md — Wave-1 metadata clean + re-baseline: drop `extra_css_urls` + `extra_js_urls` from metadata.json (KEEP menu_links + plugins + databases); HUMAN UAT confirms post-edit /-/metadata.json shape; capture phase-07-pre/ baseline through Caddy; prepend phase-07-pre to baseline cascade in verify_phase_03/04/06.
 - [ ] 07-03-PLAN.md — Wave-1 (parallel-safe with 07-02): edit scripts/download_from_s3.py to disable templates/static/plugins S3 sync (07-RESEARCH Q3 Option A — without this the prune is cosmetic-only at runtime); preserve _download_database_files (load-bearing .db sync) + _merge_all_metadata (data-layer overlay) byte-identical.
 - [ ] 07-04-PLAN.md — Wave-2 mass deletion: delete 5 UI plugins + plugins/strings.yaml; recursively remove top-level templates/ + static/; narrow Dockerfile (whitelist COPY plugins to __init__.py + cache_headers.py; trim mkdir block); audit pyproject.toml (no removals — researcher A5 keeps pyyaml); scrub stale plugin refs in tests/conftest.py + tests/fixtures.py.
