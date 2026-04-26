@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+  <header class="guide-hero guide-hero-compact">
+    <div class="kicker">SQL · {{ database }}</div>
+    <h1>SQL · <em>{{ db_title }}</em></h1>
+    <p class="lede">Read-only queries against {{ database }}. Time limit: 3 seconds. Row cap: 1,000.</p>
+  </header>
+
+  {% if canned %}
+  <details class="canned-queries aux-card">
+    <summary>Saved queries ({{ canned|length }})</summary>
+    <ul>
+      {% for name, q in canned.items() %}
+      <li>
+        <button type="button" class="canned-query" data-sql="{{ q.sql }}">
+          {{ q.title or name }}
+        </button>
+      </li>
+      {% endfor %}
+    </ul>
+  </details>
+  {% endif %}
+
+  <form class="sql-form aux-card" method="POST" action="/sql/{{ database }}">
+    {% if detected_params %}
+    <div class="sql-param-row">
+      {% for name in detected_params %}
+        <label>
+          {{ name }}
+          <input type="text" name="_sql_param_{{ name }}" placeholder="{{ name }}" value="">
+        </label>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <textarea name="sql" rows="8" class="sql-textarea" placeholder="{% if first_table %}SELECT * FROM {{ first_table }} LIMIT 10{% endif %}">{{ sql }}</textarea>
+
+    <div class="sql-actions">
+      <button type="submit" class="btn-primary">Run</button>
+      <a href="/sql/{{ database }}" class="btn-ghost">Reset</a>
+    </div>
+  </form>
+
+  {% if error %}
+  <section class="aux-card sql-error">
+    <h2>Query error</h2>
+    <pre>{{ error }}</pre>
+    <p class="hint">Common causes: typo in column name · table needs square brackets · syntax error</p>
+  </section>
+  {% endif %}
+
+  {% if results %}
+  <section class="aux-card sql-results">
+    <p class="sql-results-meta">
+      {{ results.rows|length }} {{ results.rows|length|pluralize('row') }}
+      {% if results.query_ms %} · {{ "%.1f"|format(results.query_ms) }} ms{% endif %}
+    </p>
+
+    {% if results.truncated %}
+    <p class="sql-truncation">
+      Showing {{ results.rows|length }} rows (the maximum).
+      <a href="/{{ database }}.csv?sql={{ sql|urlencode }}">Download all matching rows as CSV ↗</a>
+    </p>
+    {% endif %}
+
+    <div class="sql-results-wrap">
+      <table class="sql-results-table">
+        <thead>
+          <tr>{% for col in results.columns %}<th>{{ col }}</th>{% endfor %}</tr>
+        </thead>
+        <tbody>
+          {% for row in results.rows %}
+          <tr>
+            {% for col in results.columns %}
+              <td>{{ row[col] if row[col] is not none else "" }}</td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <p class="sql-export-row">
+      <a href="/{{ database }}.csv?sql={{ sql|urlencode }}">Download CSV ↗</a>
+      ·
+      <a href="/{{ database }}.json?sql={{ sql|urlencode }}">View JSON ↗</a>
+    </p>
+  </section>
+  {% endif %}
+
+  {% if results and not results.rows %}
+  <section class="aux-card sql-empty-results">
+    <p>Query ran successfully. 0 rows returned.</p>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

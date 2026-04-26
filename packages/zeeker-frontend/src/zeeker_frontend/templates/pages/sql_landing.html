@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+  <header class="guide-hero">
+    <div class="kicker">№ 01 · SQL</div>
+    <h1>Run <em>SQL</em></h1>
+    <p class="lede">Pick a database to write a query against.</p>
+  </header>
+
+  <section class="aux-card">
+    <h2>Databases</h2>
+    {% if databases %}
+      <div class="list sql-db-list">
+        {% for db in databases %}
+        <div class="row">
+          <div class="idx">{{ "{:02d}".format(loop.index) }}</div>
+          <div class="name-col">
+            <a href="/sql/{{ db.name }}" class="name">{{ db.title }}</a>
+          </div>
+          <div class="cols"></div>
+          <div class="count-col">
+            <span class="count">{{ db.tables_count }}</span>
+            <span class="label">{{ db.tables_count|pluralize('table') }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="empty-state">No databases available.</p>
+    {% endif %}
+  </section>
+
+  <p class="footer-note">Need API docs instead? See <a href="/developers">/developers</a>.</p>
+</div>
+{% endblock %}
