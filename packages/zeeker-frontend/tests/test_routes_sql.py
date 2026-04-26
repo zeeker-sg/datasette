@@ -179,6 +179,25 @@ async def test_sql_landing(client_sql):
     assert "max-age=60" in cc and "stale-while-revalidate=300" in cc
 
 
+@pytest.mark.asyncio
+async def test_sql_landing_orientation_for_casual_researchers(client_sql):
+    """Landing page surfaces orientation copy for casual researchers (HUMAN UAT).
+
+    Required orientation surfaces:
+      - "What this page is for" / "Reach for SQL when…" framing
+      - Pointer to /search and / so they try lighter tools first
+      - 3-second + 1,000-row limits surfaced before clicking into a database
+      - Pointer to /how-to-use for SQL examples
+    """
+    r = await client_sql.get("/sql")
+    body = r.text
+    assert "What this page is for" in body
+    assert "Reach for SQL when" in body
+    assert "/search" in body  # try-search-first pointer
+    assert "3-second" in body and "1,000 rows" in body
+    assert "/how-to-use" in body
+
+
 # --- GET /sql/{db} tests ---
 
 @pytest.mark.asyncio

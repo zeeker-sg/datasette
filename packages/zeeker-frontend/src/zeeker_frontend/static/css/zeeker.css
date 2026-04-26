@@ -2343,6 +2343,44 @@ body[class*="page-"] > .container {
   /* reuses .list .row pattern from Phase 4 — no overrides needed */
 }
 
+/* /sql intro card — orientation copy for casual researchers. */
+.page-sql .sql-intro h3 {
+  margin-top: var(--space-5);
+  font-size: var(--text-lg);
+}
+.page-sql .sql-when-list,
+.page-sql .sql-try-first-list {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-3) var(--space-4);
+  padding-left: var(--space-3);
+}
+.page-sql .sql-when-list li,
+.page-sql .sql-try-first-list li {
+  margin-bottom: var(--space-2);
+}
+.page-sql .sql-limits {
+  background: var(--color-bg-alt);
+  border-left: 3px solid var(--color-accent);
+  padding: var(--space-3) var(--space-4);
+  margin: var(--space-5) 0 var(--space-3);
+  font-size: var(--text-sm);
+}
+.page-sql .sql-limits code {
+  font-family: var(--font-mono);
+  font-size: 0.95em;
+  background: var(--color-surface);
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-sm);
+}
+.page-sql .sql-picker-hint {
+  margin-bottom: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
 .page-sql-db .sql-form {
   margin: var(--space-6) 0;
 }
