@@ -3,14 +3,24 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-25T15:58:05.375Z"
+last_updated: "2026-04-26T01:38:20.015Z"
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 26
-  completed_plans: 19
-  percent: 73
+  completed_plans: 20
+  percent: 77
 ---
+
+## Phase 6: Port auxiliary pages — IN PROGRESS
+
+**Plan 06-01 SHIPPED 2026-04-26** — Wave-0 scaffolding: pyyaml dep declared (`6f57d73`), M1 changelog YAML ported with 8 entries (2 verbatim + 6 Phase 2-5 milestones to satisfy ≥8 acceptance gate, `8794947`), four Datasette JSON fixtures (FTS-discovery, FTS row-results, metadata-with-canned-queries, sql-error-400), and 32 collectable test stubs across 5 files for Plans 02-05 to fill in (`c3e9b0f`). Mitigates T-06-01-01/02/03. Full suite 116 passed + 32 newly skipped, 0 errors.
+
+**Phase 6 decisions accumulated**
+
+- **Wave-0 fixture + stub ahead of handler** — fixtures and pytest-collectable test stubs land in a single commit BEFORE Plans 02-05 ship handler code, so each subsequent plan ships pure RED-then-GREEN diffs without test-inventory churn alongside production code.
+- **Skip-marker plan citation convention** — every `pytest.skip("Implementation pending - Plan 06-XX")` cites the plan number that owns the GREEN body. Greppable via `grep -r "Implementation pending - Plan 06-" tests/`.
+- **Frontend-owned data files** — `data/changelog.yaml` lives inside the `zeeker-frontend` package (not in `plugins/`) so Phase 7 deletion of `plugins/strings.yaml` stays safe. M1 verbatim entries occupy the head of the file; Phase 2-5 SHIPPED milestones backfill to satisfy `len >= 8`.
 
 ## Phase 3: Flip suffix-based routing — SHIPPED 2026-04-21
 
