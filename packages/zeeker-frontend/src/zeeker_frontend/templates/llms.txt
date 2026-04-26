@@ -1,0 +1,30 @@
+# data.zeeker.sg
+> Open legal data platform providing structured access to Singapore legal datasets
+
+## API
+Base URL: https://data.zeeker.sg
+
+## Endpoints
+- GET /{database}/{table}.json - Table data as JSON
+- GET /{database}/{table}.csv - Table data as CSV
+- GET /{database}.json?sql={query} - Execute SQL query
+- GET /-/search.json?q={query} - Full-text search
+
+## Databases
+{% for db in databases %}
+### {{ db.name }}
+{%- if db.description %}
+{{ db.description }}
+{%- endif %}
+Tables:
+{%- for t in db.tables %}
+- {{ t.name }}{% if t.count %} ({{ t.count }} rows){% endif %}: {{ (t.columns or [])|join(", ") }}
+{%- endfor %}
+
+{% endfor %}
+## Parameters
+- _size: Number of rows (default 100, max 1000)
+- _next: Pagination token
+- _shape: Response shape (objects, arrays, array, object)
+- _sort: Sort by column
+- _sort_desc: Sort descending by column
