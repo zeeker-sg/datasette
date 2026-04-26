@@ -25,6 +25,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from zeeker_frontend import filters as zfilters
+from zeeker_frontend.changelog import load_changelog
+from zeeker_frontend.datasette_client import discover_searchable_tables
 
 DATASETTE_URL = os.environ.get(
     "ZEEKER_DATASETTE_URL", "http://zeeker-datasette:8001"
@@ -45,6 +47,12 @@ async def lifespan(app: FastAPI):
         timeout=httpx.Timeout(10.0, connect=2.0),
         limits=httpx.Limits(max_connections=20, max_keepalive_connections=10),
     )
+    # Phase 6 (D-04, D-12) — one-shot probes at boot, cached for the
+    # process lifetime. Both helpers degrade to empty containers on
+    # failure (RESEARCH Pitfall 10) so the lifespan never crashes when
+    # datasette is briefly unavailable at start-up.
+    app.state.searchable_tables = await discover_searchable_tables(app.state.http)
+    app.state.changelog = load_changelog()
     try:
         yield
     finally:
