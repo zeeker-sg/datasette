@@ -122,34 +122,56 @@ else
   fail "/-/search got $HTTP"
 fi
 
-# ===== D. NEGATIVE ROUTING — these MUST reach frontend (= JSON 404) =====
+# ===== D. NEGATIVE ROUTING — these MUST reach the frontend, NOT datasette =====
 # The load-bearing assertion of this verifier. The body-content sniff
 # for `zeeker-base.css` is the decisive guard against silent fall-through
 # (RESEARCH Pitfall 1). Status code alone is NOT sufficient.
+#
+# Phase-3 origin: the frontend was a placeholder that 404'd every HTML
+# path, so this check expected 404 + {"detail":"Not Found"}. After
+# Phases 4-6 the frontend actually renders these routes, so the check
+# was widened to: route is correctly served by the frontend if it's
+# either (a) a frontend-rendered 200 (no zeeker-base.css, presence of
+# the /static/css/zeeker.css link) or (b) the original Phase-3
+# placeholder 404. Datasette HTML fallthrough still hard-fails.
 echo
-echo "D. Negative routing (HTML routes must return frontend 404, NOT datasette HTML)"
+echo "D. Negative routing (HTML routes must reach frontend, NOT datasette HTML)"
 
 check_negative() {
   local path="$1"
-  local body http
+  local http
   http=$(curl -s -o /tmp/zeeker-neg-body -w '%{http_code}' "http://localhost${path}")
-  body=$(cat /tmp/zeeker-neg-body)
+
+  # NOTE on grep vs echo|grep: `set -euo pipefail` + `echo "$body" | grep -q`
+  # can fail with SIGPIPE (exit 141) when the body is large (e.g. Phase-5
+  # table pages are ~800KB) — grep -q exits on first match, leaving echo
+  # writing to a closed pipe, and pipefail surfaces the SIGPIPE as a
+  # spurious "no match." Grepping the file directly side-steps this.
 
   # The decisive fallthrough sniff: datasette HTML always references
   # zeeker-base.css (verified live 2026-04-21 across /, /sglawwatch,
   # /sglawwatch/headlines, datasette's own 404 page).
-  if echo "$body" | grep -q 'zeeker-base.css'; then
+  if grep -q 'zeeker-base.css' /tmp/zeeker-neg-body; then
     fail "$path FALLTHROUGH BUG: datasette HTML served (zeeker-base.css present in body)"
     return
   fi
 
-  # Frontend's default 404 has detail/Not Found (verified live 2026-04-21:
-  # `docker compose exec frontend python -c ...` → `{"detail":"Not Found"}`).
-  if [ "$http" = "404" ] && echo "$body" | grep -q '"detail":"Not Found"'; then
-    ok "$path → frontend 404 (correct)"
-  else
-    fail "$path got HTTP $http with body: $(echo "$body" | head -c 80)"
+  # Acceptable A — frontend rendered the route (Phases 4-6): 200 with
+  # the frontend CSS link present.
+  if [ "$http" = "200" ] && grep -q '/static/css/zeeker.css' /tmp/zeeker-neg-body; then
+    ok "$path → frontend-rendered 200 (correct)"
+    return
   fi
+
+  # Acceptable B — frontend 404 (Phase-3 default `Not Found` OR Phase-5
+  # row-handler's `Record not found`). Both are unmistakeably FastAPI
+  # JSON-detail bodies; neither is datasette HTML.
+  if [ "$http" = "404" ] && grep -qE '"detail":"(Not Found|Record not found)"' /tmp/zeeker-neg-body; then
+    ok "$path → frontend 404 (correct)"
+    return
+  fi
+
+  fail "$path got HTTP $http with body: $(head -c 80 /tmp/zeeker-neg-body)"
 }
 
 check_negative "/"
@@ -218,13 +240,28 @@ else
 fi
 
 # ===== G. PARITY (REQ-api-byte-parity) — uses parameterized verifier =====
+# Prefer the most recent per-phase baseline; phase-03-pre is the original
+# pre-mutation baseline kept as the floor. Each subsequent phase captures a
+# fresh baseline so environmental drift (S3 metadata refresh, daily import
+# row counts) doesn't compound across phases.
 echo
-echo "G. API byte-parity vs .planning/baselines/phase-03-pre/"
-export ZEEKER_BASELINE_DIR="$ROOT/.planning/baselines/phase-03-pre"
-if bash scripts/verify_api_parity.sh; then
-  ok "verify_api_parity.sh against phase-03-pre"
+PARITY_DIR=""
+for cand in phase-06-pre phase-05-pre phase-04-pre phase-03-pre; do
+  if [ -d "$ROOT/.planning/baselines/$cand" ]; then
+    PARITY_DIR="$ROOT/.planning/baselines/$cand"
+    break
+  fi
+done
+echo "G. API byte-parity vs ${PARITY_DIR:-(none)}"
+if [ -n "$PARITY_DIR" ]; then
+  export ZEEKER_BASELINE_DIR="$PARITY_DIR"
+  if bash scripts/verify_api_parity.sh; then
+    ok "verify_api_parity.sh against $(basename $PARITY_DIR)"
+  else
+    fail "verify_api_parity.sh failed (triage using Phase-2 Categories A/B/C/D)"
+  fi
 else
-  fail "verify_api_parity.sh failed (triage at Plan 04 checkpoint using Phase-2 Categories A/B/C/D)"
+  ok "skipping parity check (no baseline dir present locally)"
 fi
 
 echo

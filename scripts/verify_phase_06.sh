@@ -236,17 +236,27 @@ fi
 # ============================================================
 # K. API byte-parity wrap (REQ-api-byte-parity)
 # ============================================================
+# Prefer the most recent per-phase baseline if present (phase-06-pre,
+# phase-05-pre, ...). Fall back to phase-03-pre (the original Phase-3
+# pre-mutation baseline) so first-time runs on older checkouts still work.
 echo
-echo "K. API byte-parity vs .planning/baselines/phase-03-pre/"
-if [ -d "$ROOT/.planning/baselines/phase-03-pre" ]; then
-  export ZEEKER_BASELINE_DIR="$ROOT/.planning/baselines/phase-03-pre"
+BASELINE_DIR=""
+for cand in phase-06-pre phase-05-pre phase-04-pre phase-03-pre; do
+  if [ -d "$ROOT/.planning/baselines/$cand" ]; then
+    BASELINE_DIR="$ROOT/.planning/baselines/$cand"
+    break
+  fi
+done
+echo "K. API byte-parity vs ${BASELINE_DIR:-(none)}"
+if [ -n "$BASELINE_DIR" ]; then
+  export ZEEKER_BASELINE_DIR="$BASELINE_DIR"
   if bash scripts/verify_api_parity.sh > /tmp/p06-verify-parity.log 2>&1; then
-    ok "verify_api_parity.sh exit 0"
+    ok "verify_api_parity.sh exit 0 against $(basename $BASELINE_DIR)"
   else
     fail "verify_api_parity.sh failed — see /tmp/p06-verify-parity.log"
   fi
 else
-  ok "skipping parity check (baseline dir not present locally)"
+  ok "skipping parity check (no baseline dir present locally)"
 fi
 
 # ============================================================

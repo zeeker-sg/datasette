@@ -147,26 +147,46 @@ for font in inter-latin jetbrains-mono-latin fraunces-latin; do
   fi
 done
 
-# ===== F. PHASE-5 BOUNDARY — table/row routes still 404 (intentional) =====
+# ===== F. PHASE-5 BOUNDARY (now SHIPPED) — table routes serve frontend HTML =====
+# Originally asserted /{db}/{table} 404'd as an unimplemented Phase-5 boundary.
+# Phase 5 SHIPPED 2026-04-25 — the frontend now renders the table page. Check
+# is flipped: route must return 200 with the frontend CSS link present.
 echo
-echo "F. Phase-5 boundary (table/row routes MUST still 404)"
-CODE=$(curl -s -o /dev/null -w '%{http_code}' "$BASE_URL/sglawwatch/headlines")
-if [ "$CODE" = "404" ]; then
-  ok "/sglawwatch/headlines → 404 (Phase-5 territory; correct)"
+echo "F. Phase-5 table route (frontend-rendered)"
+# Capture body to a tempfile rather than a shell var — Phase-5 table pages are
+# ~800KB, and `echo "$body" | grep -q` under `set -euo pipefail` produces a
+# spurious SIGPIPE (exit 141) when grep -q exits early on first match while
+# echo is still pumping. See same fix in verify_phase_03.sh check_negative.
+TCODE=$(curl -s -o /tmp/zeeker-table-body -w '%{http_code}' "$BASE_URL/sglawwatch/headlines")
+if [ "$TCODE" = "200" ] && grep -q '/static/css/zeeker.css' /tmp/zeeker-table-body; then
+  ok "/sglawwatch/headlines → 200 frontend-rendered (Phase-5 shipped)"
 else
-  fail "/sglawwatch/headlines returned $CODE; expected 404 until Phase 5"
+  fail "/sglawwatch/headlines code=$TCODE; expected 200 + frontend CSS link"
 fi
 
 # ===== G. API PARITY (belt-and-suspenders — REQ-api-byte-parity) =====
-# Only run parity locally. For prod, this would need a tunneled baseline dir.
+# Prefer the most recent per-phase baseline. Phase 4 originally pinned
+# phase-03-pre, but every subsequent phase captures a fresh baseline so
+# environmental drift (S3 metadata refresh, daily import) doesn't compound.
 if [ "$BASE_URL" = "http://localhost" ]; then
   echo
-  echo "G. API byte-parity vs .planning/baselines/phase-03-pre/"
-  export ZEEKER_BASELINE_DIR="$ROOT/.planning/baselines/phase-03-pre"
-  if bash scripts/verify_api_parity.sh; then
-    ok "verify_api_parity.sh against phase-03-pre"
+  PARITY_DIR=""
+  for cand in phase-06-pre phase-05-pre phase-04-pre phase-03-pre; do
+    if [ -d "$ROOT/.planning/baselines/$cand" ]; then
+      PARITY_DIR="$ROOT/.planning/baselines/$cand"
+      break
+    fi
+  done
+  echo "G. API byte-parity vs ${PARITY_DIR:-(none)}"
+  if [ -n "$PARITY_DIR" ]; then
+    export ZEEKER_BASELINE_DIR="$PARITY_DIR"
+    if bash scripts/verify_api_parity.sh; then
+      ok "verify_api_parity.sh against $(basename $PARITY_DIR)"
+    else
+      fail "verify_api_parity.sh failed (triage using Phase-2 Categories A/B/C/D)"
+    fi
   else
-    fail "verify_api_parity.sh failed (triage using Phase-2 Categories A/B/C/D)"
+    ok "skipping parity check (no baseline dir present locally)"
   fi
 fi
 
