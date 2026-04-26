@@ -1717,6 +1717,24 @@ kbd {
 
 /* =========== AUXILIARY PAGES — phase 06 ============ */
 
+/* ---------- Aux page layout shell ---------- */
+/* The global `.container` rule (line ~377) is scoped to chrome blocks
+ * (.db-nav, .db-crumb, .db-header, .db-statband, .db-toolbar,
+ * .site-footer, .section). Phase-6 aux pages drop a bare
+ * <div class="container"> directly under {% block content %}, which
+ * misses the cascade and leaves the page bleeding edge-to-edge.
+ *
+ * The body[class*="page-"] selector is unique to Phase 6 — Phase 4/5
+ * routes don't set page_class — so this won't double-style any prior
+ * surface.  Vertical breathing room mirrors `.section`'s top/bottom
+ * cadence without inheriting its 5rem padding (too tall for short
+ * cards). */
+body[class*="page-"] > .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-12) var(--space-8) var(--space-16);
+}
+
 /* ---------- Generic aux-page card (used by every aux page) ---------- */
 .aux-card {
   background: var(--color-surface);
