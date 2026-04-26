@@ -17,11 +17,16 @@
 #
 # Background: the load-bearing test in this script is the
 # `check_negative` function. It probes URLs that should hit frontend
-# (and 404) and grep's the response body for `zeeker-base.css` — the
-# unique datasette-HTML fingerprint. If a "negative" URL returns body
-# containing `zeeker-base.css`, the matcher is silently fall-through-ing
-# to datasette and the routing flip is broken even though status codes
-# may look normal.
+# and grep's the response body for `/-/static/datasette-manager.js`
+# or "Powered by Datasette" — Datasette-bundled HTML fingerprints
+# that ship inside the datasette package itself (no user overlay
+# required). If a "negative" URL returns body containing either,
+# the matcher is silently fall-through-ing to datasette and the
+# routing flip is broken even though status codes may look normal.
+# Pre-Phase-7 this used `zeeker-base.css` (an M1 overlay path), but
+# Plan 07-04 deletes that file, so the fingerprint was rebased to
+# the Datasette-bundled string in Plan 07-01 (per Phase-3 stale-
+# check retirement decision).
 
 set -euo pipefail
 
@@ -149,10 +154,16 @@ check_negative() {
   # spurious "no match." Grepping the file directly side-steps this.
 
   # The decisive fallthrough sniff: datasette HTML always references
-  # zeeker-base.css (verified live 2026-04-21 across /, /sglawwatch,
-  # /sglawwatch/headlines, datasette's own 404 page).
-  if grep -q 'zeeker-base.css' /tmp/zeeker-neg-body; then
-    fail "$path FALLTHROUGH BUG: datasette HTML served (zeeker-base.css present in body)"
+  # /-/static/datasette-manager.js (script tag) and contains the literal
+  # "Powered by Datasette" footer (verified in datasette 0.65.2 bundled
+  # default templates — both ship in the datasette Python package and
+  # survive Phase-7's user templates/+static/ deletion).
+  # Post-Phase-7 fingerprint: Datasette's bundled HTML always references
+  # /-/static/datasette-manager.js and the literal "Powered by Datasette" footer.
+  # These ship in the datasette package and survive deletion of user
+  # templates/+static/ overlays. Match either to flag silent fallthrough.
+  if grep -qE '/-/static/datasette-manager\.js|Powered by Datasette' /tmp/zeeker-neg-body; then
+    fail "$path FALLTHROUGH BUG: datasette HTML served (datasette-manager.js or 'Powered by Datasette' present in body)"
     return
   fi
 
@@ -225,7 +236,7 @@ fi
 
 # Case-sensitivity (Caddy path matcher is case-insensitive)
 BODY_UPPER=$(curl -s "http://localhost/SGLAWWATCH.JSON?_size=1")
-if echo "$BODY_UPPER" | grep -qE 'zeeker-base\.css|"error"|"ok"|"tables"'; then
+if echo "$BODY_UPPER" | grep -qE 'datasette-manager\.js|Powered by Datasette|"error"|"ok"|"tables"'; then
   ok "uppercase .JSON also routes to datasette (case-insensitive)"
 else
   fail "uppercase .JSON may have fallen through (body: $(echo "$BODY_UPPER" | head -c 80))"
