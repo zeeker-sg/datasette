@@ -171,7 +171,7 @@ fi
 if [ "$BASE_URL" = "http://localhost" ]; then
   echo
   PARITY_DIR=""
-  for cand in phase-06-pre phase-05-pre phase-04-pre phase-03-pre; do
+  for cand in phase-07-pre phase-06-pre phase-05-pre phase-04-pre phase-03-pre; do
     if [ -d "$ROOT/.planning/baselines/$cand" ]; then
       PARITY_DIR="$ROOT/.planning/baselines/$cand"
       break
