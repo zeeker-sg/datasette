@@ -97,17 +97,17 @@ Or: key concept</code></pre>
       <div class="use-case">
         <h3>Export for Analysis</h3>
         <p><strong>Goal:</strong> Get data into Excel, R, Python, etc. for deeper analysis</p>
-        <p><strong>Method:</strong> Add .csv or .json to any URL</p>
+        <p><strong>Method:</strong> Add <code>.csv</code> or <code>.json</code> to any database or table URL.</p>
         <div class="example-box">
           <button class="copy-btn" type="button" aria-label="Copy code">Copy</button>
-          <pre><code>Any search: /search.csv?q=your+search
-Table data: /{database}/{table}.csv
-Custom query: /{database}.csv?sql=your+query</code></pre>
+          <pre><code>Table data:    /{database}/{table}.csv
+Filtered:      /{database}/{table}.csv?_size=1000
+Custom query:  /{database}.csv?sql=your+query
+Search (JSON): /-/search.json?q=your+search</code></pre>
         </div>
         <div class="export-formats">
           <span class="format-badge">.json</span>
           <span class="format-badge">.csv</span>
-          <span class="format-badge">.db</span>
         </div>
       </div>
     </div>
@@ -200,30 +200,21 @@ ORDER BY date DESC</code></pre>
     <div class="method-cards">
       <div class="method-card">
         <h3>For Excel / Google Sheets</h3>
-        <p>Add <code>.csv</code> to any URL. CSV files open directly in spreadsheet software.</p>
+        <p>Add <code>.csv</code> to any database or table URL. CSV files open directly in spreadsheet software.</p>
         <div class="example-box">
           <button class="copy-btn" type="button" aria-label="Copy code">Copy</button>
-          <pre><code>/search.csv?q=your+search
-/{database}/{table}.csv?_size=1000</code></pre>
+          <pre><code>Whole table:   /{database}/{table}.csv?_size=1000
+Custom query:  /{database}.csv?sql=SELECT+*+FROM+{table}+LIMIT+1000</code></pre>
         </div>
       </div>
       <div class="method-card">
         <h3>For Programming (Python / R / etc.)</h3>
-        <p>Add <code>.json</code> to any URL. JSON is easier to work with in code.</p>
+        <p>Add <code>.json</code> to any database or table URL. JSON is easier to work with in code.</p>
         <div class="example-box">
           <button class="copy-btn" type="button" aria-label="Copy code">Copy</button>
           <pre><code>import requests
 url = 'https://data.zeeker.sg/{database}/{table}.json'
 data = requests.get(url).json()</code></pre>
-        </div>
-      </div>
-      <div class="method-card">
-        <h3>Entire Database</h3>
-        <p>Download the full SQLite database file for offline analysis.</p>
-        <div class="example-box">
-          <button class="copy-btn" type="button" aria-label="Copy code">Copy</button>
-          <pre><code>/{database}.db
-# Opens in DB Browser for SQLite, etc.</code></pre>
         </div>
       </div>
     </div>
@@ -252,11 +243,11 @@ If row count increases, trigger alert</code></pre>
       </div>
       <div class="use-case">
         <h3>API Access</h3>
-        <p>Every page on this site has a corresponding JSON API endpoint. Just add <code>.json</code> to the URL.</p>
+        <p>Every database and table has a corresponding JSON API endpoint. Add <code>.json</code> to the URL.</p>
         <div class="example-box">
           <button class="copy-btn" type="button" aria-label="Copy code">Copy</button>
           <pre><code>Table data: /{database}/{table}.json
-Search:     /search.json?q=keyword
+Search:     /-/search.json?q=keyword
 SQL query:  /{database}.json?sql=SELECT+*+FROM+table+LIMIT+10</code></pre>
         </div>
       </div>

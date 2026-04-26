@@ -140,8 +140,46 @@ async def test_how_to_use_re_pointed(client_aux):
     r = await client_aux.get("/how-to-use")
     assert r.status_code == 200
     assert _ITALIC_H1.search(r.text)
-    # Phase 6 D-01: every M1 /-/search reference re-points to /search
-    assert "/-/search" not in r.text
+    # Phase 6 D-01: every M1 reference to Datasette's HTML search UI must
+    # re-point to the frontend's /search. The Datasette JSON API alternative
+    # (/-/search.json) IS allowed — it's the documented programmatic export
+    # path on /how-to-use after the Phase-6 URL accuracy audit. So this
+    # check is precise about what's forbidden: a link/form pointing at the
+    # bare /-/search HTML route.
+    body = r.text
+    assert 'href="/-/search"' not in body
+    assert 'action="/-/search"' not in body
+    assert "/-/search?" not in body  # query-string form of the HTML UI
+
+
+@pytest.mark.asyncio
+async def test_how_to_use_documents_only_working_urls(client_aux):
+    """URL accuracy audit (HUMAN UAT) — every URL pattern listed in the
+    /how-to-use copy must resolve against the live API contract.
+
+    Live live-curl check at the time of this commit established:
+      /search.csv  → 404 (frontend /search is HTML-only)
+      /search.json → 404 (same)
+      /{db}.db     → 403 (allow_download config gap, separate follow-up)
+
+    These three patterns must NOT ship in /how-to-use copy. The doc was
+    rewritten to advertise /-/search.json (Datasette-native, returns 200)
+    as the JSON-API search alternative, and to drop the .db whole-database
+    download claim until the metadata.json allow_download config is
+    extended to named databases.
+    """
+    r = await client_aux.get("/how-to-use")
+    body = r.text
+    # Broken endpoints — must NOT be advertised. Substrings are precise to
+    # avoid false matches on /-/search.json (which IS allowed and contains
+    # /search.json as a substring).
+    assert "/search.csv?" not in body
+    assert " /search.json" not in body and "(/search.json" not in body
+    assert "/{database}.db" not in body
+    # Correct alternatives advertised
+    assert "/-/search.json" in body
+    assert "/{database}/{table}.csv" in body
+    assert "/{database}.csv?sql=" in body
 
 
 @pytest.mark.asyncio
