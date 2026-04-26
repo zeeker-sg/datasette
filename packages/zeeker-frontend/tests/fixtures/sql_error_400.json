@@ -1,0 +1,12 @@
+{
+  "ok": false,
+  "error": "no such table: nope",
+  "rows": [],
+  "columns": [],
+  "truncated": false,
+  "query_ms": 0.67,
+  "query": {
+    "sql": "SELECT * FROM nope",
+    "params": {}
+  }
+}

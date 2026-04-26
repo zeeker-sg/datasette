@@ -1,0 +1,43 @@
+{
+  "ok": true,
+  "rows": [
+    {
+      "id": "fdd3ea972982da1e8326e4233586bd8e",
+      "category": "Business Times",
+      "title": "DBS deploys AI-driven 'Alpha' squads to blend legal, compliance, risk roles",
+      "source_link": "https://example.test/headlines/dbs-alpha-squads",
+      "author": "Business Times: Sample Author",
+      "date": "2026-04-21T00:01:00",
+      "summary": "DBS is dismantling traditional silos with its new Alpha squads.",
+      "text": "DBS deploys AI squads sample text...",
+      "imported_on": "2026-04-21T05:01:09.340326"
+    },
+    {
+      "id": "0e63567979724039be9aa837aed55c0b",
+      "category": "Straits Times",
+      "title": "DBS quarterly results: lending growth in Singapore market",
+      "source_link": "https://example.test/headlines/dbs-quarterly",
+      "author": "Straits Times: Sample Author",
+      "date": "2026-04-20T00:01:00",
+      "summary": "DBS earnings update sample summary.",
+      "text": "DBS quarterly results sample text...",
+      "imported_on": "2026-04-20T05:02:23.938126"
+    }
+  ],
+  "columns": [
+    "id",
+    "category",
+    "title",
+    "source_link",
+    "author",
+    "date",
+    "summary",
+    "text",
+    "imported_on"
+  ],
+  "primary_keys": ["id"],
+  "filtered_table_rows_count": 12,
+  "query_ms": 4.2,
+  "truncated": false,
+  "next_url": null
+}
