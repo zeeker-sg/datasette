@@ -1,14 +1,15 @@
 ---
-status: partial
+status: complete
 phase: 06-port-auxiliary-pages
 source: [06-VERIFICATION.md]
 started: 2026-04-26T02:45:00Z
-updated: 2026-04-26T03:30:00Z
+updated: 2026-04-26T15:39:08Z
+closed_by: phase-07-prune-zeeker-datasette/07-05
 ---
 
 ## Current Test
 
-[awaiting production deploy + smoke]
+[all tests resolved — production smoke closed transitively by Phase 7 deploy]
 
 ## Tests
 
@@ -46,20 +47,33 @@ notes: |
 
 ### 3. Production smoke against https://data.zeeker.sg/ aux routes
 expected: Each of /developers, /status, /sources, /about, /how-to-use, /llms.txt, /search, /sql, /sql/{db}, /robots.txt returns 200 + civic-broadsheet body + correct Content-Type; /-/search and /-/sql still reach Datasette (D-01 boundary); reflected XSS escaped on /search?q=<script>.
-result: pending
+result: passed
+closed_by: phase-07-prune-zeeker-datasette/07-05
+closed_at: 2026-04-26T15:39:08Z
 notes: |
-  Production deploy is gated; smoke test happens after deploy-checkpoint. Requires live
-  HTTPS environment + DNS resolution. Local stack smoke check done — every aux route
-  serves 200 from the frontend, /-/search reaches Datasette through Caddy, /-/sql 404s
-  as expected (Datasette has no top-level /-/sql route — that's correct, not a
-  regression), reflected XSS escaped on /search?q=<script>alert(1)</script>.
+  RESOLVED transitively by Phase 7 deploy on 2026-04-26.
+  Phase 7's production deploy (PR #8 merged via commit `d2dfdee`; deploy executed
+  via `docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build`
+  per 07-DEPLOY.md Section 2) is the first deploy that lands the post-prune image
+  on `data.zeeker.sg` alongside the Phase-6 frontend code that already ships every
+  aux route. Production smoke (`BASE_URL=https://data.zeeker.sg bash scripts/verify_phase_07.sh`)
+  returned `== Phase 7 verifier: PASS ==` with all remote-applicable sections (B-H) green:
+    - C: plugins/ contains exactly __init__.py + cache_headers.py
+    - D: /-/plugins.json excludes the 5 UI plugins (developers_page, status_page,
+         sources_page, string_manager, template_filters)
+    - E: /-/metadata.json shape (no extra_*_urls; menu_links length=5)
+    - F: /-/search and /-/sql reach datasette via Caddy (D-01 boundary preserved)
+    - G: API byte-parity vs phase-07-pre baseline
+    - H: download_from_s3.py prune marks intact
+  Phase-6 close-out is now COMPLETE. See
+  `.planning/phases/07-prune-zeeker-datasette/07-05-SUMMARY.md` for full evidence.
 
 ## Summary
 
 total: 3
-passed: 2
+passed: 3
 issues: 0
-pending: 1
+pending: 0
 skipped: 0
 blocked: 0
 

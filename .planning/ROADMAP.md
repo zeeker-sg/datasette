@@ -1,6 +1,6 @@
 # Roadmap
 
-> **Phase 6 SHIPPED — 2026-04-26:** All six plans (06-01..06-06) plus HUMAN UAT close-out (visual sweep + 8 polish fixes + verifier re-baseline) complete. `verify_phase_06.sh` PASS. Production smoke against `data.zeeker.sg` is the only UAT item still pending and is gated on deploy. Phase 7 (prune-zeeker-datasette) is the next active phase.
+> **Phase 7 SHIPPED — 2026-04-26:** All five plans (07-01..07-05) complete. UI overlay pruned: 5 UI plugins + top-level `templates/` + `static/` deleted; `Dockerfile` narrowed (whitelisted COPY for surviving plugins); `metadata.json` cleaned (`extra_*_urls` dropped, `menu_links`+plugins+databases preserved); `download_from_s3.py` reduced to data-only sync; `entrypoint.sh` `--template-dir`/`--static` flags dropped (Datasette 0.65.2 boot-tolerance correction). `scripts/verify_phase_07.sh` PASS locally (8 sections A-H green) AND against `https://data.zeeker.sg` (Section A skipped for non-local BASE_URL by design; B-H all OK). PR #8 merged via `d2dfdee` at 2026-04-26T15:09:30Z; production deploy executed by operator; production smoke green; **Phase-6 production-smoke UAT closed transitively** (`data.zeeker.sg` now serves the pruned frontend+datasette stack for the first time). Phase 8 (overlay decision + Matomo migration) is the remaining work in milestone v1.0.
 
 ## Milestone M1: Editorial polish
 
@@ -318,14 +318,16 @@ Note: Plans 06-02 and 06-03 both touch `main.py`, but 06-02 edits the lifespan b
 **References:** PRD §10 Steps 4 + 5, §7.1, §12.
 **Requirements:** REQ-api-byte-parity, REQ-eliminate-template-drift, REQ-frontend-route-set, REQ-internal-only-datasette-exposure, REQ-escape-datasette-template-surface, REQ-reduce-plugin-count
 
-**Plans:** 4/5 plans executed
+**Status:** SHIPPED 2026-04-26. UI overlay pruned: 5 UI plugins + templates/ + static/ deleted; Dockerfile narrowed; metadata.json cleaned; download_from_s3.py reduced to data-only sync; entrypoint.sh flags trimmed (Datasette 0.65.2 boot-tolerance correction). verify_phase_07.sh PASS locally + against `https://data.zeeker.sg`. PR #8 merged via `d2dfdee`; production deploy executed; smoke green; Phase-6 production-smoke UAT closed transitively. See `.planning/phases/07-prune-zeeker-datasette/07-05-SUMMARY.md`.
+
+**Plans:** 5/5 plans complete
 
 Plans:
 - [x] 07-01-PLAN.md — Wave-0 scaffolding: tag `pre-phase-7-prune`; fix ROADMAP scope description (rewrite to top-level repo paths — the `packages/zeeker-datasette` subpath does not exist on disk); rebase verify_phase_03.sh fingerprint from `zeeker-base.css` (M1 overlay, deleted in 07-04) to Datasette-bundled `/-/static/datasette-manager.js` + "Powered by Datasette".
 - [x] 07-02-PLAN.md — Wave-1 metadata clean + re-baseline: drop `extra_css_urls` + `extra_js_urls` from metadata.json (KEEP menu_links + plugins + databases); HUMAN UAT confirms post-edit /-/metadata.json shape; capture phase-07-pre/ baseline through Caddy; prepend phase-07-pre to baseline cascade in verify_phase_03/04/06.
 - [x] 07-03-PLAN.md — Wave-1 (parallel-safe with 07-02): edit scripts/download_from_s3.py to disable templates/static/plugins S3 sync (07-RESEARCH Q3 Option A — without this the prune is cosmetic-only at runtime); preserve _download_database_files (load-bearing .db sync) + _merge_all_metadata (data-layer overlay) byte-identical.
 - [x] 07-04-PLAN.md — Wave-2 mass deletion: delete 5 UI plugins + plugins/strings.yaml; recursively remove top-level templates/ + static/; narrow Dockerfile (whitelist COPY plugins to __init__.py + cache_headers.py; trim mkdir block); audit pyproject.toml (no removals — researcher A5 keeps pyyaml); scrub stale plugin refs in tests/conftest.py + tests/fixtures.py.
-- [ ] 07-05-PLAN.md — Wave-3 verify+ship: author scripts/verify_phase_07.sh covering 5 contracts (byte-parity, frontend nav unbroken, D-01 boundary intact, no UI plugins in /-/plugins.json, plugins/+templates/+static/ shape); author 07-DEPLOY.md (3-layer rollback chain anchored on `pre-phase-7-prune`); HUMAN UAT gates production deploy; production smoke against data.zeeker.sg closes Phase-6 pending UAT item transitively.
+- [x] 07-05-PLAN.md — Wave-3 verify+ship: authored scripts/verify_phase_07.sh (8 sections A-H covering byte-parity + frontend nav unbroken + D-01 boundary intact + no UI plugins in /-/plugins.json + plugins/+templates/+static/ shape + download_from_s3.py prune marks); authored 07-DEPLOY.md (3-layer rollback chain anchored on `pre-phase-7-prune`); HUMAN UAT approved via PR #8 merge (`d2dfdee`); production deploy executed by operator; production smoke against `data.zeeker.sg` returned `== Phase 7 verifier: PASS ==`; Phase-6 pending production-smoke UAT item closed transitively.
 
 **Wave structure:**
 
