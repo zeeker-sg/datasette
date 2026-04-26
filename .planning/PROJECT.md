@@ -23,15 +23,18 @@ Transform the "white and plain" V2 shell into a color-confident civic-broadsheet
 
 All share a generic row anatomy (kicker / title / byline / body / tags / source / sidebar meta) — no content-type-specific templates.
 
-## Current state — 2026-04-26
-- Phase 6 SHIPPED. Every public HTML surface on `data.zeeker.sg` is now rendered by the FastAPI/Jinja frontend service: home, per-database, per-table, per-row, `/about`, `/how-to-use`, `/sources`, `/status`, `/developers`, `/llms.txt`, `/robots.txt`, `/search`, `/sql`, `/sql/{db}`. Caddy still routes `*.json`, `*.csv`, `*.db`, and `/-/*` directly to Datasette (D-01 boundary intact).
-- Three services in production: Caddy (public), Datasette (internal-only), FastAPI frontend.
-- 165 tests passing. Phase verifier `bash scripts/verify_phase_06.sh` PASS (all 11 sections green against `phase-06-pre/` baseline). Code-review status: 0 critical / 0 warning / 6 info.
-- Production smoke against `data.zeeker.sg` is the only UAT item still pending and is gated on deploy.
+## Current state — 2026-04-27
+- Phase 7 SHIPPED 2026-04-26. Datasette image is now data-only: 5 UI plugins + top-level `templates/` + `static/` deleted; `Dockerfile` narrowed (whitelisted COPY for `__init__.py` + `cache_headers.py`); `metadata.json` cleaned (`extra_*_urls` dropped, `menu_links`/plugins/databases preserved); `download_from_s3.py` reduced to data-only sync (no UI overlay re-download on container restart); `entrypoint.sh` `--template-dir`/`--static` flags removed (Datasette 0.65.2 boot-tolerance correction). PR #8 merged via `d2dfdee` at 2026-04-26T15:09:30Z; production deploy executed; `bash scripts/verify_phase_07.sh` PASS against `https://data.zeeker.sg` (8 sections A-H green; A delegation skipped for non-local BASE_URL by design). Phase-6 production-smoke UAT closed transitively. Rollback anchor `pre-phase-7-prune` (commit `8ddaf95`) retained.
+- Phase 6 SHIPPED. Every public HTML surface on `data.zeeker.sg` is rendered by the FastAPI/Jinja frontend: home, per-database, per-table, per-row, `/about`, `/how-to-use`, `/sources`, `/status`, `/developers`, `/llms.txt`, `/robots.txt`, `/search`, `/sql`, `/sql/{db}`. Caddy routes `*.json`, `*.csv`, `*.db`, and `/-/*` directly to Datasette (D-01 boundary intact).
+- Three services in production: Caddy (public), Datasette (internal-only, API + admin only), FastAPI frontend.
+- 165 frontend tests passing. Phase verifiers `verify_phase_03/04/06/07.sh` PASS (full chain green against `phase-07-pre/` baseline). Phase-6 code-review status: 0 critical / 0 warning / 6 info.
 
-Known config gaps surfaced during Phase 6 (out of phase scope, follow-up commits):
+Known config gaps (out of phase scope, follow-up commits):
 - `metadata.json` `allow_download: true` is set on the `*` wildcard but does not propagate to named databases — `/{db}.db` returns 403.
 - FTS5 shadow tables exist only on `sglawwatch` (`headlines`, `about_singapore_law*`). Build pipeline needs `sqlite-utils enable-fts` calls on `judgments`, `judgments_fragments`, and the eight `*_news` tables before they show up in `/search` fan-out.
+- `datasette-matomo` still appears in `/-/plugins.json` on prod despite the pre-Phase-7 decom commit (`d61a987`) removing it from `pyproject.toml`/`requirements.txt`. Plugin was a no-op stub; flagged for Phase 8 sweep.
+- Caddy `path *.json` matcher is case-sensitive; uppercase `/SGLAWWATCH.JSON` falls through to frontend's HTML 404 (verifier `verify_phase_03.sh` §F.1 relaxed to accept either resolution; deferred to HUMAN-UAT triage).
+- Root-level pytest collection has pre-existing infra failures (async fixture wiring); frontend pytest is the load-bearing suite.
 
 ## Active milestone direction
-Phase 7 (prune-zeeker-datasette) and Phase 8 are the remaining work in milestone v1.0.
+Phase 8 (overlay decision + Matomo migration) is the remaining work in milestone v1.0.
