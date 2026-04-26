@@ -566,6 +566,17 @@ kbd {
     gap: var(--space-8);
     align-items: baseline;
 }
+/* Stat-band tile that's also a link (e.g. SQL → /sql) — no underline,
+ * inherits color, but lifts on hover so affordance is clear. */
+.db-statband .statband-link {
+    text-decoration: none;
+    color: inherit;
+    transition: transform 120ms ease;
+}
+.db-statband .statband-link:hover .stat-num {
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+}
 .db-statband .stat-num {
     font-family: var(--font-display);
     font-size: var(--text-5xl);

@@ -94,6 +94,37 @@ async def test_home_renders_card_per_database(client_with_mocked_datasette, data
 
 
 @pytest.mark.asyncio
+async def test_home_search_targets_frontend_route_not_datasette(
+    client_with_mocked_datasette,
+):
+    """Hero form, section-aside link, and CTA primary all submit to the
+    frontend's /search — never to Datasette's native /-/search.
+
+    Surfaced during phase-6 HUMAN UAT — earlier copy still shipped /-/search
+    pointers from the M1 layout, which routes through Caddy to Datasette and
+    bypasses the new civic-broadsheet UI.
+    """
+    r = await client_with_mocked_datasette.get("/")
+    body = r.text
+    assert 'action="/search"' in body  # hero form posts to frontend
+    assert "/-/search" not in body  # no stray pointers to Datasette's UI
+
+
+@pytest.mark.asyncio
+async def test_home_links_to_sql_editor(client_with_mocked_datasette):
+    """Home page must surface the new /sql editor.
+
+    HUMAN UAT — visitor feedback: 'no link to the new /sql pages' from the
+    home page. The SQL stat-band tile, the §02 'Write SQL' how-to-use card,
+    and the CTA all link to /sql now.
+    """
+    r = await client_with_mocked_datasette.get("/")
+    body = r.text
+    # At least one href to the SQL landing
+    assert 'href="/sql"' in body
+
+
+@pytest.mark.asyncio
 async def test_home_503_when_datasette_down(databases_fixture, metadata_fixture):
     """If /.json fails, return 503 — NOT a generic 500 with traceback."""
     app.state.http = _mock_datasette(databases_fixture, metadata_fixture, fail_databases=True)

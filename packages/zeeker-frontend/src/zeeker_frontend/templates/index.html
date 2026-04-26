@@ -22,7 +22,7 @@
           {{ metadata.description if metadata and metadata.description
              else s('site_tagline', 'A curated, queryable archive of Singapore government, judicial, and legal publications.') }}
         </p>
-        <form class="hero-search" action="/-/search" method="get" role="search">
+        <form class="hero-search" action="/search" method="get" role="search">
           <label for="home-search" class="visually-hidden">Search across all data</label>
           <input id="home-search" type="search" name="q"
                  placeholder="{{ s('search_placeholder', 'Search press releases, judgments, guides…') }}"
@@ -62,10 +62,10 @@
       <span class="stat-label">{{ plural(ns.total_tables, 'plural_table', 'plural_tables') }}</span>
     </div>
     {% endif %}
-    <div>
+    <a href="/sql" class="statband-link">
       <div class="stat-num">SQL</div>
       <span class="stat-label">full query access</span>
-    </div>
+    </a>
     <div>
       <div class="stat-num">CSV · JSON</div>
       <span class="stat-label">{{ s('form_export', 'export formats') }}</span>
@@ -85,7 +85,7 @@
       <div class="aside">
         {{ s('home_section1_aside', 'Every dataset ships with schema, source citation, and full SQL access.') }}
         <br>
-        <a href="/-/search">Search across all data →</a>
+        <a href="/search">Search across all data →</a>
       </div>
     </div>
     {% if visible_dbs %}
@@ -146,7 +146,7 @@
       <div class="how-item">
         <div class="kicker">Query</div>
         <h3>Write SQL</h3>
-        <p>Every database accepts custom SQL via the query UI. Press <kbd>?sql=…</kbd> to pre-fill, or click <em>Schema</em> on a database page.</p>
+        <p>Every database has its own read-only editor with worked examples and a schema reference. <a href="/sql">Open the SQL editor →</a></p>
       </div>
       <div class="how-item">
         <div class="kicker">Export</div>
@@ -166,7 +166,8 @@
     </h2>
     <p>{{ s('home_cta_body', 'Open, citable, machine-readable. CC-BY-4.0 unless noted otherwise.') }}</p>
     <div class="cta-actions">
-      <a href="/-/search" class="btn-primary">{{ s('home_cta_primary', 'Start searching') }}</a>
+      <a href="/search" class="btn-primary">{{ s('home_cta_primary', 'Start searching') }}</a>
+      <a href="/sql" class="btn-ghost">{{ s('home_cta_sql', 'Write SQL') }}</a>
       <a href="/how-to-use" class="btn-ghost">{{ s('home_cta_ghost', 'Read the guide') }}</a>
     </div>
   </div>
