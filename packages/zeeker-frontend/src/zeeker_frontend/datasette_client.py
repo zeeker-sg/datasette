@@ -111,3 +111,110 @@ async def fetch_row(
         return None
     r.raise_for_status()
     return r.json()
+
+
+# ============================================================
+# Phase 6 — FTS discovery + execution helpers
+# ============================================================
+
+
+async def discover_searchable_tables(
+    client: httpx.AsyncClient,
+) -> dict[str, list[str]]:
+    """Return {db_name: [table_names_with_fts]}.
+
+    One-shot probe at lifespan boot (RESEARCH §Pattern 2 / D-04). Each table
+    dict on /{db}.json carries an `fts_table` field (string when FTS is
+    available, None otherwise — verified live).
+
+    Filtering predicates (mandatory, both required — RESEARCH Pitfall 4):
+      - `t.get("hidden")` — drops *_fts internal virtual tables
+      - `t.get("name", "").startswith("_zeeker")` — drops platform tables
+        which can have hidden=False in some overlays
+
+    Boot tolerance (RESEARCH Pitfall 10): any httpx error → empty dict.
+    routes_search renders 503 friendly when cache empty AND q non-empty.
+    """
+    out: dict[str, list[str]] = {}
+    try:
+        dbs = await fetch_databases(client)
+    except httpx.HTTPError:
+        return out
+    for entry in dbs:
+        db = entry.get("name")
+        if not db:
+            continue
+        try:
+            payload = await fetch_database(client, db)
+        except httpx.HTTPError:
+            continue
+        if payload is None:
+            continue
+        names: list[str] = []
+        for t in payload.get("tables") or []:
+            if t.get("hidden"):
+                continue
+            if t.get("name", "").startswith("_zeeker"):
+                continue
+            if t.get("fts_table"):
+                names.append(t["name"])
+        if names:
+            out[db] = names
+    return out
+
+
+async def search_table(
+    client: httpx.AsyncClient,
+    db: str,
+    table: str,
+    q: str,
+    size: int = 10,
+) -> dict | None:
+    """GET /{db}/{table}.json?_search=q&_size=size&_shape=objects.
+
+    Returns the JSON body on 200, None on 404, raises on other HTTP errors.
+    Always sends _shape=objects (RESEARCH Pitfall 1) so callers receive
+    column-keyed row dicts.
+    """
+    r = await client.get(
+        f"/{db}/{table}.json",
+        params={"_search": q, "_size": size, "_shape": "objects"},
+    )
+    if r.status_code == 404:
+        return None
+    r.raise_for_status()
+    return r.json()
+
+
+async def execute_sql(
+    client: httpx.AsyncClient,
+    db: str,
+    sql: str,
+    params: dict[str, Any] | None = None,
+) -> tuple[dict | None, str | None]:
+    """Execute read-only SQL against /{db}.json?sql=…&_param_<name>=…
+
+    Returns (body, error):
+      - (body, None)           on 200 with body.error null/missing
+      - (body, body.error)     on 200 with body.error populated (rare)
+      - (None, body.error)     on 400 — Datasette's friendly SQL error
+      - (None, "Database not found")  on 404
+      - raises httpx.HTTPError on 5xx
+
+    Always sends _shape=objects. Binds params via `_param_<name>` URL keys
+    (NEVER concatenates values into the SQL string — RESEARCH Pitfall 7 /
+    threat T-06-02-01). 400 path reads the body BEFORE raise_for_status() so
+    Datasette's friendly error message survives (RESEARCH Pitfall 1 / threat
+    T-06-02-03).
+    """
+    ds_params: dict[str, Any] = {"sql": sql, "_shape": "objects"}
+    for name, value in (params or {}).items():
+        ds_params[f"_param_{name}"] = value
+    r = await client.get(f"/{db}.json", params=ds_params)
+    if r.status_code == 404:
+        return None, "Database not found"
+    body = r.json()
+    if r.status_code == 400:
+        return None, body.get("error") or "Query failed"
+    r.raise_for_status()
+    return body, body.get("error")
