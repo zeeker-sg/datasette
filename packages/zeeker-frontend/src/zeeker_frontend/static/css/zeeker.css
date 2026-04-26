@@ -693,6 +693,28 @@ kbd {
     transition: all 0.15s ease;
 }
 .btn-primary:hover { background: var(--color-bg); color: var(--color-ink); transform: translateY(-1px); text-decoration: none; }
+/* Secondary button — same shape as primary, quieter weight. Designed for
+ * light card backgrounds (aux-card / cta-section). Outlined in accent
+ * petrol, fills on hover. Pairs with btn-primary in CTA rows so all
+ * actions in a row read as buttons. */
+.btn-secondary {
+    background: transparent;
+    color: var(--color-accent);
+    padding: var(--space-4) var(--space-8);
+    border: 1px solid var(--color-accent);
+    font-weight: 500;
+    font-size: var(--text-base);
+    font-family: var(--font-body);
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.15s ease;
+}
+.btn-secondary:hover {
+    background: var(--color-accent);
+    color: var(--color-bg);
+    transform: translateY(-1px);
+    text-decoration: none;
+}
 .btn-ghost {
     background: transparent;
     color: var(--color-bg);
