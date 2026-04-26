@@ -104,6 +104,7 @@ app.state.templates = templates
 
 from zeeker_frontend.routes_home import router as home_router
 from zeeker_frontend.routes_aux import router as aux_router
+from zeeker_frontend.routes_search import router as search_router
 from zeeker_frontend.routes_database import router as database_router
 from zeeker_frontend.routes_table import router as table_router
 from zeeker_frontend.routes_row import router as row_router
@@ -124,6 +125,7 @@ def frontend_test() -> dict[str, str]:
 
 app.include_router(home_router)
 app.include_router(aux_router)        # Phase 6 — must precede database_router (RESEARCH Pitfall 3)
+app.include_router(search_router)     # Phase 6 — must precede database_router (RESEARCH Pitfall 3)
 app.include_router(database_router)
 app.include_router(table_router)
 app.include_router(row_router)
