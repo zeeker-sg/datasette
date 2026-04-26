@@ -318,11 +318,11 @@ Note: Plans 06-02 and 06-03 both touch `main.py`, but 06-02 edits the lifespan b
 **References:** PRD §10 Steps 4 + 5, §7.1, §12.
 **Requirements:** REQ-api-byte-parity, REQ-eliminate-template-drift, REQ-frontend-route-set, REQ-internal-only-datasette-exposure, REQ-escape-datasette-template-surface, REQ-reduce-plugin-count
 
-**Plans:** 1/5 plans executed
+**Plans:** 2/5 plans executed
 
 Plans:
 - [x] 07-01-PLAN.md — Wave-0 scaffolding: tag `pre-phase-7-prune`; fix ROADMAP scope description (rewrite to top-level repo paths — the `packages/zeeker-datasette` subpath does not exist on disk); rebase verify_phase_03.sh fingerprint from `zeeker-base.css` (M1 overlay, deleted in 07-04) to Datasette-bundled `/-/static/datasette-manager.js` + "Powered by Datasette".
-- [ ] 07-02-PLAN.md — Wave-1 metadata clean + re-baseline: drop `extra_css_urls` + `extra_js_urls` from metadata.json (KEEP menu_links + plugins + databases); HUMAN UAT confirms post-edit /-/metadata.json shape; capture phase-07-pre/ baseline through Caddy; prepend phase-07-pre to baseline cascade in verify_phase_03/04/06.
+- [x] 07-02-PLAN.md — Wave-1 metadata clean + re-baseline: drop `extra_css_urls` + `extra_js_urls` from metadata.json (KEEP menu_links + plugins + databases); HUMAN UAT confirms post-edit /-/metadata.json shape; capture phase-07-pre/ baseline through Caddy; prepend phase-07-pre to baseline cascade in verify_phase_03/04/06.
 - [ ] 07-03-PLAN.md — Wave-1 (parallel-safe with 07-02): edit scripts/download_from_s3.py to disable templates/static/plugins S3 sync (07-RESEARCH Q3 Option A — without this the prune is cosmetic-only at runtime); preserve _download_database_files (load-bearing .db sync) + _merge_all_metadata (data-layer overlay) byte-identical.
 - [ ] 07-04-PLAN.md — Wave-2 mass deletion: delete 5 UI plugins + plugins/strings.yaml; recursively remove top-level templates/ + static/; narrow Dockerfile (whitelist COPY plugins to __init__.py + cache_headers.py; trim mkdir block); audit pyproject.toml (no removals — researcher A5 keeps pyyaml); scrub stale plugin refs in tests/conftest.py + tests/fixtures.py.
 - [ ] 07-05-PLAN.md — Wave-3 verify+ship: author scripts/verify_phase_07.sh covering 5 contracts (byte-parity, frontend nav unbroken, D-01 boundary intact, no UI plugins in /-/plugins.json, plugins/+templates/+static/ shape); author 07-DEPLOY.md (3-layer rollback chain anchored on `pre-phase-7-prune`); HUMAN UAT gates production deploy; production smoke against data.zeeker.sg closes Phase-6 pending UAT item transitively.
