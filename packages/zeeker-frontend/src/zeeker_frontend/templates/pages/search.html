@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+  <header class="search-hero guide-hero">
+    <div class="kicker">№ 01 · SEARCH</div>
+    {% if q %}
+      <h1>Results for <em>{{ q }}</em></h1>
+    {% else %}
+      <h1>Search across <em>everything</em></h1>
+    {% endif %}
+    <form class="search-form" method="get" action="/search" role="search" autocomplete="off">
+      <input type="search" name="q" value="{{ q }}" placeholder="Search FTS-indexed tables…">
+      <button type="submit">Search</button>
+      {% if q %}<a class="search-clear" href="/search">× Clear</a>{% endif %}
+    </form>
+    {% if q %}
+      <p class="lede">{{ total_count }} {{ total_count|pluralize('result') }} across {{ n_databases }} {{ n_databases|pluralize('database') }}</p>
+    {% else %}
+      <p class="lede">Look across every searchable table on data.zeeker.sg. Results group by database and table, ranked by relevance.</p>
+    {% endif %}
+  </header>
+
+  {% if not q %}
+    {# State A — search tips #}
+    <section class="aux-card search-tips">
+      <h2>Search tips</h2>
+      <ul>
+        <li>Use quotes for exact phrases: <code>"data centre"</code></li>
+        <li>Use AND / OR / NOT (FTS5 operators)</li>
+        <li>Wildcard suffixes: <code>invest*</code> matches <code>investment</code> / <code>investor</code></li>
+      </ul>
+    </section>
+  {% elif total_count == 0 %}
+    {# State B — no results #}
+    <section class="aux-card search-empty">
+      <h2>No results for "{{ q }}"</h2>
+      <p class="lede">Try broadening your search, removing operators, or checking for typos.</p>
+      <ul>
+        <li>Use quotes for exact phrases</li>
+        <li>Try synonyms or shorter phrases</li>
+        <li>Check spelling</li>
+      </ul>
+    </section>
+  {% else %}
+    {# State B — results region #}
+    <section class="search-results-region">
+      {% for group in groups %}
+        <section class="search-group" id="group-{{ group.db }}-{{ group.table }}">
+          <header class="search-group-head">
+            <h2><a href="/{{ group.db }}/{{ group.table }}?_search={{ q|urlencode }}">{{ group.db }} › {{ group.table }}</a></h2>
+            <span class="result-count">{{ group.count }} {{ group.count|pluralize('result') }}</span>
+          </header>
+          <ol class="search-results">
+            {% for row in group.rows %}
+              {% include "_partials/search_result.html" %}
+            {% endfor %}
+          </ol>
+          {% if group.count > 10 %}
+            <a class="see-all" href="/{{ group.db }}/{{ group.table }}?_search={{ q|urlencode }}">See all {{ group.count }} results in {{ group.table }} →</a>
+          {% endif %}
+        </section>
+      {% endfor %}
+
+      {% if failures %}
+        {# LOAD-BEARING COPY — pinned in test_search_partial_failure. Do not change "Search timed out for" without updating the test. #}
+        <p class="search-failures-notice">Search timed out for {{ failures }} {{ failures|pluralize('table') }}. <a href="?q={{ q|urlencode }}&_retry=1">Retry →</a></p>
+      {% endif %}
+    </section>
+  {% endif %}
+</div>
+{% endblock %}
