@@ -145,6 +145,34 @@ async def test_how_to_use_re_pointed(client_aux):
 
 
 @pytest.mark.asyncio
+async def test_how_to_use_button_consistency_option_2(client_aux):
+    """Option 2 button policy — only the terminal CTA card carries buttons.
+
+    HUMAN UAT — visitor feedback was that mid-page method-cards had buttons
+    on some but not others (Try Global Search, Browse Databases, Try a Search,
+    hello@zeeker.sg) which read as inconsistent. The page now strips every
+    mid-page button and concentrates all action onto a single terminal
+    `Ready to start?` card mirroring /about's pattern.
+    """
+    r = await client_aux.get("/how-to-use")
+    body = r.text
+    # Terminal CTA card present, with the canonical action triad.
+    assert "cta-section" in body
+    assert "Ready to start?" in body
+    assert ">Try Global Search<" in body
+    assert ">Open the SQL Editor<" in body
+    assert ">Browse Databases<" in body
+    # Mid-page buttons are gone — these literal copies should no longer ship
+    # outside the terminal CTA. (`>Try Global Search<` survives only inside
+    # the CTA card, asserted above; the regressed mid-page buttons used
+    # different copy.)
+    assert ">Try a Search<" not in body  # was on §2 Track Developments
+    # Email is now an inline link in prose, not a standalone button.
+    assert 'class="btn btn-primary">hello@zeeker.sg' not in body
+    assert 'href="mailto:hello@zeeker.sg"' in body  # but still reachable
+
+
+@pytest.mark.asyncio
 async def test_llms_txt_format(client_aux):
     r = await client_aux.get("/llms.txt")
     assert r.status_code == 200

@@ -30,13 +30,11 @@
         <div class="method-number">1</div>
         <h3>Search Everything</h3>
         <p>Full-text search across all available data. Good for finding specific records or topics.</p>
-        <a href="/search" class="btn btn-primary">Try Global Search</a>
       </div>
       <div class="method-card">
         <div class="method-number">2</div>
         <h3>Browse by Database</h3>
         <p>Explore structured data table by table. See what is available and get a feel for the data.</p>
-        <a href="/" class="btn btn-primary">Browse Databases</a>
       </div>
       <div class="method-card">
         <div class="method-number">3</div>
@@ -66,7 +64,6 @@
           <pre><code>Search for: "your topic"
 Then bookmark: /search?q=your+topic</code></pre>
         </div>
-        <a href="/search" class="btn btn-secondary">Try a Search</a>
       </div>
 
       <div class="use-case">
@@ -273,8 +270,7 @@ SQL query:  /{database}.json?sql=SELECT+*+FROM+table+LIMIT+10</code></pre>
     <div class="method-cards">
       <div class="method-card">
         <h3>Email Questions</h3>
-        <p>For help with specific queries or if something is broken</p>
-        <a href="mailto:hello@zeeker.sg" class="btn btn-primary">hello@zeeker.sg</a>
+        <p>For help with specific queries or if something is broken — drop me a line at <a href="mailto:hello@zeeker.sg">hello@zeeker.sg</a>.</p>
       </div>
       <div class="method-card">
         <h3>Suggest Features</h3>
@@ -289,6 +285,17 @@ SQL query:  /{database}.json?sql=SELECT+*+FROM+table+LIMIT+10</code></pre>
           <li><a href="https://sqlitebrowser.org/" target="_blank" rel="noopener">DB Browser for SQLite</a></li>
         </ul>
       </div>
+    </div>
+  </section>
+
+  {# Terminal CTA — single action point per page (Option 2 button consistency). #}
+  <section class="aux-card cta-section centered">
+    <h2>Ready to start?</h2>
+    <p>Pick a path and dive in.</p>
+    <div class="cta-buttons">
+      <a href="/search" class="btn btn-primary">Try Global Search</a>
+      <a href="/sql" class="btn btn-secondary">Open the SQL Editor</a>
+      <a href="/" class="btn btn-secondary">Browse Databases</a>
     </div>
   </section>
 </div>
