@@ -1,0 +1,28 @@
+{# Longform list — feed without category pills. Editorial reading mode. #}
+{% set title_col = display_columns.get("title") %}
+{% set date_col = display_columns.get("date") %}
+{% set kicker_col = display_columns.get("kicker") %}
+{% set body_col = display_columns.get("body") %}
+
+<div class="va-feed longform-list">
+{% for row in rows %}
+  {% set pk_value = row[primary_keys[0]] if primary_keys else row.get("rowid") %}
+  {% set href = ("/" ~ database ~ "/" ~ table ~ "/" ~ tilde_encode(pk_value|string)) if pk_value is not none else "#" %}
+  <article class="va-item longform">
+    <header class="va-item-head">
+      {% if kicker_col and row[kicker_col] %}
+      <span class="kicker muted">{{ row[kicker_col] }}</span>
+      {% endif %}
+      {% if date_col and row[date_col] %}
+      <time class="va-date">{{ row[date_col] }}</time>
+      {% endif %}
+    </header>
+    <h2 class="va-item-title">
+      <a href="{{ href }}">{% if title_col %}{{ row[title_col] }}{% else %}Record{% endif %}</a>
+    </h2>
+    {% if body_col and row[body_col] %}
+    <p class="va-item-excerpt longform">{{ row[body_col]|striptags|truncate(180) }}</p>
+    {% endif %}
+  </article>
+{% endfor %}
+</div>

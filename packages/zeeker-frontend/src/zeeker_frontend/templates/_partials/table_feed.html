@@ -1,0 +1,38 @@
+{# Feed-card layout — sketch 004-A. Slot-driven via display.columns. #}
+{% set kicker_col = display_columns.get("kicker") %}
+{% set title_col = display_columns.get("title") %}
+{% set body_col = display_columns.get("body") %}
+{% set date_col = display_columns.get("date") %}
+{% set byline_col = display_columns.get("byline") %}
+{% set source_url_col = display_columns.get("source_url") %}
+
+<div class="va-feed">
+{% for row in rows %}
+  {% set pk_value = row[primary_keys[0]] if primary_keys else row.get("rowid") %}
+  {% set href = ("/" ~ database ~ "/" ~ table ~ "/" ~ tilde_encode(pk_value|string)) if pk_value is not none else "#" %}
+  <article class="va-item">
+    <header class="va-item-head">
+      {% if kicker_col and row[kicker_col] %}
+      <span class="kicker">{{ row[kicker_col] }}</span>
+      {% endif %}
+      {% if date_col and row[date_col] %}
+      <time class="va-date">{{ row[date_col] }}</time>
+      {% endif %}
+    </header>
+    <h2 class="va-item-title">
+      <a href="{{ href }}">{% if title_col %}{{ row[title_col] }}{% else %}Record{% endif %}</a>
+    </h2>
+    {% if body_col and row[body_col] %}
+    <p class="va-item-excerpt">{{ row[body_col]|striptags|truncate(280) }}</p>
+    {% endif %}
+    <footer class="va-item-foot">
+      {% if byline_col and row[byline_col] %}
+      <span class="byline">{{ row[byline_col] }}</span>
+      {% endif %}
+      {% if source_url_col and row[source_url_col] %}
+      <a class="source-host" href="{{ row[source_url_col] }}" rel="noopener noreferrer">Source ↗</a>
+      {% endif %}
+    </footer>
+  </article>
+{% endfor %}
+</div>

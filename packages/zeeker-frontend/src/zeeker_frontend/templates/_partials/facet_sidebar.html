@@ -1,0 +1,23 @@
+{# Sticky facet sidebar — sketch 004-A right rail. Renders only when facet_results truthy. #}
+{% for facet_name, facet in facet_results.items() %}
+  <section class="facet-block">
+    <h3 class="facet-block-title">{{ facet_name|upper }}</h3>
+    <ul class="facet-list">
+      {% for item in facet.results %}
+        <li class="facet-item {% if item.selected %}active{% endif %}">
+          {% if item.selected %}
+            <a href="{{ clear_facet_value('/' ~ database ~ '/' ~ table, request_qs, facet_name, item.value|string) }}">
+              <span class="facet-label">{{ item.label }}</span>
+              <span class="count">×</span>
+            </a>
+          {% else %}
+            <a href="{{ path_with_added_args('/' ~ database ~ '/' ~ table, request_qs, [(facet_name, item.value|string)]) }}">
+              <span class="facet-label">{{ item.label }}</span>
+              <span class="count">{{ item.count }}</span>
+            </a>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  </section>
+{% endfor %}

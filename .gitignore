@@ -80,3 +80,6 @@ docker-compose.override.yml
 # Temporary files
 /tmp/
 /.tmp/
+
+# Phase 7-02 baseline-capture override (workaround; drop after 07-03 ships)
+docker-compose.no-s3.yml

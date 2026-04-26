@@ -1,0 +1,17 @@
+{# Applied-facet chips — render in toolbar above content. Each chip × clears that filter. #}
+{% if applied_filters or active_search %}
+  <div class="filter-chips">
+    {% if active_search %}
+      <a class="filter-chip filter-chip-search"
+         href="{{ path_with_removed_args('/' ~ database ~ '/' ~ table, request_qs, ['_search']) }}">
+        Search: <strong>{{ active_search }}</strong> <span class="x">×</span>
+      </a>
+    {% endif %}
+    {% for k, v in applied_filters %}
+      <a class="filter-chip"
+         href="{{ clear_facet_value('/' ~ database ~ '/' ~ table, request_qs, k, v) }}">
+        {{ k }}: <strong>{{ v }}</strong> <span class="x">×</span>
+      </a>
+    {% endfor %}
+  </div>
+{% endif %}

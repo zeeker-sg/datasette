@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block head %}
+<meta name="description" content="System status and recent updates for data.zeeker.sg">
+{% endblock %}
+
+{% block title %}Status — data.zeeker.sg{% endblock %}
+
+{% block content %}
+<div class="container">
+  <header class="guide-hero">
+    <div class="kicker">№ 01 · STATUS</div>
+    <h1>Recent <em>updates</em></h1>
+    <p class="lede">What changed and when, plus a snapshot of what is currently loaded.</p>
+  </header>
+
+  {# Current system stats ---------------------------------------- #}
+  <section class="aux-card">
+    <h2>Current system</h2>
+    <div class="stats-simple">
+      <div class="stat-item">
+        <span class="stat-number">{{ system_stats.total_databases }}</span>
+        <span class="stat-label">Databases</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">{{ "{:,}".format(system_stats.total_tables) }}</span>
+        <span class="stat-label">Tables</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">{{ "{:,}".format(system_stats.total_rows) }}</span>
+        <span class="stat-label">Rows</span>
+      </div>
+    </div>
+  </section>
+
+  {# Recent updates timeline ------------------------------------- #}
+  <section class="aux-card">
+    <h2>Recent updates</h2>
+    {% if recent_updates %}
+    <div class="timeline">
+      {% for update in recent_updates %}
+      <div class="timeline-item">
+        <div class="timeline-date">{{ update.date }}</div>
+        <div class="timeline-content">
+          <div class="update-type-badge update-type-{{ update.type }}">
+            {{ update.type|title }}
+          </div>
+          <h3>{{ update.title }}</h3>
+          <p>{{ update.description }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p>No updates yet. Check back soon.</p>
+    {% endif %}
+  </section>
+
+  {# Footer CTA -------------------------------------------------- #}
+  <section class="aux-card centered">
+    <p>Questions or suggestions? <a href="mailto:hello@zeeker.sg">Get in touch</a></p>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{
+  "database": "Zeeker-Judgements",
+  "table": "judgments",
+  "rows": [
+    {
+      "rowid": 1,
+      "case_name": "Public Prosecutor v Tan Cheng Yew",
+      "court": "Court of Appeal",
+      "citation": "[2025] SGCA 12",
+      "decision_date": "2025-03-15",
+      "text": "The appellant was charged under section 420 of the Penal Code... [synthetic test body, ~120 chars total to keep fixture compact]",
+      "subject_tags": "[\"criminal-law\", \"cheating\", \"sentencing\"]",
+      "source_url": "https://www.elitigation.sg/judgments/sgca/2025/12.pdf"
+    }
+  ],
+  "columns": [
+    "rowid",
+    "case_name",
+    "court",
+    "citation",
+    "decision_date",
+    "text",
+    "subject_tags",
+    "source_url"
+  ],
+  "primary_keys": [],
+  "primary_key_values": ["1"],
+  "units": {}
+}

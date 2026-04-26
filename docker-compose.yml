@@ -1,11 +1,22 @@
+# Phase 2 of milestone M2: dual-service bring-up.
+#
+# Three services; only caddy publishes ports. Datasette is internal-only
+# (REQ-internal-only-datasette-exposure). Frontend placeholder has no data
+# access (REQ-frontend-data-via-http). 100% of incoming traffic reaches
+# datasette via caddy (the routing flip is Phase 3).
+#
+# Pattern: docs.docker.com/compose/how-tos/startup-order/ — depends_on with
+# condition: service_healthy.
+
 services:
   zeeker-datasette:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: zeeker-datasette
-    ports:
-      - "127.0.0.1:8001:8001"
+    # NOTE: no `ports:` — internal-only (REQ-internal-only-datasette-exposure).
+    # Reachable from caddy as `zeeker-datasette:8001` via the default
+    # Compose bridge network (DNS-by-service-name).
     environment:
       - S3_BUCKET=${S3_BUCKET}
       - S3_PREFIX=${S3_PREFIX:-latest}
@@ -22,8 +33,73 @@ services:
 #      - ./data:/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/"]
+      # CON-healthcheck: GET /-/versions.json returns 200. Switched from `/`
+      # (the previous value) so the healthcheck survives Phase 7's template
+      # deletion without a second edit.
+      test: ["CMD", "curl", "-fsS", "http://localhost:8001/-/versions.json"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      # S3 download takes 10-30s per CON-healthcheck. 60s margin covers
+      # RESEARCH Pitfall 1 (start_period does not short-circuit early).
+      start_period: 60s
+
+  frontend:
+    build:
+      context: ./packages/zeeker-frontend
+      dockerfile: Dockerfile
+    container_name: zeeker-frontend
+    # No ports published — reachable only at `frontend:8000` internally.
+    # No `./data` volume mount — REQ-frontend-data-via-http makes this
+    # architectural fence physical.
+    # Empty environment on purpose: do NOT inherit AWS creds from parent
+    # shell (RESEARCH Pitfall 5). PYTHONUNBUFFERED is harmless + helps logs.
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    healthcheck:
+      # python:3.12-slim has neither curl nor wget. Use stdlib urllib
+      # (RESEARCH Pitfall 2).
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/frontend-test', timeout=2).status==200 else 1)"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  caddy:
+    image: caddy:2.11.2-alpine
+    container_name: zeeker-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"   # HTTP/3 QUIC
+      # NOTE: :2019 (admin API) deliberately NOT published. Caddyfile
+      # binds admin to localhost:2019 inside the container only
+      # (RESEARCH Pitfall 6).
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      zeeker-datasette:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    healthcheck:
+      # caddy:2.11.2-alpine ships curl. Admin metrics endpoint is
+      # reachable via the container's loopback on :2019 (we bound it
+      # explicitly in Caddyfile).
+      test: ["CMD", "curl", "-fsS", "http://localhost:2019/metrics"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+volumes:
+  caddy_data:
+  caddy_config:

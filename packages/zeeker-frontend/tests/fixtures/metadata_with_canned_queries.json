@@ -1,0 +1,35 @@
+{
+  "title": "data.zeeker.sg",
+  "description": "Open data platform for exploration, analysis, and programmatic access",
+  "license": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "source": "Various curated sources",
+  "source_url": "https://data.zeeker.sg/sources",
+  "about": "Providing free access to structured data for research, analysis, and application development",
+  "about_url": "https://data.zeeker.sg/about",
+  "databases": {
+    "sglawwatch": {
+      "title": "SG Law Watch",
+      "description": "Legal news in Singapore selected by editors",
+      "queries": {
+        "headline_by_id": {
+          "sql": "SELECT * FROM headlines WHERE id = :id",
+          "title": "Headline by ID",
+          "description": "Look up a single headline by its primary key",
+          "params": ["id"]
+        },
+        "recent_headlines": {
+          "sql": "SELECT title, date FROM headlines ORDER BY date DESC LIMIT 20",
+          "title": "Recent Headlines",
+          "description": "20 most recent headlines"
+        }
+      },
+      "tables": {}
+    },
+    "*": {
+      "allow_sql": true,
+      "allow_facet": true,
+      "allow_download": true
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{# Single FTS result row. Reads from parent scope: row, group, q.
+
+   Server-attached fields on each row (computed in routes_search.py):
+     - row["__title__"]   — pre-truncated title string (max 120 chars).
+                            Falls back to comma-joined PK string or "" if no
+                            non-PK string column was suitable. ALWAYS present.
+     - row["_pk_values"]  — list[str] of raw primary-key value(s) for
+                            row_url(); None if PK couldn't be derived. The
+                            template routes through row_url so reserved
+                            chars (/, ~, whitespace) round-trip via Datasette's
+                            tilde_encode rather than naive percent-encoding.
+
+   group provides:
+     - group.db, group.table          — identifiers
+     - group.primary_keys             — list of PK column names (used for the
+                                        meta foot iteration filter)
+     - group.columns                  — declared column order from Datasette
+                                        (used for the meta foot iteration)
+     - group.title_col                — the column name picked as the title
+                                        source (skipped in meta foot)
+
+   q is the raw search term (autoescaped by Jinja in .html templates).
+#}
+<li class="search-result">
+  <div class="search-result-meta">
+    <span class="kicker">{{ group.db }} · {{ group.table }}</span>
+  </div>
+  <h3 class="search-result-title">
+    {% set href = row_url(group.db, group.table, row._pk_values) %}
+    {% if href %}
+      <a href="{{ href }}">{{ row["__title__"] }}</a>
+    {% else %}
+      <a href="/{{ group.db }}/{{ group.table }}?_search={{ q|urlencode }}">{{ row["__title__"] }}</a>
+    {% endif %}
+  </h3>
+  <div class="search-result-foot">
+    {# Iterate Datasette's declared `columns` array (stable order) to render
+       the next 3 short string columns, skipping the title column and PK
+       columns. NOT row.items() — declared order is stable across Python
+       dict iteration changes. #}
+    {%- set ns = namespace(rendered=0) %}
+    {%- for col in group.columns if col != group.title_col and col not in group.primary_keys %}
+      {%- if ns.rendered < 3 %}
+        {%- set val = row.get(col) %}
+        {%- if val is string and val and val|length < 200 %}
+          <span class="meta-cell"><span class="meta-key">{{ col }}</span> {{ val }}</span>
+          {%- set ns.rendered = ns.rendered + 1 %}
+        {%- endif %}
+      {%- endif %}
+    {%- endfor %}
+  </div>
+</li>

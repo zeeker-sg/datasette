@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>{% block title %}{{ (metadata.title if metadata and metadata.title else 'data.zeeker.sg') }}{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/zeeker.css">
+    {% block head %}{% endblock %}
+</head>
+<body class="{{ page_class or '' }}">
+
+{# Dark editorial nav — ink on ink, ochre logo (ported from M1 _header.html) #}
+<nav class="db-nav">
+    <div class="container">
+        <a class="logo" href="/">{{ (metadata.title if metadata and metadata.title else 'data.zeeker.sg') }}</a>
+        <div class="menu">
+            {% block nav_items %}
+            {% if metadata and metadata.menu_links %}
+                {% for link in metadata.menu_links %}
+                    {% if link.href != '/' %}
+                        <a href="{{ link.href }}">{{ link.label }}</a>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+            {% endblock %}
+        </div>
+    </div>
+</nav>
+
+{# Breadcrumb strip — rendered only if handler passed `breadcrumbs` #}
+{% if breadcrumbs %}
+<div class="db-crumb">
+    <div class="container">
+        <a href="/">Home</a>
+        {% for crumb in breadcrumbs %}
+            <span class="sep">&rsaquo;</span>
+            {% if crumb.href and not loop.last %}
+                <a href="{{ crumb.href }}">{{ crumb.label }}</a>
+            {% else %}
+                <span class="current">{{ crumb.label }}</span>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{# Page body — home / database / (later) table / row extend this block #}
+{% block content %}{% endblock %}
+
+{# 4-column paper footer (ported from M1 _footer.html) — the
+   `{% if s is defined %}` guard in M1 is dropped because `s` is now a
+   registered global (filters.py). #}
+<footer class="site-footer">
+    <div class="container">
+        {% block footer_links %}
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>Product</h4>
+                <ul>
+                    <li><a href="/">Databases</a></li>
+                    <li><a href="/search">Search</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="/how-to-use">How to use</a></li>
+                    <li><a href="/developers">Developers</a></li>
+                    <li><a href="/llms.txt">llms.txt</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Data</h4>
+                <ul>
+                    <li><a href="/sources">Sources</a></li>
+                    <li><a href="/status">Status</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>About</h4>
+                <ul>
+                    <li><a href="/about">About</a></li>
+                </ul>
+            </div>
+        </div>
+        {% endblock %}
+
+        {% block footer_text %}
+        <div class="footer-bottom">
+            <p>&copy; {{ current_year }} {{ s('site_title', (metadata.title if metadata and metadata.title else 'data.zeeker.sg')) }}</p>
+        </div>
+        {% endblock %}
+    </div>
+</footer>
+
+</body>
+</html>

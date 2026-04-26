@@ -1,0 +1,73 @@
+{
+  "database": "sglawwatch",
+  "table": "_zeeker_schemas",
+  "is_view": false,
+  "human_description_en": "",
+  "rows": [
+    [
+      "about_singapore_law",
+      1,
+      "28cc56fb2275c2c9",
+      "{\"content_length\": \"INTEGER\", \"title\": \"TEXT\", \"last_scraped\": \"TEXT\", \"item_url\": \"TEXT\", \"id\": \"TEXT\", \"section\": \"TEXT\", \"home_page\": \"TEXT\"}",
+      "2025-09-04T22:09:06.939869",
+      "2025-09-04T22:09:06.939869"
+    ],
+    [
+      "about_singapore_law_fragments",
+      1,
+      "b587c2a7ca745978",
+      "{\"item_id\": \"TEXT\", \"content_text\": \"TEXT\", \"id\": \"TEXT\", \"fragment_order\": \"INTEGER\", \"char_count\": \"INTEGER\"}",
+      "2025-09-04T22:10:18.656707",
+      "2025-09-04T22:10:18.656707"
+    ],
+    [
+      "headlines",
+      1,
+      "6f29f4971504e875",
+      "{\"source_link\": \"TEXT\", \"summary\": \"TEXT\", \"category\": \"TEXT\", \"text\": \"TEXT\", \"date\": \"TEXT\", \"imported_on\": \"TEXT\", \"author\": \"TEXT\", \"id\": \"TEXT\", \"title\": \"TEXT\"}",
+      "2025-09-05T03:19:34.756232",
+      "2025-09-05T03:19:34.756232"
+    ]
+  ],
+  "truncated": false,
+  "filtered_table_rows_count": 3,
+  "expanded_columns": [],
+  "expandable_columns": [],
+  "columns": [
+    "resource_name",
+    "schema_version",
+    "schema_hash",
+    "column_definitions",
+    "created_at",
+    "updated_at"
+  ],
+  "primary_keys": [
+    "resource_name"
+  ],
+  "units": {},
+  "query": {
+    "sql": "select resource_name, schema_version, schema_hash, column_definitions, created_at, updated_at from _zeeker_schemas order by resource_name limit 11",
+    "params": {}
+  },
+  "facet_results": {},
+  "suggested_facets": [
+    {
+      "name": "created_at",
+      "type": "date",
+      "toggle_url": "http://localhost/sglawwatch/_zeeker_schemas.json?_size=10&_facet_date=created_at"
+    },
+    {
+      "name": "updated_at",
+      "type": "date",
+      "toggle_url": "http://localhost/sglawwatch/_zeeker_schemas.json?_size=10&_facet_date=updated_at"
+    }
+  ],
+  "next": null,
+  "next_url": null,
+  "private": false,
+  "allow_execute_sql": true,
+  "source": "Various curated sources",
+  "source_url": "https://data.zeeker.sg/sources",
+  "license": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/"
+}

@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block head %}
+<meta name="description" content="About Zeeker — making data searchable and accessible">
+{% endblock %}
+
+{% block title %}About — data.zeeker.sg{% endblock %}
+
+{% block content %}
+<div class="container">
+  <header class="guide-hero">
+    <div class="kicker">№ 01 · ABOUT</div>
+    <h1>About <em>Zeeker</em></h1>
+    <p class="lede">Making data searchable and accessible to researchers and developers.</p>
+  </header>
+
+  {# What This Is ----------------------------------------------- #}
+  <section class="aux-card">
+    <h2>What This Is</h2>
+    <p>
+      Zeeker is a searchable data platform. It provides structured access to curated
+      datasets through both a web interface and a REST API.
+    </p>
+    <p>
+      Built for researchers, developers, and anyone who needs to search through data
+      efficiently. All data is available through both the web interface and programmatic
+      API access.
+    </p>
+  </section>
+
+  {# What You Can Do -------------------------------------------- #}
+  <section class="aux-card">
+    <h2>What You Can Do</h2>
+    <div class="features-grid">
+      <div class="feature">
+        <h3>Full-Text Search</h3>
+        <p>Search across all available data with filtering and faceted navigation.</p>
+      </div>
+      <div class="feature">
+        <h3>SQL Interface</h3>
+        <p>Write custom SQL queries to analyze the data however you need.</p>
+      </div>
+      <div class="feature">
+        <h3>Export Data</h3>
+        <p>Download search results or query outputs as JSON, CSV, or SQLite files.</p>
+      </div>
+      <div class="feature">
+        <h3>REST API</h3>
+        <p>Programmatic access to all data for building tools or conducting research.</p>
+      </div>
+    </div>
+  </section>
+
+  {# How It Works ----------------------------------------------- #}
+  <section class="aux-card">
+    <h2>How It Works</h2>
+    <p>
+      Built on Datasette, an open-source tool for exploring and publishing data. Data is
+      stored in SQLite databases and automatically updated from various sources.
+    </p>
+  </section>
+
+  {# Who Uses This ---------------------------------------------- #}
+  <section class="aux-card">
+    <h2>Who Uses This</h2>
+    <div class="use-case-grid">
+      <div class="use-case">
+        <h3>Researchers</h3>
+        <ul>
+          <li>Track developments and trends</li>
+          <li>Search for references and precedents</li>
+          <li>Analyze patterns over time</li>
+          <li>Export data for further analysis</li>
+        </ul>
+      </div>
+      <div class="use-case">
+        <h3>Developers</h3>
+        <ul>
+          <li>Build data-driven applications</li>
+          <li>Create monitoring and alert systems</li>
+          <li>Integrate data into other tools</li>
+          <li>Develop research and analysis workflows</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  {# Get Started ------------------------------------------------ #}
+  <section class="aux-card cta-section centered">
+    <h2>Get Started</h2>
+    <p>Ready to explore? Start with a search or dive into the SQL interface.</p>
+    <div class="cta-buttons">
+      <a href="/" class="btn btn-primary">Explore Data</a>
+      <a href="/developers" class="btn btn-secondary">API Documentation</a>
+      <a href="/sources" class="btn btn-secondary">Data Sources</a>
+    </div>
+  </section>
+</div>
+{% endblock %}

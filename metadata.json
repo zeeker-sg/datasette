@@ -28,6 +28,18 @@
             "summary": "AI-generated summary highlighting key policy and legal points (~100 words)",
             "content_text": "Full extracted article text (hidden — query directly via SQL)",
             "created_at": "Timestamp when this record was first imported"
+          },
+          "display": {
+            "table_mode": "feed",
+            "row_mode": "article",
+            "columns": {
+              "kicker": "category",
+              "title": "title",
+              "byline": "published_date",
+              "body": "summary",
+              "date": "published_date",
+              "source_url": "source_url"
+            }
           }
         },
         "judiciary_news": {
@@ -43,6 +55,167 @@
             "summary": "AI-generated summary highlighting key judicial developments (~100 words)",
             "content_text": "Full extracted text (hidden — query directly via SQL)",
             "created_at": "Timestamp when this record was first imported"
+          },
+          "display": {
+            "table_mode": "feed",
+            "row_mode": "article",
+            "columns": {
+              "kicker": "content_type",
+              "title": "title",
+              "byline": "published_date",
+              "body": "summary",
+              "date": "published_date",
+              "source_url": "source_url"
+            }
+          }
+        },
+        "acra_news": {
+          "title": "ACRA News",
+          "display": {
+            "table_mode": "feed",
+            "row_mode": "article",
+            "columns": {
+              "kicker": "category",
+              "title": "title",
+              "byline": "published_date",
+              "body": "summary",
+              "date": "published_date",
+              "source_url": "source_url"
+            }
+          }
+        },
+        "agc_news": {
+          "title": "AGC News",
+          "display": {
+            "table_mode": "feed",
+            "row_mode": "article",
+            "columns": {
+              "kicker": "category",
+              "title": "title",
+              "byline": "published_date",
+              "body": "summary",
+              "date": "published_date",
+              "source_url": "source_url"
+            }
+          }
+        },
+        "ccs_news": {
+          "title": "CCS News",
+          "display": {
+            "table_mode": "feed",
+            "row_mode": "article",
+            "columns": {
+              "kicker": "category",
+              "title": "title",
+              "byline": "published_date",
+              "body": "summary",
+              "date": "published_date",
+              "source_url": "source_url"
+            }
+          }
+        },
+        "ipos_news": {
+          "title": "IPOS News",
+          "display": {
+            "table_mode": "feed",
+            "row_mode": "article",
+            "columns": {
+              "kicker": "category",
+              "title": "title",
+              "byline": "published_date",
+              "body": "summary",
+              "date": "published_date",
+              "source_url": "source_url"
+            }
+          }
+        },
+        "mom_news": {
+          "title": "MOM News",
+          "display": {
+            "table_mode": "feed",
+            "row_mode": "article",
+            "columns": {
+              "kicker": "category",
+              "title": "title",
+              "byline": "published_date",
+              "body": "summary",
+              "date": "published_date",
+              "source_url": "source_url"
+            }
+          }
+        },
+        "pdpc_news": {
+          "title": "PDPC News",
+          "display": {
+            "table_mode": "feed",
+            "row_mode": "article",
+            "columns": {
+              "kicker": "category",
+              "title": "title",
+              "byline": "published_date",
+              "body": "summary",
+              "date": "published_date",
+              "source_url": "source_url"
+            }
+          }
+        }
+      }
+    },
+    "sglawwatch": {
+      "title": "SG Law Watch",
+      "description": "Singapore legal news, FAQ, and reference materials.",
+      "tables": {
+        "headlines": {
+          "title": "Headlines",
+          "description": "Daily Singapore legal news headlines from major outlets.",
+          "display": {
+            "table_mode": "feed",
+            "row_mode": "article",
+            "columns": {
+              "kicker": "category",
+              "title": "title",
+              "byline": "author",
+              "body": "summary",
+              "date": "date",
+              "source_url": "source_link"
+            }
+          }
+        },
+        "about_singapore_law": {
+          "title": "About Singapore Law",
+          "description": "Reference longform on Singapore legal topics.",
+          "display": {
+            "table_mode": "longform-list",
+            "row_mode": "longform",
+            "columns": {
+              "kicker": "section",
+              "title": "title",
+              "body": "content",
+              "date": "last_scraped",
+              "source_url": "item_url"
+            }
+          }
+        }
+      }
+    },
+    "Zeeker-Judgements": {
+      "title": "Zeeker Judgements",
+      "description": "Singapore court judgments — Court of Appeal, High Court, State Courts.",
+      "tables": {
+        "judgments": {
+          "title": "Judgments",
+          "description": "Singapore court judgments with summary, parties, and citation.",
+          "display": {
+            "table_mode": "tabular",
+            "row_mode": "judgment",
+            "columns": {
+              "title": "case_name",
+              "kicker": "court",
+              "citation": "citation",
+              "date": "decision_date",
+              "body": "text",
+              "source_url": "source_url"
+            }
           }
         }
       }
@@ -66,15 +239,6 @@
       "template": "Search across all available data"
     }
   },
-  "extra_css_urls": [
-    "/static/css/vendor/prism.css",
-    "/static/css/zeeker-base.css"
-  ],
-  "extra_js_urls": [
-    "/static/js/vendor/prism-core.min.js",
-    "/static/js/vendor/prism-sql.min.js",
-    "/static/js/zeeker-base.js"
-  ],
   "menu_links": [
     {
       "href": "/",

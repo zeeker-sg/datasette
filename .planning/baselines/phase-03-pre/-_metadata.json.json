@@ -1,0 +1,307 @@
+{
+  "title": "SG LawWatch",
+  "description": "Singapore legal news and reference articles",
+  "license": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "source": "Singapore LawWatch",
+  "source_url": "https://www.singaporelawwatch.sg/",
+  "about": "Providing free access to structured data for research, analysis, and application development",
+  "about_url": "https://data.zeeker.sg/about",
+  "databases": {
+    "sg-gov-newsrooms": {
+      "title": "SG Government Newsrooms",
+      "description": "News and announcements from Singapore government ministries and judiciary — speeches, press releases, parliamentary replies, and announcements.",
+      "extra_css_urls": [
+        "/static/databases/sg-gov-newsrooms/custom.css"
+      ],
+      "extra_js_urls": [
+        "/static/databases/sg-gov-newsrooms/custom.js"
+      ],
+      "tables": {
+        "mlaw_news": {
+          "description": "News and announcements from the Ministry of Law Singapore — press releases, speeches, parliamentary speeches, and announcements from 2026.",
+          "facets": [
+            "category"
+          ],
+          "sort_desc": "published_date",
+          "size": 25,
+          "label_column": "title",
+          "columns": {
+            "id": "Unique identifier (SHA-256 hash of source URL)",
+            "title": "Title of the news item or speech",
+            "published_date": "Publication date in ISO 8601 format (YYYY-MM-DD)",
+            "category": "Content type: press-releases, speeches, parliamentary-speeches, announcements",
+            "source_url": "URL to the original page on mlaw.gov.sg",
+            "summary": "AI-generated summary highlighting key policy and legal points (~100 words)",
+            "content_text": "Full extracted article text (hidden — query directly)",
+            "created_at": "Timestamp when this record was first imported"
+          }
+        },
+        "judiciary_news": {
+          "description": "News, speeches, and media releases from the Singapore Judiciary — Supreme Court, State Courts, Family Justice Courts, and related tribunals. From 2026 onwards.",
+          "facets": [
+            "content_type",
+            "courts"
+          ],
+          "sort_desc": "published_date",
+          "size": 25,
+          "label_column": "title",
+          "columns": {
+            "id": "Unique identifier (SHA-256 hash of source URL)",
+            "title": "Title of the news item, speech, or media release",
+            "published_date": "Publication date in ISO 8601 format (YYYY-MM-DD)",
+            "content_type": "Type of item: Speech, Media Release, Media Advisory, etc.",
+            "courts": "Pipe-separated court names (e.g. Supreme Court|State Courts)",
+            "source_url": "URL to the original page on judiciary.gov.sg",
+            "summary": "AI-generated summary highlighting key judicial developments (~100 words)",
+            "content_text": "Full extracted article text (hidden — query directly)",
+            "created_at": "Timestamp when this record was first imported"
+          }
+        },
+        "agc_news": {
+          "description": "Press releases, media statements, speeches, and prosecution updates from the Attorney-General's Chambers Singapore. From 2026 onwards.",
+          "facets": [
+            "category"
+          ],
+          "sort_desc": "published_date",
+          "size": 25,
+          "label_column": "title",
+          "columns": {
+            "id": "Unique identifier (SHA-256 hash of source URL)",
+            "title": "Title of the press release, statement, or speech",
+            "published_date": "Publication date in ISO 8601 format (YYYY-MM-DD)",
+            "category": "Content type: press-release, media-statement, speech, appointment, prosecution, other",
+            "source_url": "URL to the original page on agc.gov.sg",
+            "summary": "AI-generated summary highlighting key legal and institutional developments (~100 words)",
+            "content_text": "Full extracted article text (hidden — query directly)",
+            "created_at": "Timestamp when this record was first imported"
+          }
+        },
+        "ipos_news": {
+          "description": "News, media releases, speeches, and updates from the Intellectual Property Office of Singapore (IPOS). From 2026 onwards.",
+          "facets": [
+            "category"
+          ],
+          "sort_desc": "published_date",
+          "size": 25,
+          "label_column": "title",
+          "columns": {
+            "id": "Unique identifier (SHA-256 hash of source URL)",
+            "title": "Title of the news item, media release, or speech",
+            "published_date": "Publication date in ISO 8601 format (YYYY-MM-DD)",
+            "category": "Content type: media-release, speech, insights, update, other",
+            "source_url": "URL to the original page on ipos.gov.sg",
+            "summary": "AI-generated summary highlighting key IP and innovation developments (~100 words)",
+            "content_text": "Full extracted article text (hidden — query directly)",
+            "created_at": "Timestamp when this record was first imported"
+          }
+        },
+        "ccs_news": {
+          "description": "Announcements, media releases, and forum letter replies from the Competition and Consumer Commission of Singapore (CCCS). From 2026 onwards.",
+          "facets": [
+            "category"
+          ],
+          "sort_desc": "published_date",
+          "size": 25,
+          "label_column": "title",
+          "columns": {
+            "id": "Unique identifier (SHA-256 hash of source URL)",
+            "title": "Title of the announcement, media release, or forum letter reply",
+            "published_date": "Publication date in ISO 8601 format (YYYY-MM-DD)",
+            "category": "Content type: media-release, announcement, forum-letter-reply",
+            "source_url": "URL to the original page on ccs.gov.sg",
+            "summary": "AI-generated summary highlighting key competition and consumer protection developments (~100 words)",
+            "content_text": "Full extracted article text (hidden — query directly)",
+            "created_at": "Timestamp when this record was first imported"
+          }
+        },
+        "acra_news": {
+          "description": "News announcements, press releases, and speeches from the Accounting and Corporate Regulatory Authority (ACRA). From 2026 onwards.",
+          "facets": [
+            "category"
+          ],
+          "sort_desc": "published_date",
+          "size": 25,
+          "label_column": "title",
+          "columns": {
+            "id": "Unique identifier (SHA-256 hash of source URL)",
+            "title": "Title of the news announcement, press release, or speech",
+            "published_date": "Publication date in ISO 8601 format (YYYY-MM-DD)",
+            "category": "Content type: press-release, speech, newsletter, announcement, other",
+            "source_url": "URL to the original page on acra.gov.sg",
+            "summary": "AI-generated summary highlighting key regulatory and business developments (~100 words)",
+            "content_text": "Full extracted article text (hidden — query directly)",
+            "created_at": "Timestamp when this record was first imported"
+          }
+        },
+        "mom_news": {
+          "description": "Press releases from the Ministry of Manpower Singapore — workplace safety, employment, foreign workforce, and labour policies. From 2026 onwards.",
+          "facets": [
+            "category"
+          ],
+          "sort_desc": "published_date",
+          "size": 25,
+          "label_column": "title",
+          "columns": {
+            "id": "Unique identifier (SHA-256 hash of source URL)",
+            "title": "Title of the press release",
+            "published_date": "Publication date in ISO 8601 format (YYYY-MM-DD)",
+            "category": "Topic area: workplace-safety, foreign-workforce, statistics, employment-standards, general",
+            "source_url": "URL to the original page on mom.gov.sg",
+            "summary": "AI-generated summary highlighting key workforce and employment developments (~100 words)",
+            "content_text": "Full extracted article text (hidden — query directly)",
+            "created_at": "Timestamp when this record was first imported"
+          }
+        },
+        "pdpc_news": {
+          "description": "Media releases, speeches, and advisories from the Personal Data Protection Commission Singapore (PDPC). From 2026 onwards.",
+          "facets": [
+            "category"
+          ],
+          "sort_desc": "published_date",
+          "size": 25,
+          "label_column": "title",
+          "columns": {
+            "id": "Unique identifier (SHA-256 hash of source URL)",
+            "title": "Title of the press release, speech, or advisory",
+            "published_date": "Publication date in ISO 8601 format (YYYY-MM-DD)",
+            "category": "Content type: media-release, speech, forum-reply, article-clarification, advertorial",
+            "source_url": "URL to the original page on pdpc.gov.sg",
+            "summary": "AI-generated summary highlighting key data protection and PDPA developments (~100 words)",
+            "content_text": "Full extracted article text (hidden — query directly)",
+            "created_at": "Timestamp when this record was first imported"
+          }
+        }
+      },
+      "source": "Singapore LawWatch",
+      "source_url": "https://www.singaporelawwatch.sg/",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "about": "Providing free access to structured data for research, analysis, and application development",
+      "about_url": "https://data.zeeker.sg/about"
+    },
+    "*": {
+      "allow_sql": true,
+      "allow_facet": true,
+      "allow_download": true,
+      "tables": {
+        "_zeeker_schemas": {
+          "hidden": true
+        },
+        "_zeeker_updates": {
+          "hidden": true
+        }
+      }
+    },
+    "sglawwatch": {
+      "title": "SG LawWatch",
+      "description": "Singapore legal news and reference articles from Singapore LawWatch, the Singapore Academy of Law's daily legal news syndication site.",
+      "source": "Singapore LawWatch",
+      "source_url": "https://www.singaporelawwatch.sg/",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "tables": {
+        "headlines": {
+          "description": "Legal news headlines with AI-generated summaries, collated from The Straits Times, The Business Times, Lianhe Zaobao, TODAY, and other sources.",
+          "sort_desc": "date",
+          "label_column": "title",
+          "facets": [
+            "category"
+          ],
+          "size": 20,
+          "columns": {
+            "id": "Unique hash identifier for the headline record",
+            "category": "News source publication (e.g., Straits Times, Business Times, Lianhe Zaobao, MinLaw)",
+            "title": "Headline title of the news article",
+            "source_link": "URL link to the original article on Singapore LawWatch",
+            "author": "Author of the news article, prefixed with publication name",
+            "date": "Publication date of the article in ISO 8601 format",
+            "summary": "AI-generated summary of the article content",
+            "text": "Full extracted text content of the news article",
+            "imported_on": "Timestamp when the record was imported into the database"
+          },
+          "source": "Singapore LawWatch",
+          "source_url": "https://www.singaporelawwatch.sg/",
+          "license": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/",
+          "about": "Providing free access to structured data for research, analysis, and application development",
+          "about_url": "https://data.zeeker.sg/about"
+        },
+        "about_singapore_law": {
+          "description": "Reference articles from the About Singapore Law section, covering legal topics and guides for the public.",
+          "label_column": "title",
+          "facets": [
+            "section"
+          ],
+          "columns": {
+            "id": "Unique hash identifier for the article",
+            "item_url": "URL of the article on Singapore LawWatch",
+            "title": "Title of the reference article",
+            "section": "Topical section the article belongs to (e.g., Criminal Law, Family Law)",
+            "home_page": "URL of the section home page",
+            "last_scraped": "Timestamp of the last successful scrape",
+            "content_length": "Character count of the full article text"
+          }
+        },
+        "temp_headlines": {
+          "hidden": true
+        },
+        "schema_versions": {
+          "hidden": true
+        },
+        "metadata": {
+          "hidden": true
+        },
+        "about_singapore_law_fragments": {
+          "hidden": true
+        },
+        "_zeeker_schemas": {
+          "hidden": true
+        },
+        "_zeeker_updates": {
+          "hidden": true
+        }
+      },
+      "about": "Providing free access to structured data for research, analysis, and application development",
+      "about_url": "https://data.zeeker.sg/about"
+    }
+  },
+  "plugins": {
+    "datasette-search-all": {
+      "template": "Search across all available data"
+    }
+  },
+  "extra_css_urls": [
+    "/static/css/vendor/prism.css",
+    "/static/css/zeeker-base.css",
+    "/static/databases/sglawwatch/custom.css"
+  ],
+  "extra_js_urls": [
+    "/static/js/vendor/prism-core.min.js",
+    "/static/js/vendor/prism-sql.min.js",
+    "/static/js/zeeker-base.js",
+    "/static/databases/sglawwatch/custom.js"
+  ],
+  "menu_links": [
+    {
+      "href": "/",
+      "label": "Home"
+    },
+    {
+      "href": "/how-to-use",
+      "label": "How to Use"
+    },
+    {
+      "href": "/developers",
+      "label": "Developers"
+    },
+    {
+      "href": "/about",
+      "label": "About"
+    },
+    {
+      "href": "/status",
+      "label": "Status"
+    }
+  ]
+}

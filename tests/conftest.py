@@ -20,14 +20,11 @@ def temp_project_structure():
         temp_path = Path(temp_dir)
 
         # Create main directories
+        # (Phase-7 prune: templates/ and static/ subdirs no longer needed —
+        # the frontend service owns those surfaces; data-only S3 sync per
+        # Plan 07-03.)
         directories = [
             "data",
-            "templates",
-            "static",
-            "static/css",
-            "static/js",
-            "static/images",
-            "static/databases",
             "plugins",
             "scripts",
         ]
@@ -36,21 +33,18 @@ def temp_project_structure():
             (temp_path / directory).mkdir(parents=True, exist_ok=True)
 
         # Create basic files
+        # (Phase-7 prune: UI-overlay reference keys + templates/ + static/ +
+        # M1 UI plugins removed; only metadata.json + .env + the two
+        # surviving plugins are part of the post-prune fixture surface.)
         files = {
             "metadata.json": {
                 "title": "Test Zeeker",
                 "description": "Test instance",
                 "databases": {"*": {"allow_sql": True}},
-                "extra_css_urls": ["/static/css/zeeker-base.css"],
-                "extra_js_urls": ["/static/js/zeeker-base.js"],
             },
             ".env": "S3_BUCKET=test-bucket\nAWS_REGION=us-east-1\n",
-            "templates/search.html": "<html><body>Test Index</body></html>",
-            "templates/database.html": "<html><body>Test Database</body></html>",
-            "static/css/zeeker-base.css": "body { background: #1a1a1a; }",
-            "static/js/zeeker-base.js": "console.log('Enhanced JS loaded');",
             "plugins/__init__.py": "",
-            "plugins/template_filters.py": "# Template filters",
+            "plugins/cache_headers.py": "# Cache headers placeholder",
         }
 
         for file_path, content in files.items():
@@ -129,7 +123,12 @@ def sample_database_files():
 @pytest.fixture
 def sample_metadata():
     """
-    Return sample metadata structures for testing merging logic
+    Return sample metadata structures for testing merging logic.
+
+    (Phase-7 prune: UI-overlay-URL-array list-append semantics no longer
+    exercised here — they were a UI-overlay surface owned by the deleted
+    M1 plugins. The merge logic in scripts/download_from_s3.py remains
+    under test via the dict-merge cases below.)
     """
     return {
         "base": {
@@ -139,7 +138,6 @@ def sample_metadata():
                 "*": {"allow_sql": True, "allow_facet": True},
                 "base_db": {"custom_setting": True},
             },
-            "extra_css_urls": ["/static/base.css"],
             "plugins": {"base_plugin": {"enabled": True}},
         },
         "overlay": {
@@ -148,7 +146,6 @@ def sample_metadata():
                 "custom_db": {"new_setting": True},
                 "base_db": {"override_setting": "overridden"},
             },
-            "extra_css_urls": ["/static/custom.css"],
             "new_field": "new_value",
         },
         "expected_merged": {
@@ -162,7 +159,6 @@ def sample_metadata():
                 },  # Merged
                 "custom_db": {"new_setting": True},  # Added
             },
-            "extra_css_urls": ["/static/base.css", "/static/custom.css"],  # Appended
             "plugins": {"base_plugin": {"enabled": True}},  # Preserved
             "new_field": "new_value",  # Added
         },

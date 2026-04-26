@@ -1,0 +1,299 @@
+== Phase 3 Plan 04 — bring-up forensic log ==
+Started: 2026-04-21T10:15:24Z
+
+--- Pre-flight ---
+Plan 02 commit (Caddyfile mutation):
+ebf3f52 feat(03-02): flip Caddyfile to suffix-based routing (@datasette matcher + frontend catch-all)
+
+Plan 03 verifier present + executable:
+-rwxr-xr-x@ 1 houfu  staff  9400 21 Apr 18:10 scripts/verify_phase_03.sh
+
+Plan 01 parameterized parity script:
+10:BASELINE_DIR="${ZEEKER_BASELINE_DIR:-$(git rev-parse --show-toplevel)/.planning/baselines/phase-03-pre}"
+
+--- Pre-restart docker compose ps ---
+NAME               IMAGE                               COMMAND                  SERVICE            CREATED       STATUS                 PORTS
+zeeker-caddy       caddy:2.11.2-alpine                 "caddy run --config …"   caddy              7 hours ago   Up 7 hours (healthy)   0.0.0.0:80->80/tcp, [::]:80->80/tcp, 0.0.0.0:443->443/tcp, [::]:443->443/tcp, 0.0.0.0:443->443/udp, [::]:443->443/udp
+zeeker-datasette   zeeker-datasette-zeeker-datasette   "/app/entrypoint.sh"     zeeker-datasette   7 hours ago   Up 7 hours (healthy)   8001/tcp
+zeeker-frontend    zeeker-datasette-frontend           "uv run uvicorn zeek…"   frontend           7 hours ago   Up 7 hours (healthy)   8000/tcp
+
+--- Pre-restart state JSON capture ---
+{"Command":"\"caddy run --config …\"","CreatedAt":"2026-04-21 11:11:45 +0800 +08","ExitCode":0,"Health":"healthy","ID":"0289765dd620","Image":"caddy:2.11.2-alpine","Labels":"com.docker.compose.project=zeeker-datasette,com.docker.compose.project.config_files=/Users/houfu/Projects/zeeker-datasette/docker-compose.yml,com.docker.compose.project.working_dir=/Users/houfu/Projects/zeeker-datasette,desktop.docker.io/ports/443/tcp=:443,desktop.docker.io/ports/80/tcp=:80,com.docker.compose.config-hash=24a00fb0f0489c02c17186fb53bb0c741c929cb89a6c9a2bc4bfcf404257be76,com.docker.compose.container-number=1,com.docker.compose.version=5.1.0,desktop.docker.io/binds/0/SourceKind=hostFile,desktop.docker.io/binds/0/Target=/etc/caddy/Caddyfile,desktop.docker.io/ports.scheme=v2,org.opencontainers.image.description=a powerful, enterprise-ready, open source web server with automatic HTTPS written in Go,org.opencontainers.image.source=https://github.com/caddyserver/caddy-docker,com.docker.compose.service=caddy,org.opencontainers.image.documentation=https://caddyserver.com/docs,org.opencontainers.image.vendor=Light Code Labs,org.opencontainers.image.version=v2.11.2,com.docker.compose.depends_on=frontend:service_healthy:false,zeeker-datasette:service_healthy:false,com.docker.compose.image=sha256:834468128c7696cec0ceea6172f7d692daf645ae51983ca76e39da54a97c570d,desktop.docker.io/binds/0/Source=/Users/houfu/Projects/zeeker-datasette/Caddyfile,desktop.docker.io/ports/443/udp=:443,org.opencontainers.image.licenses=Apache-2.0,org.opencontainers.image.title=Caddy,org.opencontainers.image.url=https://caddyserver.com,com.docker.compose.oneoff=False","LocalVolumes":"2","Mounts":"/host_mnt/User…,zeeker-dataset…,zeeker-dataset…","Name":"zeeker-caddy","Names":"zeeker-caddy","Networks":"zeeker-datasette_default","Ports":"0.0.0.0:80-\u003e80/tcp, [::]:80-\u003e80/tcp, 0.0.0.0:443-\u003e443/tcp, [::]:443-\u003e443/tcp, 0.0.0.0:443-\u003e443/udp, [::]:443-\u003e443/udp","Project":"zeeker-datasette","Publishers":[{"URL":"0.0.0.0","TargetPort":80,"PublishedPort":80,"Protocol":"tcp"},{"URL":"::","TargetPort":80,"PublishedPort":80,"Protocol":"tcp"},{"URL":"0.0.0.0","TargetPort":443,"PublishedPort":443,"Protocol":"udp"},{"URL":"::","TargetPort":443,"PublishedPort":443,"Protocol":"udp"},{"URL":"0.0.0.0","TargetPort":443,"PublishedPort":443,"Protocol":"tcp"},{"URL":"::","TargetPort":443,"PublishedPort":443,"Protocol":"tcp"}],"RunningFor":"7 hours ago","Service":"caddy","Size":"0B","State":"running","Status":"Up 7 hours (healthy)"}
+{"Command":"\"/app/entrypoint.sh\"","CreatedAt":"2026-04-21 11:11:45 +0800 +08","ExitCode":0,"Health":"healthy","ID":"e77014161e7e","Image":"zeeker-datasette-zeeker-datasette","Labels":"com.docker.compose.project.config_files=/Users/houfu/Projects/zeeker-datasette/docker-compose.yml,desktop.docker.io/ports.scheme=v2,com.docker.compose.config-hash=595311eb1411179498d608f8a7a47ee288875129cf03c308f99cc53020b0085f,com.docker.compose.depends_on=,com.docker.compose.image=sha256:535b506494513ee0a9c1cb1a08f392b44c9d72bc8bbc470850a967d1d0233565,com.docker.compose.project=zeeker-datasette,com.docker.compose.project.working_dir=/Users/houfu/Projects/zeeker-datasette,com.docker.compose.service=zeeker-datasette,com.docker.compose.version=5.1.0,com.docker.compose.container-number=1,com.docker.compose.oneoff=False","LocalVolumes":"0","Mounts":"","Name":"zeeker-datasette","Names":"zeeker-datasette","Networks":"zeeker-datasette_default","Ports":"8001/tcp","Project":"zeeker-datasette","Publishers":[{"URL":"","TargetPort":8001,"PublishedPort":0,"Protocol":"tcp"}],"RunningFor":"7 hours ago","Service":"zeeker-datasette","Size":"0B","State":"running","Status":"Up 7 hours (healthy)"}
+{"Command":"\"uv run uvicorn zeek…\"","CreatedAt":"2026-04-21 11:11:45 +0800 +08","ExitCode":0,"Health":"healthy","ID":"237ee4186e5a","Image":"zeeker-datasette-frontend","Labels":"com.docker.compose.config-hash=d4a196b31d77783573e9bb5889e2bad8a30a20e2efe0438a3b0ed27294db2be9,com.docker.compose.container-number=1,com.docker.compose.depends_on=,com.docker.compose.image=sha256:f08b76af3b61cb14bdd7119b0b8947796cc23166e82690d6b87c710a4b854664,com.docker.compose.oneoff=False,com.docker.compose.project=zeeker-datasette,com.docker.compose.project.working_dir=/Users/houfu/Projects/zeeker-datasette,com.docker.compose.service=frontend,com.docker.compose.project.config_files=/Users/houfu/Projects/zeeker-datasette/docker-compose.yml,com.docker.compose.version=5.1.0,desktop.docker.io/ports.scheme=v2","LocalVolumes":"0","Mounts":"","Name":"zeeker-frontend","Names":"zeeker-frontend","Networks":"zeeker-datasette_default","Ports":"8000/tcp","Project":"zeeker-datasette","Publishers":[{"URL":"","TargetPort":8000,"PublishedPort":0,"Protocol":"tcp"}],"RunningFor":"7 hours ago","Service":"frontend","Size":"0B","State":"running","Status":"Up 7 hours (healthy)"}
+
+--- docker compose restart caddy ---
+ Container zeeker-caddy Restarting 
+ Container zeeker-caddy Started 
+exit code: 0
+
+--- Wait-healthy poll ---
+  poll 1: 3/3 healthy
+
+--- Post-restart docker compose ps ---
+NAME               IMAGE                               COMMAND                  SERVICE            CREATED       STATUS                   PORTS
+zeeker-caddy       caddy:2.11.2-alpine                 "caddy run --config …"   caddy              7 hours ago   Up 5 seconds (healthy)   0.0.0.0:80->80/tcp, [::]:80->80/tcp, 0.0.0.0:443->443/tcp, [::]:443->443/tcp, 0.0.0.0:443->443/udp, [::]:443->443/udp
+zeeker-datasette   zeeker-datasette-zeeker-datasette   "/app/entrypoint.sh"     zeeker-datasette   7 hours ago   Up 7 hours (healthy)     8001/tcp
+zeeker-frontend    zeeker-datasette-frontend           "uv run uvicorn zeek…"   frontend           7 hours ago   Up 7 hours (healthy)     8000/tcp
+
+--- Inside-container Caddyfile head (bind-mount sanity) ---
+# zeeker-datasette — root Caddyfile
+#
+# Phase 3 of milestone M2 (Frontend / API Split).
+# Role: suffix-based router. Caddy decides upstream by URL pattern.
+#
+#   *.json | *.csv | *.db | /-/*   →  zeeker-datasette:8001 (data API)
+#   everything else                →  frontend:8000 (HTML; mostly 404 until
+#                                     Phase 4-6 port routes)
+#
+# Source: caddyserver.com/docs/caddyfile/matchers ("Multiple paths will be
+#   OR'ed together"; *.suffix = "suffix match"; /prefix/* = "prefix match")
+# Used by: docker-compose.yml caddy service, volume-mounted at
+#   /etc/caddy/Caddyfile:ro
+# DNS: relies on Compose's default project bridge network resolving
+#   `zeeker-datasette` and `frontend` to container IPs.
+#
+# NOTE: /-/* is the datasette-reserved URL prefix. Frontend handlers
+# MUST NOT register routes under /-/ because the @datasette matcher
+# claims the entire prefix.
+{
+	# Local dev / phase 3: plain HTTP only. Production overlay
+	# (docker-compose.prod.yml, future) will enable auto-HTTPS at the
+	# real hostname data.zeeker.sg by adding a hostname site block
+	# alongside this :80 block.
+	auto_https off
+
+	# Admin endpoint (default localhost:2019) stays internal to the
+	# container. docker-compose.yml does NOT publish :2019 so this is
+	# only reachable via `docker compose exec caddy ...` or the
+	# container's own healthcheck.
+
+--- Confirm @datasette matcher visible in-container ---
+  OK: @datasette matcher visible to container
+
+--- bash scripts/verify_phase_03.sh ---
+== Phase 3 verifier ==
+
+A. Caddyfile validates
+  OK    Caddyfile passes caddy validate
+
+B. Phase-2 topology invariants (delegating to verify_phase_02.sh)
+== Phase 2 verifier ==
+
+1. Compose config validates
+  OK    docker compose config -q
+
+2. REQ-internal-only-datasette-exposure: zeeker-datasette has no ports:
+  OK    datasette has no host port mapping
+
+3. REQ-internal-only-datasette-exposure: only caddy publishes ports at runtime
+  FAIL  non-caddy services publishing ports: frontend
+zeeker-datasette
+
+4. REQ-frontend-data-via-http: no sqlite3 binary in frontend
+  OK    no sqlite3 in frontend container
+
+5. REQ-frontend-data-via-http: frontend has no /data mount
+  OK    frontend has no /data mount
+
+6. REQ-frontend-data-via-http: pyproject.toml has no sqlite/datasette deps
+  OK    no sqlite/datasette deps in frontend pyproject.toml
+
+7. REQ-incremental-migration: all three services healthy
+  OK    3/3 services healthy
+
+8. Caddy can resolve datasette by name
+  OK    caddy DNS-resolves zeeker-datasette
+
+9. Frontend container responds internally on /frontend-test
+  OK    frontend /frontend-test returns 200 internally
+
+10. Phase-3 forward-compat: Caddy still routes /frontend-test to datasette (returns 404)
+  FAIL  expected 404 for /frontend-test via Caddy, got 200
+
+11. REQ-api-byte-parity: verify_api_parity.sh
+OK:               /-/metadata.json
+OK:               /-/plugins.json
+OK (structural):  /-/versions.json
+OK:               /sg-gov-newsrooms/_zeeker_schemas.json?_size=10
+OK:               /sg-gov-newsrooms/_zeeker_updates.json?_size=10
+OK:               /sg-gov-newsrooms.json?_size=10
+OK:               /sglawwatch/about_singapore_law.json?_size=10
+OK:               /sglawwatch/headlines.json?_size=10
+OK:               /sglawwatch.json?_size=10
+OK:               /zeeker-judgements/_zeeker_schemas.json?_size=10
+OK:               /zeeker-judgements/_zeeker_updates.json?_size=10
+OK:               /zeeker-judgements.json?_size=10
+
+REQ-api-byte-parity: PASS
+  OK    verify_api_parity.sh passed
+
+Phase 2 verifier: FAILURES — see above
+  FAIL  verify_phase_02.sh failed — see its output above; triage at Plan 04 checkpoint
+
+C. Positive routing (must reach datasette)
+  OK    /-/versions.json → datasette ("datasette" present)
+  OK    /sglawwatch.json → datasette ("tables" present)
+  OK    /sglawwatch/headlines.json?_size=1 → datasette ("rows" present)
+  OK    /sglawwatch/headlines.csv?_size=1 → 200
+  OK    /sglawwatch.db → datasette (HTTP 403, not frontend-404)
+  OK    /-/sql → datasette (zeeker-base.css/datasette in body)
+  OK    /-/search → datasette (HTTP 200)
+
+D. Negative routing (HTML routes must return frontend 404, NOT datasette HTML)
+  OK    / → frontend 404 (correct)
+  OK    /sglawwatch → frontend 404 (correct)
+  OK    /sglawwatch/headlines → frontend 404 (correct)
+  OK    /sg-gov-newsrooms → frontend 404 (correct)
+  OK    /zeeker-judgements → frontend 404 (correct)
+  OK    /developers → frontend 404 (correct)
+  OK    /about → frontend 404 (correct)
+  OK    /how-to-use → frontend 404 (correct)
+  OK    /status → frontend 404 (correct)
+  OK    /sources → frontend 404 (correct)
+  OK    /sglawwatch/headlines/synthetic-row-id-not-real → frontend 404 (correct)
+
+E. Frontend /frontend-test still reachable
+  OK    /frontend-test → frontend OK
+
+F. Edge cases
+  OK    multi-dot+query .json → 200
+  OK    HEAD/GET symmetric (200)
+  OK    uppercase .JSON also routes to datasette (case-insensitive)
+  OK    CORS preserved: Access-Control-Allow-Origin: *
+
+G. API byte-parity vs .planning/baselines/phase-03-pre/
+OK:               /-/metadata.json
+OK:               /-/plugins.json
+OK (structural):  /-/versions.json
+OK:               /sg-gov-newsrooms/_zeeker_schemas.json?_size=10
+OK:               /sg-gov-newsrooms/_zeeker_updates.json?_size=10
+OK:               /sg-gov-newsrooms.json?_size=10
+OK:               /sglawwatch/about_singapore_law.json?_size=10
+OK:               /sglawwatch/headlines.json?_size=10
+OK:               /sglawwatch.json?_size=10
+OK:               /zeeker-judgements/_zeeker_schemas.json?_size=10
+OK:               /zeeker-judgements/_zeeker_updates.json?_size=10
+OK:               /zeeker-judgements.json?_size=10
+
+REQ-api-byte-parity: PASS
+  OK    verify_api_parity.sh against phase-03-pre
+
+Phase 3 verifier: FAILURES — see above
+
+exit code: 1 (PASS if 0; FAIL if non-zero)
+
+Completed: 2026-04-21T10:15:48Z
+
+================================================================
+POST-FIX RE-RUN (after retiring stale checks in verify_phase_02.sh)
+Timestamp: 2026-04-21T10:57:06Z
+================================================================
+== Phase 3 verifier ==
+
+A. Caddyfile validates
+  OK    Caddyfile passes caddy validate
+
+B. Phase-2 topology invariants (delegating to verify_phase_02.sh)
+== Phase 2 verifier ==
+
+1. Compose config validates
+  OK    docker compose config -q
+
+2. REQ-internal-only-datasette-exposure: zeeker-datasette has no ports:
+  OK    datasette has no host port mapping
+
+3. REQ-internal-only-datasette-exposure: only caddy publishes ports at runtime
+  OK    only caddy publishes ports
+
+4. REQ-frontend-data-via-http: no sqlite3 binary in frontend
+  OK    no sqlite3 in frontend container
+
+5. REQ-frontend-data-via-http: frontend has no /data mount
+  OK    frontend has no /data mount
+
+6. REQ-frontend-data-via-http: pyproject.toml has no sqlite/datasette deps
+  OK    no sqlite/datasette deps in frontend pyproject.toml
+
+7. REQ-incremental-migration: all three services healthy
+  OK    3/3 services healthy
+
+8. Caddy can resolve datasette by name
+  OK    caddy DNS-resolves zeeker-datasette
+
+9. Frontend container responds internally on /frontend-test
+  OK    frontend /frontend-test returns 200 internally
+
+10. REQ-suffix-routing-contract: Caddy routes /frontend-test to frontend (returns 200 with placeholder JSON)
+  OK    /frontend-test via Caddy returns 200 from frontend with placeholder JSON (suffix routing active)
+
+11. REQ-api-byte-parity: verify_api_parity.sh
+OK:               /-/metadata.json
+OK:               /-/plugins.json
+OK (structural):  /-/versions.json
+OK:               /sg-gov-newsrooms/_zeeker_schemas.json?_size=10
+OK:               /sg-gov-newsrooms/_zeeker_updates.json?_size=10
+OK:               /sg-gov-newsrooms.json?_size=10
+OK:               /sglawwatch/about_singapore_law.json?_size=10
+OK:               /sglawwatch/headlines.json?_size=10
+OK:               /sglawwatch.json?_size=10
+OK:               /zeeker-judgements/_zeeker_schemas.json?_size=10
+OK:               /zeeker-judgements/_zeeker_updates.json?_size=10
+OK:               /zeeker-judgements.json?_size=10
+
+REQ-api-byte-parity: PASS
+  OK    verify_api_parity.sh passed
+
+Phase 2 verifier: ALL GREEN
+  OK    verify_phase_02.sh passed (Phase-2 topology intact)
+
+C. Positive routing (must reach datasette)
+  OK    /-/versions.json → datasette ("datasette" present)
+  OK    /sglawwatch.json → datasette ("tables" present)
+  OK    /sglawwatch/headlines.json?_size=1 → datasette ("rows" present)
+  OK    /sglawwatch/headlines.csv?_size=1 → 200
+  OK    /sglawwatch.db → datasette (HTTP 403, not frontend-404)
+  OK    /-/sql → datasette (zeeker-base.css/datasette in body)
+  OK    /-/search → datasette (HTTP 200)
+
+D. Negative routing (HTML routes must return frontend 404, NOT datasette HTML)
+  OK    / → frontend 404 (correct)
+  OK    /sglawwatch → frontend 404 (correct)
+  OK    /sglawwatch/headlines → frontend 404 (correct)
+  OK    /sg-gov-newsrooms → frontend 404 (correct)
+  OK    /zeeker-judgements → frontend 404 (correct)
+  OK    /developers → frontend 404 (correct)
+  OK    /about → frontend 404 (correct)
+  OK    /how-to-use → frontend 404 (correct)
+  OK    /status → frontend 404 (correct)
+  OK    /sources → frontend 404 (correct)
+  OK    /sglawwatch/headlines/synthetic-row-id-not-real → frontend 404 (correct)
+
+E. Frontend /frontend-test still reachable
+  OK    /frontend-test → frontend OK
+
+F. Edge cases
+  OK    multi-dot+query .json → 200
+  OK    HEAD/GET symmetric (200)
+  OK    uppercase .JSON also routes to datasette (case-insensitive)
+  OK    CORS preserved: Access-Control-Allow-Origin: *
+
+G. API byte-parity vs .planning/baselines/phase-03-pre/
+OK:               /-/metadata.json
+OK:               /-/plugins.json
+OK (structural):  /-/versions.json
+OK:               /sg-gov-newsrooms/_zeeker_schemas.json?_size=10
+OK:               /sg-gov-newsrooms/_zeeker_updates.json?_size=10
+OK:               /sg-gov-newsrooms.json?_size=10
+OK:               /sglawwatch/about_singapore_law.json?_size=10
+OK:               /sglawwatch/headlines.json?_size=10
+OK:               /sglawwatch.json?_size=10
+OK:               /zeeker-judgements/_zeeker_schemas.json?_size=10
+OK:               /zeeker-judgements/_zeeker_updates.json?_size=10
+OK:               /zeeker-judgements.json?_size=10
+
+REQ-api-byte-parity: PASS
+  OK    verify_api_parity.sh against phase-03-pre
+
+Phase 3 verifier: ALL GREEN
+exit code: 0

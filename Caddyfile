@@ -1,0 +1,48 @@
+# zeeker-datasette — root Caddyfile
+#
+# Phase 3 of milestone M2 (Frontend / API Split).
+# Role: suffix-based router. Caddy decides upstream by URL pattern.
+#
+#   *.json | *.csv | *.db | /-/*   →  zeeker-datasette:8001 (data API)
+#   everything else                →  frontend:8000 (HTML; mostly 404 until
+#                                     Phase 4-6 port routes)
+#
+# Source: caddyserver.com/docs/caddyfile/matchers ("Multiple paths will be
+#   OR'ed together"; *.suffix = "suffix match"; /prefix/* = "prefix match")
+# Used by: docker-compose.yml caddy service, volume-mounted at
+#   /etc/caddy/Caddyfile:ro
+# DNS: relies on Compose's default project bridge network resolving
+#   `zeeker-datasette` and `frontend` to container IPs.
+#
+# NOTE: /-/* is the datasette-reserved URL prefix. Frontend handlers
+# MUST NOT register routes under /-/ because the @datasette matcher
+# claims the entire prefix.
+{
+	# Local dev / phase 3: plain HTTP only. Production overlay
+	# (docker-compose.prod.yml, future) will enable auto-HTTPS at the
+	# real hostname data.zeeker.sg by adding a hostname site block
+	# alongside this :80 block.
+	auto_https off
+
+	# Admin endpoint (default localhost:2019) stays internal to the
+	# container. docker-compose.yml does NOT publish :2019 so this is
+	# only reachable via `docker compose exec caddy ...` or the
+	# container's own healthcheck.
+	admin localhost:2019
+}
+
+:80 {
+	# Suffix matcher for the data-API surface. Two `path` lines are OR'd
+	# by Caddy (per caddyserver.com/docs/caddyfile/matchers); the first
+	# is suffix globs, the second is the /-/* prefix glob.
+	@datasette {
+		path *.json *.csv *.db
+		path /-/*
+	}
+	# Matched requests → datasette (data API).
+	reverse_proxy @datasette zeeker-datasette:8001
+	# Catch-all → frontend. Caddy auto-sorts the no-matcher directive
+	# last regardless of file order; we still write it second for
+	# human readability.
+	reverse_proxy frontend:8000
+}

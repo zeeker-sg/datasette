@@ -1,0 +1,16 @@
+# docker-compose.prod.yml — production overlay.
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# Changes vs base docker-compose.yml: ONLY the caddy service's volume
+# mount for the Caddyfile. Everything else (service structure, healthchecks,
+# depends_on, networks, env vars) is inherited unchanged. This is
+# intentional — the fewer knobs in prod-overlay, the fewer drift points.
+
+services:
+  caddy:
+    volumes:
+      - ./Caddyfile.prod:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config

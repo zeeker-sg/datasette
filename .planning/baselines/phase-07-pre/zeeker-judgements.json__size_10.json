@@ -1,0 +1,121 @@
+{
+  "database": "zeeker-judgements",
+  "private": false,
+  "path": "/zeeker-judgements",
+  "size": 71421952,
+  "tables": [
+    {
+      "name": "_zeeker_schemas",
+      "columns": [
+        "resource_name",
+        "schema_version",
+        "schema_hash",
+        "column_definitions",
+        "created_at",
+        "updated_at"
+      ],
+      "primary_keys": [
+        "resource_name"
+      ],
+      "count": 1,
+      "hidden": false,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "_zeeker_updates",
+      "columns": [
+        "resource_name",
+        "last_updated",
+        "record_count",
+        "build_id",
+        "duration_ms"
+      ],
+      "primary_keys": [
+        "resource_name"
+      ],
+      "count": 1,
+      "hidden": false,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "judgments",
+      "columns": [
+        "id",
+        "citation",
+        "case_name",
+        "case_numbers",
+        "decision_date",
+        "court",
+        "subject_tags",
+        "source_url",
+        "pdf_url",
+        "content_text",
+        "court_summary",
+        "summary",
+        "created_at",
+        "has_content",
+        "has_court_summary",
+        "fragment_count",
+        "extracted_at",
+        "summary_generated_at"
+      ],
+      "primary_keys": [],
+      "count": 10508,
+      "hidden": false,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "judgments_fragments",
+      "columns": [
+        "id",
+        "judgment_id",
+        "ordinal",
+        "paragraph_number",
+        "class_name",
+        "section_heading",
+        "content_text",
+        "html_raw",
+        "footnote_text",
+        "has_footnotes",
+        "has_table",
+        "has_figure",
+        "figure_src",
+        "figure_descriptions"
+      ],
+      "primary_keys": [
+        "id"
+      ],
+      "count": 31032,
+      "hidden": false,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    }
+  ],
+  "hidden_count": 0,
+  "views": [],
+  "queries": [],
+  "allow_execute_sql": true,
+  "source": "Various curated sources",
+  "source_url": "https://data.zeeker.sg/sources",
+  "license": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/"
+}

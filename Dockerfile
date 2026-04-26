@@ -26,18 +26,23 @@ RUN if [ -f "uv.lock" ]; then \
 # Copy all scripts (including enhanced asset management)
 COPY scripts/ ./scripts/
 
-# Copy base templates, static files, and plugins
-COPY templates/ ./templates/
-COPY static/ ./static/
-COPY plugins/ ./plugins/
+# Copy surviving plugins (Phase-7 prune narrowed to cache_headers + __init__).
+# templates/ and static/ are no longer copied — the frontend service owns
+# HTML rendering. The plugins/ COPY is whitelisted so an accidental
+# restoration of plugins/<deleted-file>.py at the top level (e.g. via
+# rebase) does not silently re-introduce UI plugins into the image.
+COPY plugins/__init__.py ./plugins/__init__.py
+COPY plugins/cache_headers.py ./plugins/cache_headers.py
 
 # Copy base metadata configuration
 COPY metadata.json .
 
-# Create directories for asset management
+# Create directories for asset management (Phase-7 prune narrowed to /data
+# (load-bearing — entrypoint.sh greps /data for *.db) + /app/plugins (the
+# COPY destination). /app/templates + /app/static/databases removed because
+# the frontend service owns those surfaces; datasette tolerates missing
+# --template-dir / --static directories at boot.
 RUN mkdir -p /data \
-    && mkdir -p /app/templates \
-    && mkdir -p /app/static/databases \
     && mkdir -p /app/plugins
 
 # Environment variables

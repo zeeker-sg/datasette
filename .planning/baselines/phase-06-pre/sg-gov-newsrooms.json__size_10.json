@@ -1,0 +1,236 @@
+{
+  "database": "sg-gov-newsrooms",
+  "private": false,
+  "path": "/sg-gov-newsrooms",
+  "size": 8814592,
+  "tables": [
+    {
+      "name": "_zeeker_schemas",
+      "columns": [
+        "resource_name",
+        "schema_version",
+        "schema_hash",
+        "column_definitions",
+        "created_at",
+        "updated_at"
+      ],
+      "primary_keys": [
+        "resource_name"
+      ],
+      "count": 8,
+      "hidden": false,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "_zeeker_updates",
+      "columns": [
+        "resource_name",
+        "last_updated",
+        "record_count",
+        "build_id",
+        "duration_ms"
+      ],
+      "primary_keys": [
+        "resource_name"
+      ],
+      "count": 8,
+      "hidden": false,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "acra_news",
+      "columns": [
+        "id",
+        "source_url",
+        "category",
+        "title",
+        "published_date",
+        "content_text",
+        "summary",
+        "created_at"
+      ],
+      "primary_keys": [],
+      "count": 362,
+      "hidden": false,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "agc_news",
+      "columns": [
+        "id",
+        "source_url",
+        "category",
+        "title",
+        "published_date",
+        "content_text",
+        "summary",
+        "created_at"
+      ],
+      "primary_keys": [],
+      "count": 294,
+      "hidden": false,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "ccs_news",
+      "columns": [
+        "id",
+        "source_url",
+        "category",
+        "title",
+        "published_date",
+        "content_text",
+        "summary",
+        "created_at"
+      ],
+      "primary_keys": [],
+      "count": 10,
+      "hidden": false,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "ipos_news",
+      "columns": [
+        "id",
+        "source_url",
+        "category",
+        "title",
+        "published_date",
+        "content_text",
+        "summary",
+        "created_at"
+      ],
+      "primary_keys": [],
+      "count": 10,
+      "hidden": false,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "judiciary_news",
+      "columns": [
+        "id",
+        "source_url",
+        "title",
+        "published_date",
+        "content_type",
+        "courts",
+        "content_text",
+        "summary",
+        "created_at"
+      ],
+      "primary_keys": [],
+      "count": 28,
+      "hidden": false,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "mlaw_news",
+      "columns": [
+        "id",
+        "source_url",
+        "category",
+        "title",
+        "published_date",
+        "content_text",
+        "summary",
+        "created_at"
+      ],
+      "primary_keys": [],
+      "count": 14,
+      "hidden": false,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "mom_news",
+      "columns": [
+        "id",
+        "source_url",
+        "category",
+        "title",
+        "published_date",
+        "content_text",
+        "summary",
+        "created_at"
+      ],
+      "primary_keys": [],
+      "count": 18,
+      "hidden": false,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    },
+    {
+      "name": "pdpc_news",
+      "columns": [
+        "id",
+        "source_url",
+        "category",
+        "title",
+        "published_date",
+        "content_text",
+        "summary",
+        "created_at"
+      ],
+      "primary_keys": [],
+      "count": 2,
+      "hidden": false,
+      "fts_table": null,
+      "foreign_keys": {
+        "incoming": [],
+        "outgoing": []
+      },
+      "private": false
+    }
+  ],
+  "hidden_count": 0,
+  "views": [],
+  "queries": [],
+  "allow_execute_sql": true,
+  "source": "Various curated sources",
+  "source_url": "https://data.zeeker.sg/sources",
+  "license": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/"
+}

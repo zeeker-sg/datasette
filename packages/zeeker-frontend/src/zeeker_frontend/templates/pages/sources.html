@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block head %}
+<meta name="description" content="Data sources, attribution, and licensing for data.zeeker.sg">
+{% endblock %}
+
+{% block title %}Data sources — data.zeeker.sg{% endblock %}
+
+{% block content %}
+<div class="container">
+  <header class="guide-hero">
+    <div class="kicker">№ 01 · SOURCES</div>
+    <h1>Data <em>sources</em></h1>
+    <p class="lede">Where the data comes from and how it is collected.</p>
+  </header>
+
+  {# Data Collection -------------------------------------------- #}
+  <section class="aux-card">
+    <h2>Data Collection</h2>
+    <p>
+      Zeeker aggregates information from various sources. All data collection respects
+      robots.txt and terms of service.
+    </p>
+    <p>
+      Data is automatically processed, structured, and made searchable while maintaining
+      links to original sources where possible.
+    </p>
+  </section>
+
+  {# Current Databases ----------------------------------------- #}
+  {% if databases %}
+  {% for db in databases %}
+  <section class="aux-card">
+    <h3>
+      <a href="/{{ db.name }}">{{ db.title or db.name|title }}</a>
+    </h3>
+
+    <div class="database-meta">
+      <span class="table-count">{{ db.table_count }} table{% if db.table_count != 1 %}s{% endif %}</span>
+      {% if db.size %}
+      <span class="database-size">{{ db.size|filesizeformat }}</span>
+      {% endif %}
+    </div>
+
+    {% if db.description %}
+    <p>{{ db.description }}</p>
+    {% endif %}
+
+    {% if db.source_url %}
+    <p><strong>Source:</strong> <a href="{{ db.source_url }}" target="_blank" rel="noopener">{{ db.source_url }}</a></p>
+    {% endif %}
+
+    {% if db.license %}
+    <p><strong>License:</strong>
+      {% if db.license_url %}
+      <a href="{{ db.license_url }}" target="_blank" rel="noopener">{{ db.license }}</a>
+      {% else %}
+      {{ db.license }}
+      {% endif %}
+    </p>
+    {% endif %}
+
+    {% if db.tables %}
+    <div class="table-preview">
+      <h4>Available Tables</h4>
+      <ul>
+        {% for table in db.tables[:5] if not table.name.startswith('_zeeker') %}
+        <li>
+          <a href="/{{ db.name }}/{{ table.name }}">{{ table.name|title }}</a>
+          {% if table.count is not none %}
+          <span class="row-count">({{ "{:,}".format(table.count) }} rows)</span>
+          {% endif %}
+        </li>
+        {% endfor %}
+        {% if db.tables|length > 5 %}
+        <li><em>…and {{ db.tables|length - 5 }} more</em></li>
+        {% endif %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <div class="sources-meta">
+      <a href="/{{ db.name }}" class="btn">Explore Database</a>
+      <a href="/{{ db.name }}.json" class="btn btn-secondary">JSON</a>
+    </div>
+  </section>
+  {% endfor %}
+
+  {% else %}
+  <section class="aux-card">
+    <h2>No databases available yet</h2>
+    <p>Data will appear here once databases are synchronized.</p>
+  </section>
+  {% endif %}
+
+  {# Licensing --------------------------------------------------- #}
+  <section class="aux-card">
+    <h2>Licensing and Attribution</h2>
+    <p>
+      All original sources are credited and linked where available. The database serves as
+      an access layer that enhances discoverability while respecting original licensing.
+    </p>
+    <p>
+      <strong>Zeeker Database:</strong> Available under Creative Commons Attribution (CC-BY-4.0)
+    </p>
+  </section>
+
+  {# Updates and Quality ---------------------------------------- #}
+  <section class="aux-card">
+    <h2>Updates and Quality</h2>
+    <p>
+      <strong>Data Freshness:</strong> Most sources update daily or as new information becomes available<br>
+      <strong>Processing:</strong> Automated collection with manual quality checks<br>
+      <strong>Validation:</strong> Cross-referencing with official sources when possible
+    </p>
+    <p>
+      The goal is accuracy and completeness while maintaining reasonable update frequency
+      for an independent project.
+    </p>
+  </section>
+
+  {# Footer CTA -------------------------------------------------- #}
+  <section class="aux-card centered">
+    <h2>Questions?</h2>
+    <p>Questions about data sources, attribution, or access?</p>
+    <div class="cta-actions">
+      <a href="/how-to-use" class="btn btn-primary">How to Use</a>
+      <a href="/about" class="btn btn-secondary">Learn More</a>
+    </div>
+  </section>
+</div>
+{% endblock %}

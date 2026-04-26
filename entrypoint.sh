@@ -19,12 +19,17 @@ echo "Available databases:"
 ls -la /data
 
 # Start Datasette with immutable flag
+# Phase-7 prune: --template-dir /app/templates and --static static:/app/static
+# flags removed because Plan 07-04 deleted the corresponding top-level
+# directories. Datasette 0.65.2 does NOT gracefully handle a missing
+# --template-dir (it errors `Invalid value for '--template-dir': Directory
+# '/app/templates' does not exist.`); the same applies to --static. The
+# frontend service now owns all HTML rendering + static assets, so neither
+# flag is needed by the datasette image.
 echo "Starting Datasette in immutable mode"
 exec uv run datasette serve --host 0.0.0.0 --port 8001 \
     --metadata /app/metadata.json \
-    --template-dir /app/templates \
     --plugins-dir /app/plugins \
-    --static static:/app/static \
     --cors \
     --immutable \
     $(ls /data/*.db)

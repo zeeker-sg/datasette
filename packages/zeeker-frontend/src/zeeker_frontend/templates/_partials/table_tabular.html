@@ -1,0 +1,33 @@
+{# Tabular grid — sketch 002-B baseline; D-04 fallback. Sortable headers. #}
+<table class="data-table">
+  <thead>
+    <tr>
+      {% for col in columns %}
+      {% set is_active_asc = (current_sort_col == col and current_sort_dir == "asc") %}
+      {% set is_active_desc = (current_sort_col == col and current_sort_dir == "desc") %}
+      {% set state = "asc" if is_active_asc else ("desc" if is_active_desc else None) %}
+      {% set sort_href = set_sort("/" ~ database ~ "/" ~ table, request_qs, col, state) %}
+      <th class="{% if col in primary_keys %}pk{% endif %} {% if is_active_asc or is_active_desc %}sorted{% endif %}">
+        <a href="{{ sort_href }}">{{ col }}{% if is_active_asc %} ↑{% elif is_active_desc %} ↓{% endif %}</a>
+      </th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in rows %}
+      {% set pk_value = row[primary_keys[0]] if primary_keys else row.get("rowid") %}
+      {% set href = ("/" ~ database ~ "/" ~ table ~ "/" ~ tilde_encode(pk_value|string)) if pk_value is not none else "" %}
+      <tr>
+        {% for col in columns %}
+          <td class="{% if col in primary_keys %}pk{% endif %}">
+            {% if loop.first and href %}
+              <a href="{{ href }}">{{ row[col] }}</a>
+            {% else %}
+              {{ row[col] }}
+            {% endif %}
+          </td>
+        {% endfor %}
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>

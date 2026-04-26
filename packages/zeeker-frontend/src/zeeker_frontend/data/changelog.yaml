@@ -1,0 +1,45 @@
+# /status timeline — public-facing milestones.
+#
+# Editorial principle: each entry should answer "what's new for someone
+# reading or searching the data?" Pure infrastructure work (build
+# pipelines, deployment topology, framework migrations under the hood)
+# stays out — but a fresh design or a new way to query the data IS
+# user-facing and belongs here. Consolidate where it makes sense; don't
+# pad with engineering churn.
+#
+# Schema:
+#   date         -- ISO-8601 string (quoted); loader sorts desc, latest first
+#   type         -- one of feature | data
+#   title        -- short headline
+#   description  -- one or two sentences, plain language
+
+recent_updates:
+  - date: "2025-05-16"
+    type: "data"
+    title: "Singapore legal news goes online"
+    description: "Editor-curated headlines from Singapore's legal news sources begin compiling daily — title, source, publication date, a short summary, and full text for every story."
+
+  - date: "2025-06-09"
+    type: "feature"
+    title: "data.zeeker.sg launches"
+    description: "The site goes live. Alongside the daily legal news, a reference shelf of articles on Singapore law is available at launch — about forty topics, with searchable fragments."
+
+  - date: "2026-04-13"
+    type: "data"
+    title: "Singapore government newsrooms come online"
+    description: "Press releases, speeches, and announcements from several Singapore government agencies — covering law, the judiciary, intellectual property, competition policy, corporate regulation, and manpower — start being collected and made searchable from 2026 onwards."
+
+  - date: "2026-04-18"
+    type: "data"
+    title: "Singapore court judgments come online"
+    description: "More than ten thousand Singapore court judgments — title, court, date, parties, case number, and an AI-written summary — are now searchable on the site. Daily incremental updates run as new rulings are published."
+
+  - date: "2026-04-22"
+    type: "feature"
+    title: "Fresh look across the site"
+    description: "A new civic-broadsheet design rolls out — large display typography, a slower reading rhythm for individual stories, and clearer breadcrumb wayfinding so you always know where you are."
+
+  - date: "2026-04-26"
+    type: "feature"
+    title: "Search every database, write your own SQL"
+    description: "Two new tools join the site. /search runs a full-text search across every database from one box. /sql gives each database its own query editor with worked examples, a schema reference, and exports to CSV or JSON."

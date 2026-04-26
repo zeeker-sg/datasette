@@ -1,0 +1,37 @@
+# Production Caddyfile for data.zeeker.sg (M2 Phase 4).
+#
+# Differs from the dev Caddyfile in TWO ways only:
+#   1. No `auto_https off` — Caddy auto-provisions a TLS cert from
+#      Let's Encrypt for the named `data.zeeker.sg` site block.
+#   2. Named site block `data.zeeker.sg { ... }` replaces the bare
+#      `:80 { ... }` so Caddy binds to the hostname and issues the cert.
+#
+# Suffix-routing contract is IDENTICAL to the dev Caddyfile (Phase 3).
+# Byte-for-byte the same @datasette matcher + the same reverse_proxy
+# order. This is load-bearing — API parity (REQ-api-byte-parity)
+# depends on zero routing drift between dev and prod.
+
+{
+    # auto_https is ON by default when a hostname is named.
+    # Admin endpoint stays internal.
+    admin localhost:2019
+}
+
+data.zeeker.sg {
+    # Same suffix matcher as dev. `path *.json *.csv *.db` + `path /-/*`
+    # are OR'd per caddyserver.com/docs/caddyfile/matchers.
+    @datasette {
+        path *.json *.csv *.db
+        path /-/*
+    }
+    # Matched requests → datasette (data API — unchanged from Phase 3).
+    reverse_proxy @datasette zeeker-datasette:8001
+    # Catch-all → frontend (HTML — populated by Phase 4 for / and /{db}).
+    reverse_proxy frontend:8000
+}
+
+# Bare-IP and unknown-host traffic on :80 → redirect to the canonical
+# HTTPS hostname. Also catches the Phase-3-era direct-IP smoke tests.
+:80 {
+    redir https://data.zeeker.sg{uri} permanent
+}
