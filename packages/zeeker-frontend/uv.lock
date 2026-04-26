@@ -1132,6 +1132,7 @@ dependencies = [
     { name = "fastapi", extra = ["standard"] },
     { name = "httpx" },
     { name = "jinja2" },
+    { name = "pyyaml" },
     { name = "uvicorn", extra = ["standard"] },
 ]
 
@@ -1149,6 +1150,7 @@ requires-dist = [
     { name = "fastapi", extras = ["standard"], specifier = "==0.136.0" },
     { name = "httpx", specifier = "==0.28.1" },
     { name = "jinja2", specifier = "==3.1.6" },
+    { name = "pyyaml", specifier = ">=6.0,<7.0" },
     { name = "uvicorn", extras = ["standard"], specifier = "==0.44.0" },
 ]
 
