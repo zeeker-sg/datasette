@@ -54,3 +54,20 @@ def test_load_changelog_filters_entries_without_date(tmp_path, monkeypatch):
     items = load_changelog()
     assert len(items) == 1
     assert items[0]["title"] == "Good entry"
+
+
+def test_load_changelog_sorts_by_date_descending(tmp_path, monkeypatch):
+    """/status surface needs latest first regardless of YAML file order."""
+    yaml_file = tmp_path / "changelog.yaml"
+    yaml_file.write_text(
+        "recent_updates:\n"
+        "  - date: '2025-06-09'\n"
+        "    title: oldest\n"
+        "  - date: '2026-04-26'\n"
+        "    title: newest\n"
+        "  - date: '2026-04-21'\n"
+        "    title: middle\n"
+    )
+    monkeypatch.setattr("zeeker_frontend.changelog._DATA_DIR", tmp_path)
+    items = load_changelog()
+    assert [i["title"] for i in items] == ["newest", "middle", "oldest"]

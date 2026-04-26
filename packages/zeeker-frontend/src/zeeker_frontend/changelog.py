@@ -36,6 +36,9 @@ def load_changelog() -> list[dict]:
     try:
         doc = yaml.safe_load(p.read_text()) or {}
         items = doc.get("recent_updates") or []
-        return [i for i in items if isinstance(i, dict) and "date" in i]
+        valid = [i for i in items if isinstance(i, dict) and "date" in i]
+        # Sort by date desc — ISO-8601 strings sort lexically, so str(date) suffices
+        # whether YAML parsed the field as a date or kept it as a string.
+        return sorted(valid, key=lambda i: str(i["date"]), reverse=True)
     except Exception:
         return []
