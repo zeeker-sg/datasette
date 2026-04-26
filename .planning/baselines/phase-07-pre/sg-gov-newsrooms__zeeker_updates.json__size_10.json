@@ -1,0 +1,103 @@
+{
+  "database": "sg-gov-newsrooms",
+  "table": "_zeeker_updates",
+  "is_view": false,
+  "human_description_en": "",
+  "rows": [
+    [
+      "acra_news",
+      "2026-04-26T05:03:39.734751",
+      362,
+      "build_20260426_050337",
+      280
+    ],
+    [
+      "agc_news",
+      "2026-04-26T05:03:39.175970",
+      294,
+      "build_20260426_050337",
+      195
+    ],
+    [
+      "ccs_news",
+      "2026-04-26T05:03:39.449180",
+      10,
+      "build_20260426_050337",
+      147
+    ],
+    [
+      "ipos_news",
+      "2026-04-26T05:03:39.298318",
+      10,
+      "build_20260426_050337",
+      118
+    ],
+    [
+      "judiciary_news",
+      "2026-04-26T05:03:38.976260",
+      28,
+      "build_20260426_050337",
+      229
+    ],
+    [
+      "mlaw_news",
+      "2026-04-26T05:03:38.723712",
+      14,
+      "build_20260426_050337",
+      1332
+    ],
+    [
+      "mom_news",
+      "2026-04-26T05:03:40.480364",
+      18,
+      "build_20260426_050337",
+      741
+    ],
+    [
+      "pdpc_news",
+      "2026-04-26T05:03:40.576470",
+      2,
+      "build_20260426_050337",
+      91
+    ]
+  ],
+  "truncated": false,
+  "filtered_table_rows_count": 8,
+  "expanded_columns": [],
+  "expandable_columns": [],
+  "columns": [
+    "resource_name",
+    "last_updated",
+    "record_count",
+    "build_id",
+    "duration_ms"
+  ],
+  "primary_keys": [
+    "resource_name"
+  ],
+  "units": {},
+  "query": {
+    "sql": "select resource_name, last_updated, record_count, build_id, duration_ms from _zeeker_updates order by resource_name limit 11",
+    "params": {}
+  },
+  "facet_results": {},
+  "suggested_facets": [
+    {
+      "name": "record_count",
+      "toggle_url": "http://localhost/sg-gov-newsrooms/_zeeker_updates.json?_size=10&_facet=record_count"
+    },
+    {
+      "name": "last_updated",
+      "type": "date",
+      "toggle_url": "http://localhost/sg-gov-newsrooms/_zeeker_updates.json?_size=10&_facet_date=last_updated"
+    }
+  ],
+  "next": null,
+  "next_url": null,
+  "private": false,
+  "allow_execute_sql": true,
+  "source": "Various curated sources",
+  "source_url": "https://data.zeeker.sg/sources",
+  "license": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/"
+}
