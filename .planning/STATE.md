@@ -3,24 +3,29 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-26T01:38:20.015Z"
+last_updated: "2026-04-26T01:46:26.596Z"
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 26
-  completed_plans: 20
-  percent: 77
+  completed_plans: 21
+  percent: 81
 ---
 
 ## Phase 6: Port auxiliary pages — IN PROGRESS
 
 **Plan 06-01 SHIPPED 2026-04-26** — Wave-0 scaffolding: pyyaml dep declared (`6f57d73`), M1 changelog YAML ported with 8 entries (2 verbatim + 6 Phase 2-5 milestones to satisfy ≥8 acceptance gate, `8794947`), four Datasette JSON fixtures (FTS-discovery, FTS row-results, metadata-with-canned-queries, sql-error-400), and 32 collectable test stubs across 5 files for Plans 02-05 to fill in (`c3e9b0f`). Mitigates T-06-01-01/02/03. Full suite 116 passed + 32 newly skipped, 0 errors.
 
+**Plan 06-02 SHIPPED 2026-04-26** — Wave-1 datasette_client extensions + changelog loader: three async helpers appended to `datasette_client.py` (`discover_searchable_tables` filters hidden + `_zeeker_*` prefix, `search_table` always sends `_shape=objects`, `execute_sql` reads body BEFORE raise_for_status() on 400 to preserve Datasette's friendly error and binds params via `_param_<name>` URL keys never SQL concat — `c9dec09` test, `d7ed1a9` feat); new `changelog.py` module uses `yaml.safe_load` only with bare-except boot tolerance (`7b03538` test, `82436e5` feat); main.py lifespan extended +2 imports +2 populate calls so `app.state.searchable_tables` and `app.state.changelog` are cached for process lifetime, both helpers degrading to empty containers on httpx error so boot survives a flaky datasette (`5296a21`). Full suite 129 passed + 19 skipped (Plans 03-05 stubs remaining), 0 regressions in Phase 4-5. Mitigates T-06-02-01..05.
+
 **Phase 6 decisions accumulated**
 
 - **Wave-0 fixture + stub ahead of handler** — fixtures and pytest-collectable test stubs land in a single commit BEFORE Plans 02-05 ship handler code, so each subsequent plan ships pure RED-then-GREEN diffs without test-inventory churn alongside production code.
 - **Skip-marker plan citation convention** — every `pytest.skip("Implementation pending - Plan 06-XX")` cites the plan number that owns the GREEN body. Greppable via `grep -r "Implementation pending - Plan 06-" tests/`.
 - **Frontend-owned data files** — `data/changelog.yaml` lives inside the `zeeker-frontend` package (not in `plugins/`) so Phase 7 deletion of `plugins/strings.yaml` stays safe. M1 verbatim entries occupy the head of the file; Phase 2-5 SHIPPED milestones backfill to satisfy `len >= 8`.
+- **Lifespan-cached probes (D-04, D-12)** — both `discover_searchable_tables` and `load_changelog` run once at boot and stash to `app.state`. Plans 03-05 read from `app.state.*` per request without re-querying datasette. Daily container restart = natural cache invalidation. Boot tolerance is mandatory — both helpers return empty containers on failure (Pitfall 10).
+- **Body-before-raise_for_status idiom (Pitfall 1)** — load-bearing for `execute_sql` and any future `/sql` POST handler. Datasette returns 400 with a populated `error` field on bad SQL; `r.raise_for_status()` BEFORE reading the body discards Datasette's friendly message. The pattern is now applied in `execute_sql` and exercised by `test_execute_sql_400_returns_friendly_error`.
+- **TDD per Phase 6 task** — every Wave-1+ task with `tdd="true"` ships RED commit + GREEN commit (exact 2-commit pair). The Plan 01 stub-inventory pattern enables this without modifying the test inventory file alongside production code.
 
 ## Phase 3: Flip suffix-based routing — SHIPPED 2026-04-21
 
