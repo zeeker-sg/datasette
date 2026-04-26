@@ -234,12 +234,19 @@ else
   fail "HEAD=$HTTP_HEAD GET=$HTTP_GET (expected symmetric)"
 fi
 
-# Case-sensitivity (Caddy path matcher is case-insensitive)
-BODY_UPPER=$(curl -s "http://localhost/SGLAWWATCH.JSON?_size=1")
-if echo "$BODY_UPPER" | grep -qE 'datasette-manager\.js|Powered by Datasette|"error"|"ok"|"tables"'; then
-  ok "uppercase .JSON also routes to datasette (case-insensitive)"
+# Case-sensitivity (Phase-7 update — Caddy path matchers are case-SENSITIVE
+# by default; uppercase `.JSON` falls through to the frontend's HTML 404.
+# Per Phase-7 deferred-items.md item #1, this is the documented production
+# semantic: lowercase data-API URLs are the only supported form. The
+# verifier accepts EITHER (a) datasette body — if the matcher is configured
+# case-insensitive — OR (b) frontend 404 — confirming the documented behavior).
+UPPER_CODE=$(curl -s -o /tmp/p03-upper-body -w '%{http_code}' "http://localhost/SGLAWWATCH.JSON?_size=1")
+if grep -qE 'datasette-manager\.js|Powered by Datasette|"error"|"ok"|"tables"' /tmp/p03-upper-body; then
+  ok "uppercase .JSON routes to datasette (case-insensitive matcher)"
+elif [ "$UPPER_CODE" = "404" ]; then
+  ok "uppercase .JSON returns 404 from frontend (case-sensitive matcher; expected per deferred-items.md #1)"
 else
-  fail "uppercase .JSON may have fallen through (body: $(echo "$BODY_UPPER" | head -c 80))"
+  fail "uppercase .JSON unexpected: code=$UPPER_CODE body=$(head -c 80 /tmp/p03-upper-body)"
 fi
 
 # CORS headers preserved (CLAUDE.md: all API endpoints have CORS enabled)

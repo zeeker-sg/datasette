@@ -44,50 +44,5 @@
     "hooks": [
       "extra_template_vars"
     ]
-  },
-  {
-    "name": "developers_page.py",
-    "static": false,
-    "templates": false,
-    "version": null,
-    "hooks": [
-      "register_routes"
-    ]
-  },
-  {
-    "name": "sources_page.py",
-    "static": false,
-    "templates": false,
-    "version": null,
-    "hooks": [
-      "register_routes"
-    ]
-  },
-  {
-    "name": "status_page.py",
-    "static": false,
-    "templates": false,
-    "version": null,
-    "hooks": [
-      "register_routes"
-    ]
-  },
-  {
-    "name": "string_manager.py",
-    "static": false,
-    "templates": false,
-    "version": null,
-    "hooks": [
-      "extra_template_vars"
-    ]
-  },
-  {
-    "name": "template_filters.py",
-    "static": false,
-    "templates": false,
-    "version": null,
-    "hooks": [
-      "prepare_jinja2_environment"
-    ]
   }
 ]
