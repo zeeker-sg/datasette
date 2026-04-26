@@ -3,16 +3,26 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-26T02:18:34.000Z"
+last_updated: "2026-04-26T02:29:21.000Z"
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 26
-  completed_plans: 24
-  percent: 92
+  completed_plans: 25
+  percent: 96
 ---
 
-## Phase 6: Port auxiliary pages — IN PROGRESS
+## Phase 6: Port auxiliary pages — CODE COMPLETE (pending HUMAN UAT)
+
+**Plan 06-06 SHIPPED 2026-04-26** — Wave-3 final-gate: appended 777-line Phase-6 CSS section to `zeeker.css` between `END phase 05` delimiter and FOOTER LINK OVERRIDE block (cascade preserved; brace balance 407=407; ZERO new design tokens; body-class scoped under `.page-developers`/`.page-status`/`.page-sources`/`.page-about`/`.page-how-to-use`/`.page-search`/`.page-sql`/`.page-sql-db`; generic `.aux-card` + `.guide-hero` available globally) — `58051e5`; `base.html` one-line edit binds `<body class="{{ page_class or '' }}">` so phase-6 CSS scopes activate when handlers pass `page_class` (footer Search re-point already shipped in Plan 06-03; Edit 2 was no-op) — `fac8bbb`; authored fresh `scripts/verify_phase_06.sh` (262 lines, 11 sections A-K) per Pitfall 11 (does NOT modify verify_phase_05.sh) — delegates Phase-4 invariants to verify_phase_04.sh; positively asserts italic-accent H1 + frontend CSS link + no _zeeker_/zeeker-base.css leak on every aux route; /llms.txt content-type + body header; /robots.txt + GPTBot block; /search State A/B + XSS autoescape; /sql landing + editor textarea; D-01 negative assert (/-/search + /-/sql STILL reach datasette via Caddy); Cache-Control on 8 cacheable routes; main.py router-order line-number invariant (aux=128 < search=129 < sql=130 < database=131); base.html nav re-point; verify_api_parity.sh wrap against `phase-03-pre` baseline — `84e60f2`. Local-stack verifier run (after `docker compose up -d --build frontend` to load Phase-6 routes): Sections B-J all PASS (49 OK lines); Sections A and K FAIL on pre-existing **Category-A (S3 metadata refresh)** + **Category-B (daily import drift)** environmental drift — row counts 8498→10508, 20037→27553; image size 44.7MB→65.2MB; metadata source field "Singapore LawWatch" → "Various curated sources". These drifts are NOT Phase 6 regressions; Phase 6 adds zero datasette routes (T-06-06-03 mitigation) — resolution is HUMAN UAT re-baseline (`scripts/capture_baseline.sh phase-06-pre`). Mitigates T-06-06-01..04 via threat model deliverables. Full pytest suite 155 passed, 0 skipped, 0 regressions.
+
+**Phase 6 — final status: CODE COMPLETE, ready for HUMAN UAT.** All six plans (06-01..06-06) shipped; all functional code + visual CSS + integration verifier landed. Two HUMAN UAT prerequisites before Phase-6 declared "SHIPPED":
+1. Re-baseline API parity reference: `scripts/capture_baseline.sh phase-06-pre` (Category-A/B drift since April 2026 phase-03-pre capture).
+2. Visual QA pass on every aux page in real browser (visual regression isn't testable in headless verifier).
+
+Plan 06-06 deliverables ship correctly; the verifier surfaces environmental drift for HUMAN UAT triage as designed.
+
+## Phase 6: Port auxiliary pages — Plans 01-05 (recap below)
 
 **Plan 06-01 SHIPPED 2026-04-26** — Wave-0 scaffolding: pyyaml dep declared (`6f57d73`), M1 changelog YAML ported with 8 entries (2 verbatim + 6 Phase 2-5 milestones to satisfy ≥8 acceptance gate, `8794947`), four Datasette JSON fixtures (FTS-discovery, FTS row-results, metadata-with-canned-queries, sql-error-400), and 32 collectable test stubs across 5 files for Plans 02-05 to fill in (`c3e9b0f`). Mitigates T-06-01-01/02/03. Full suite 116 passed + 32 newly skipped, 0 errors.
 
