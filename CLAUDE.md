@@ -43,7 +43,6 @@ Zeeker Datasette is a data exploration platform built on Datasette. It provides 
 - Built on Datasette 0.65.1
 - `datasette-template-sql` - For SQL-driven template content
 - `datasette-search-all` - Cross-database search
-- `datasette-matomo` - Analytics integration
 - Docker support available via Dockerfile and docker-compose.yml
 
 ## Routes
