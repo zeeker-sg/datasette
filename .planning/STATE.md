@@ -6,10 +6,10 @@ status: ready_to_plan
 last_updated: "2026-04-26T15:39:08Z"
 progress:
   total_phases: 7
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 31
   completed_plans: 30
-  percent: 97
+  percent: 86
 ---
 
 ## Phase 7: Prune zeeker-datasette — SHIPPED 2026-04-26
