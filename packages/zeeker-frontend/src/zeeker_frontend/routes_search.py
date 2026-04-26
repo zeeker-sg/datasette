@@ -57,8 +57,16 @@ async def _safe_search_one(
         return None
 
 
-def _derive_pk_value(row: dict, primary_keys: list[str]) -> str | None:
-    """Return the comma-joined PK value(s) for row_url; None if PK can't be derived."""
+def _derive_pk_value(row: dict, primary_keys: list[str]) -> list[str] | None:
+    """Return the PK value(s) as a raw list[str] for row_url; None if PK
+    can't be derived.
+
+    Returning the list (not a pre-joined string) lets the template route
+    through row_url() / tilde_encode() so PKs containing '/', '~', or
+    whitespace round-trip correctly. urlencode on a comma-joined string
+    would percent-encode the commas (breaking the PK separator) and
+    miss tilde_encode's specific handling of reserved characters.
+    """
     if not primary_keys:
         return None
     parts = []
@@ -67,7 +75,7 @@ def _derive_pk_value(row: dict, primary_keys: list[str]) -> str | None:
         if v is None:
             return None
         parts.append(str(v))
-    return ",".join(parts)
+    return parts
 
 
 def _pick_title_column(columns: list[str], primary_keys: list[str]) -> str | None:
@@ -152,14 +160,18 @@ async def search(request: Request, q: str = "", _retry: int = 0):
         # _pick_title_column docstring.
         title_col = _pick_title_column(columns, primary_keys)
         for row in rows:
-            row["_pk_str"] = _derive_pk_value(row, primary_keys)
+            # Raw PK values (list[str] | None) — template routes through
+            # row_url() / tilde_encode() so reserved chars round-trip.
+            pk_values = _derive_pk_value(row, primary_keys)
+            row["_pk_values"] = pk_values
             # Pre-compute title so the partial renders {{ row["__title__"] }}
-            # directly. Falls back to PK string or empty string.
+            # directly. Falls back to a human-readable comma-joined PK
+            # string, then to empty.
             title_val = row.get(title_col) if title_col else None
             if isinstance(title_val, str) and title_val:
                 row["__title__"] = title_val[:120]
-            elif row.get("_pk_str"):
-                row["__title__"] = row["_pk_str"]
+            elif pk_values:
+                row["__title__"] = ",".join(pk_values)
             else:
                 row["__title__"] = ""
         groups.append(

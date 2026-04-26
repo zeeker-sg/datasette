@@ -241,3 +241,22 @@ async def test_execute_sql_shape_objects_always_set():
 
     assert captured["params"]["_shape"] == "objects"
     assert captured["params"]["sql"] == "SELECT 1"
+
+
+@pytest.mark.asyncio
+async def test_execute_sql_non_json_response_returns_friendly_error():
+    """WR-02 — if upstream returns HTML (Caddy 502, datasette error page,
+    network MITM page) instead of JSON, surface a clean error string
+    instead of letting ValueError propagate as an unhandled 500."""
+    async with _mock(
+        lambda r: httpx.Response(
+            200,
+            content=b"<html><body>502 Bad Gateway</body></html>",
+            headers={"content-type": "text/html"},
+        )
+    ) as c:
+        body, error = await execute_sql(c, "sglawwatch", "SELECT 1")
+
+    assert body is None
+    assert error is not None
+    assert "non-JSON" in error or "JSON" in error

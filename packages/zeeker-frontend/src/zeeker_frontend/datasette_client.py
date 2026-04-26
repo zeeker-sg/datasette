@@ -213,7 +213,15 @@ async def execute_sql(
     r = await client.get(f"/{db}.json", params=ds_params)
     if r.status_code == 404:
         return None, "Database not found"
-    body = r.json()
+    # Defensive parse — if upstream returns HTML (Caddy 502, datasette
+    # error page, network MITM page) rather than JSON, surface a clean
+    # error string instead of letting ValueError propagate as 500. The
+    # sibling _safe_search_one in routes_search.py already catches both
+    # httpx.HTTPError and ValueError; matching that contract here.
+    try:
+        body = r.json()
+    except ValueError:
+        return None, "Upstream returned a non-JSON response"
     if r.status_code == 400:
         return None, body.get("error") or "Query failed"
     r.raise_for_status()

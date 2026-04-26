@@ -200,6 +200,51 @@ async def test_search_empty_cache_state_a_still_renders(client_search_empty_cach
 
 
 @pytest.mark.asyncio
+async def test_search_row_link_uses_tilde_encode_not_urlencode():
+    """WR-03 — search row links must route PKs through tilde_encode (not
+    urlencode). Production PKs containing '/', '~', or whitespace would
+    produce 404s on the row page if the comma-joined PK string was
+    percent-encoded as a single value (commas become %2C, breaking the
+    PK separator) or if reserved chars used urlencoding's mapping
+    instead of tilde-encode's.
+
+    Concrete check: a PK value `cat/dog` must render as `.../cat~2Fdog`
+    (tilde_encode), not `.../cat%2Fdog` (urlencode) and not as a
+    comma-encoded blob.
+    """
+    custom = {
+        "ok": True,
+        "rows": [
+            {
+                "id": "cat/dog",  # PK with reserved char that tilde_encode handles
+                "title": "Story with a tricky PK",
+            }
+        ],
+        "columns": ["id", "title"],
+        "primary_keys": ["id"],
+        "filtered_table_rows_count": 1,
+        "query_ms": 1.0,
+        "truncated": False,
+    }
+    app.state.http = _mock_factory(hits={"/sglawwatch/headlines.json": custom})
+    app.state.searchable_tables = {"sglawwatch": ["headlines"]}
+    app.state.changelog = []
+    try:
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app),
+            base_url="http://testserver",
+        ) as ac:
+            r = await ac.get("/search?q=tricky")
+        assert r.status_code == 200
+        # Tilde-encoded form: '/' → '~2F'
+        assert "/sglawwatch/headlines/cat~2Fdog" in r.text
+        # Confirm we did NOT ship the broken urlencode form.
+        assert "cat%2Fdog" not in r.text
+    finally:
+        await app.state.http.aclose()
+
+
+@pytest.mark.asyncio
 async def test_search_xss_q_echoed(client_search):
     """T-06-04-01 — Reflected XSS prevented by Jinja autoescape."""
     r = await client_search.get("/search?q=%3Cscript%3Ealert(1)%3C%2Fscript%3E")

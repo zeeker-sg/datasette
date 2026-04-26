@@ -2686,8 +2686,6 @@ body[class*="page-"] > .container {
    HARVESTED FROM M1 zeeker-base.css LINES 4097..4116
    Tail footer link override
    ======================================================= */
- *     idx column ("01", "02") gets breathing room from the container edge —
- *     especially visible on the database page table list. */
 
 /* ----------------------------------------------------------------
  * FOOTER LINK OVERRIDE — must remain at TAIL of file to win cascade
