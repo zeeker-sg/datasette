@@ -1,30 +1,56 @@
-"""Stub tests for the boot-loaded changelog module.
+"""Unit tests for the boot-loaded changelog YAML loader.
 
-The `zeeker_frontend.changelog` module ships in Plan 06-02 and exposes
-`load_changelog() -> list[dict]`. Real assertions for each name below
-land in Plan 06-02 alongside the loader implementation.
-
-This file does NOT import `zeeker_frontend.changelog` -- the module
-arrives in Plan 06-02. Until then the file is collectable but every
-test is skipped.
+Pattern: `tmp_path` fixture writes a synthetic changelog.yaml; monkeypatch
+swaps the module-level `_DATA_DIR` constant so each test exercises the
+loader in isolation. Mirrors RESEARCH §Pattern 3.
 """
 
 from __future__ import annotations
 
-import pytest
+from zeeker_frontend.changelog import load_changelog
 
 
-def test_load_changelog_returns_list_of_dicts():
-    pytest.skip("Implementation pending - Plan 06-02")
+def test_load_changelog_returns_list_of_dicts(tmp_path, monkeypatch):
+    yaml_file = tmp_path / "changelog.yaml"
+    yaml_file.write_text(
+        "recent_updates:\n"
+        "  - date: '2025-06-09'\n"
+        "    type: feature\n"
+        "    title: Launch\n"
+        "    description: hi\n"
+    )
+    monkeypatch.setattr("zeeker_frontend.changelog._DATA_DIR", tmp_path)
+    items = load_changelog()
+    assert len(items) == 1
+    assert items[0]["date"] == "2025-06-09"
+    assert items[0]["type"] == "feature"
+    assert items[0]["title"] == "Launch"
 
 
-def test_load_changelog_returns_empty_when_file_missing():
-    pytest.skip("Implementation pending - Plan 06-02")
+def test_load_changelog_returns_empty_when_file_missing(tmp_path, monkeypatch):
+    # tmp_path has no changelog.yaml inside it
+    monkeypatch.setattr("zeeker_frontend.changelog._DATA_DIR", tmp_path)
+    assert load_changelog() == []
 
 
-def test_load_changelog_returns_empty_on_invalid_yaml():
-    pytest.skip("Implementation pending - Plan 06-02")
+def test_load_changelog_returns_empty_on_invalid_yaml(tmp_path, monkeypatch):
+    (tmp_path / "changelog.yaml").write_text("!!!not valid yaml: [ unbalanced")
+    monkeypatch.setattr("zeeker_frontend.changelog._DATA_DIR", tmp_path)
+    assert load_changelog() == []
 
 
-def test_load_changelog_filters_entries_without_date():
-    pytest.skip("Implementation pending - Plan 06-02")
+def test_load_changelog_filters_entries_without_date(tmp_path, monkeypatch):
+    yaml_file = tmp_path / "changelog.yaml"
+    yaml_file.write_text(
+        "recent_updates:\n"
+        "  - date: '2025-06-09'\n"
+        "    type: feature\n"
+        "    title: Good entry\n"
+        "  - type: bugfix\n"
+        "    title: Missing date — drop me\n"
+        "  - 'just-a-string'\n"  # not a dict — drop
+    )
+    monkeypatch.setattr("zeeker_frontend.changelog._DATA_DIR", tmp_path)
+    items = load_changelog()
+    assert len(items) == 1
+    assert items[0]["title"] == "Good entry"
