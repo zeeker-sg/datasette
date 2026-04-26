@@ -3,14 +3,24 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: ready_to_plan
-last_updated: "2026-04-26T02:29:21.000Z"
+last_updated: "2026-04-26T13:12:48.014Z"
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 26
-  completed_plans: 25
-  percent: 57
+  total_plans: 31
+  completed_plans: 27
+  percent: 87
 ---
+
+## Phase 7: Prune zeeker-datasette — IN PROGRESS
+
+**Plan 07-01 SHIPPED 2026-04-26** — Wave-0 scaffolding: annotated rollback tag `pre-phase-7-prune` created at HEAD `8ddaf95` (rollback expression `git revert pre-phase-7-prune..HEAD` once Plan 07-04 lands; tag-object SHA `5444cb0`, dereferenced commit SHA `8ddaf95...`); ROADMAP Phase 7 scope rewritten to top-level repo paths (was non-existent `packages/zeeker-datasette/`) with three new in-scope bullets naming the load-bearing edits beyond raw deletes (metadata.json drop `extra_css_urls`+`extra_js_urls` KEEP `menu_links`+`plugins.datasette-search-all`+`databases.*`; Dockerfile narrow `COPY plugins/` to whitelist `__init__.py`+`cache_headers.py`; scripts/download_from_s3.py disable templates/static/plugins S3 sync per 07-RESEARCH Q3 Option A — without this last edit the prune is cosmetic-only at runtime); ROADMAP `**Requirements:**` line cites the six REQ IDs Phase 7 closes — `5c0a4eb`. `verify_phase_03.sh` `check_negative` body sniff (the load-bearing assertion) rebased from bare `grep -q 'zeeker-base.css'` to `grep -qE '/-/static/datasette-manager\.js|Powered by Datasette'` — both literals ship inside the datasette Python package's bundled `_base.html` template and survive Plan 07-04's user `templates/`+`static/` deletion. Comment block at lines 17-29 + inline rationale at lines 151-160 + uppercase case-insensitive check at line 234 all updated to match. Lines 106 + 116 (positive `/-/sql` and `/-/search` routing sniffs) intentionally untouched — both already use OR-alt with literal `datasette` which survives the prune (intentional minimal-surface edit) — `6dd9a89`. Auto-deviations: (1) Task 1 acceptance-criterion #3 documented as misstated for annotated tags — semantic intent (`tag points at HEAD`) verified via dereferenced form `git rev-parse pre-phase-7-prune^{commit}`; (2) ROADMAP line 320 (07-01 plan-list bullet) also fixed — contained a meta-reference to `packages/zeeker-datasette/` that the grep-count-zero acceptance criterion required eliminating. Frontend pytest 165 passed in 0.19s (no regressions; matches PROJECT.md current state). Mitigates T-07-01-01..04 via threat model dispositions. Local docker stack not running → Task 3 smoke pass against live stack opt-skipped per AC. SDK note: this project's REQUIREMENTS.md uses prose `### REQ-...` headings (not GSD-format checkboxes); `gsd-sdk requirements.mark-complete` returns `not_found` for both REQ-api-byte-parity and REQ-internal-only-datasette-exposure — completion is tracked in the plan SUMMARY.md frontmatter and this STATE entry instead. SDK note: this project's STATE.md uses YAML `progress` block + free-prose entries (no `Current Plan` field); `gsd-sdk state.advance-plan`/`state.update-progress` return parse errors and were not run. `gsd-sdk roadmap.update-plan-progress 7` ran successfully (Phase 7 status: In Progress, plan_count=5, summary_count=1).
+
+**Phase 7 decisions accumulated**
+
+- **Pre-deletion-sequence rollback tag idiom** — annotated tag at pre-mutation HEAD; rollback expression `git revert <tag>..HEAD` works correctly with HEAD ahead of tag. Tag survives squash merges (it's a direct ref). Pattern reusable for any future destructive multi-plan phase.
+- **Datasette-bundled fingerprint sniff** — post-prune-safe alternative to user-overlay strings: `/-/static/datasette-manager.js` (script tag in datasette/_base.html) + `Powered by Datasette` (footer literal). Both ship in the datasette Python package and survive any user templates/static deletion. Defence-in-depth via OR-alt of two literals.
+- **Mixed-era OR-alt fingerprint** — on positive routing checks already using `'X|datasette'` form, leave untouched (the `datasette` literal alone survives the prune). On the LOAD-BEARING decisive-fallthrough sniff, rebase to the Datasette-bundled fingerprint. Intentional minimal-surface edit principle.
 
 ## Phase 6: Port auxiliary pages — SHIPPED 2026-04-26
 
@@ -32,11 +42,10 @@ returns 403); (b) FTS5 shadow tables missing for `judgments`,
 pipeline). Production smoke against `data.zeeker.sg` remains the only Phase 6
 UAT item still pending and is gated on deploy.
 
-
-
 **Plan 06-06 SHIPPED 2026-04-26** — Wave-3 final-gate: appended 777-line Phase-6 CSS section to `zeeker.css` between `END phase 05` delimiter and FOOTER LINK OVERRIDE block (cascade preserved; brace balance 407=407; ZERO new design tokens; body-class scoped under `.page-developers`/`.page-status`/`.page-sources`/`.page-about`/`.page-how-to-use`/`.page-search`/`.page-sql`/`.page-sql-db`; generic `.aux-card` + `.guide-hero` available globally) — `58051e5`; `base.html` one-line edit binds `<body class="{{ page_class or '' }}">` so phase-6 CSS scopes activate when handlers pass `page_class` (footer Search re-point already shipped in Plan 06-03; Edit 2 was no-op) — `fac8bbb`; authored fresh `scripts/verify_phase_06.sh` (262 lines, 11 sections A-K) per Pitfall 11 (does NOT modify verify_phase_05.sh) — delegates Phase-4 invariants to verify_phase_04.sh; positively asserts italic-accent H1 + frontend CSS link + no _zeeker_/zeeker-base.css leak on every aux route; /llms.txt content-type + body header; /robots.txt + GPTBot block; /search State A/B + XSS autoescape; /sql landing + editor textarea; D-01 negative assert (/-/search + /-/sql STILL reach datasette via Caddy); Cache-Control on 8 cacheable routes; main.py router-order line-number invariant (aux=128 < search=129 < sql=130 < database=131); base.html nav re-point; verify_api_parity.sh wrap against `phase-03-pre` baseline — `84e60f2`. Local-stack verifier run (after `docker compose up -d --build frontend` to load Phase-6 routes): Sections B-J all PASS (49 OK lines); Sections A and K FAIL on pre-existing **Category-A (S3 metadata refresh)** + **Category-B (daily import drift)** environmental drift — row counts 8498→10508, 20037→27553; image size 44.7MB→65.2MB; metadata source field "Singapore LawWatch" → "Various curated sources". These drifts are NOT Phase 6 regressions; Phase 6 adds zero datasette routes (T-06-06-03 mitigation) — resolution is HUMAN UAT re-baseline (`scripts/capture_baseline.sh phase-06-pre`). Mitigates T-06-06-01..04 via threat model deliverables. Full pytest suite 155 passed, 0 skipped, 0 regressions.
 
 **Phase 6 — final status: CODE COMPLETE, ready for HUMAN UAT.** All six plans (06-01..06-06) shipped; all functional code + visual CSS + integration verifier landed. Two HUMAN UAT prerequisites before Phase-6 declared "SHIPPED":
+
 1. Re-baseline API parity reference: `scripts/capture_baseline.sh phase-06-pre` (Category-A/B drift since April 2026 phase-03-pre capture).
 2. Visual QA pass on every aux page in real browser (visual regression isn't testable in headless verifier).
 
