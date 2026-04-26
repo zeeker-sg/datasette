@@ -57,16 +57,10 @@ class SampleData:
 
             "asset_files_default": {
                 "Contents": [
+                    # Phase-7 prune (07-RESEARCH Q3 Option A): the data-only
+                    # sync only handles metadata.json + .db files; per-template
+                    # and per-static asset entries removed from the fixture.
                     {"Key": "assets/default/metadata.json"},
-                    {"Key": "assets/default/templates/search.html"},
-                    {"Key": "assets/default/templates/database.html"},
-                    {"Key": "assets/default/templates/table.html"},
-                    {"Key": "assets/default/templates/row.html"},
-                    {"Key": "assets/default/templates/query.html"},
-                    {"Key": "assets/default/static/css/zeeker-base.css"},
-                    {"Key": "assets/default/static/js/zeeker-base.js"},
-                    {"Key": "assets/default/plugins/__init__.py"},
-                    {"Key": "assets/default/plugins/template_filters.py"},
                 ]
             },
 
