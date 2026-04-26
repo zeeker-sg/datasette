@@ -78,6 +78,33 @@ def _get_canned_queries(site_metadata: dict, db: str) -> dict[str, dict]:
     return ((site_metadata.get("databases") or {}).get(db) or {}).get("queries") or {}
 
 
+def _build_schema_ref(payload: dict) -> list[dict]:
+    """Return a simple [{name, count, columns, primary_keys, fts}] list
+    for the /sql/{db} schema reference card.
+
+    Pulls from the same `payload['tables']` already fetched on GET — no
+    extra HTTP. Hidden + _zeeker_* tables are filtered (D-15).
+
+    Datasette's database payload only carries column NAMES (not types) at
+    this level — full type info would require one extra request per
+    table, which we avoid. Casual researchers want to know what tables
+    and columns exist; types live on the per-table page (`/{db}/{table}`).
+    """
+    out: list[dict] = []
+    for t in payload.get("tables") or []:
+        if t.get("hidden") or t.get("name", "").startswith("_zeeker"):
+            continue
+        out.append({
+            "name": t.get("name") or "",
+            "count": int(t.get("count") or 0),
+            "columns": list(t.get("columns") or []),
+            "primary_keys": list(t.get("primary_keys") or []),
+            "fts": bool(t.get("fts_table")),
+        })
+    out.sort(key=lambda t: t["name"])
+    return out
+
+
 @router.get("/sql", response_class=HTMLResponse)
 async def sql_landing(request: Request):
     """GET /sql — landing page listing every visible database."""
@@ -171,6 +198,7 @@ async def sql_db_get(request: Request, db: str):
             "canned": canned,
             "detected_params": _detect_params(sql),
             "first_table": first_table,
+            "schema_ref": _build_schema_ref(payload),
             "metadata": site_metadata,
             "page_class": "page-sql-db",
             "breadcrumbs": [{"label": "SQL", "href": "/sql"}, {"label": db}],
@@ -222,6 +250,16 @@ async def sql_db_post(request: Request, db: str, sql: str = Form(...)):
     canned = _get_canned_queries(site_metadata, db)
     db_meta = (site_metadata.get("databases") or {}).get(db) or {}
 
+    # Refetch the database payload so the schema reference card stays
+    # available alongside results — researchers iterate by reading the
+    # schema and editing the SQL, so the reference should not vanish on
+    # POST. Tolerate fetch failure (rare; rendering without schema is
+    # better than a 503 after a successful query).
+    try:
+        payload = await fetch_database(client, db) or {}
+    except httpx.HTTPError:
+        payload = {}
+
     response = request.app.state.templates.TemplateResponse(
         request=request,
         name="pages/sql_db.html",
@@ -234,6 +272,7 @@ async def sql_db_post(request: Request, db: str, sql: str = Form(...)):
             "canned": canned,
             "detected_params": detected,
             "first_table": "",
+            "schema_ref": _build_schema_ref(payload),
             "metadata": site_metadata,
             "page_class": "page-sql-db",
             "breadcrumbs": [{"label": "SQL", "href": "/sql"}, {"label": db}],

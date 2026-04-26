@@ -212,6 +212,42 @@ async def test_sql_db_get(client_sql):
 
 
 @pytest.mark.asyncio
+async def test_sql_db_renders_schema_reference(client_sql):
+    """GET /sql/{db} renders a schema reference card with tables + columns
+    (HUMAN UAT — casual researchers need to know what tables/columns exist).
+
+    Hidden + _zeeker_* tables MUST NOT appear (D-15)."""
+    r = await client_sql.get("/sql/sglawwatch")
+    assert r.status_code == 200
+    body = r.text
+    assert "sql-schema-ref" in body
+    assert "Tables in this database" in body
+    # Visible tables from fixture
+    assert "about_singapore_law" in body
+    assert "case_summaries" in body
+    assert "headlines" in body
+    # Hidden FTS shadow tables MUST NOT leak
+    assert "headlines_fts" not in body
+    assert "_zeeker_schemas" not in body
+    # Sample columns rendered
+    assert "<code>title</code>" in body
+    assert "<code>published_date</code>" in body
+    # Schema card cross-links to /developers and the database overview
+    assert "/developers" in body
+    assert 'href="/sglawwatch"' in body or "/sglawwatch</a>" in body
+
+
+@pytest.mark.asyncio
+async def test_sql_db_post_success_keeps_schema_reference(client_sql):
+    """After POST results render, the schema reference card stays visible
+    so researchers can iterate on the SQL without leaving the page."""
+    r = await client_sql.post("/sql/sglawwatch", data={"sql": "SELECT 1 as a"})
+    assert r.status_code == 200
+    assert "sql-schema-ref" in r.text
+    assert "about_singapore_law" in r.text
+
+
+@pytest.mark.asyncio
 async def test_sql_db_get_404(client_sql):
     """GET /sql/{unknown_db} → 404."""
     r = await client_sql.get("/sql/nonexistent")

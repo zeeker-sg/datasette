@@ -95,5 +95,40 @@
     <p>Query ran successfully. 0 rows returned.</p>
   </section>
   {% endif %}
+
+  {# Schema reference — kept below results so researchers can read it while iterating
+     on the SQL above. Pulls table names + columns from the same datasette payload
+     fetched on GET; values are display-only (column types live on the per-table page). #}
+  {% if schema_ref %}
+  <section class="aux-card sql-schema-ref" id="schema">
+    <h2>Tables in this database</h2>
+    <p class="sql-schema-hint">
+      A reference for writing the query above. Click a table name to browse it.
+      Need column types or sample rows? <a href="/{{ database }}">Open the database overview</a>
+      or jump to <a href="/developers#schema">/developers</a> for the full API.
+    </p>
+    <div class="sql-schema-list">
+      {% for t in schema_ref %}
+      <details class="sql-schema-table">
+        <summary>
+          <span class="sql-schema-name"><a href="/{{ database }}/{{ t.name }}">{{ t.name }}</a></span>
+          <span class="sql-schema-meta">
+            {{ "{:,}".format(t.count) }} {{ t.count|pluralize('row') }}
+            · {{ t.columns|length }} {{ t.columns|length|pluralize('column') }}
+            {% if t.fts %} · searchable{% endif %}
+          </span>
+        </summary>
+        <ul class="sql-schema-cols">
+          {% for col in t.columns %}
+          <li>
+            <code>{{ col }}</code>{% if col in t.primary_keys %} <span class="sql-schema-pk">primary key</span>{% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+      </details>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
 </div>
 {% endblock %}
