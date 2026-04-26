@@ -1,6 +1,6 @@
 # Roadmap
 
-> **Phase 6 status — 2026-04-26:** Plans 06-01..06-06 all SHIPPED (code complete). Pending HUMAN UAT (re-baseline + visual-QA sweep) before Phase 6 declared "SHIPPED". 25 of 26 plans complete (96%); only Phase 7+8 remain after Phase 6 UAT.
+> **Phase 6 SHIPPED — 2026-04-26:** All six plans (06-01..06-06) plus HUMAN UAT close-out (visual sweep + 8 polish fixes + verifier re-baseline) complete. `verify_phase_06.sh` PASS. Production smoke against `data.zeeker.sg` is the only UAT item still pending and is gated on deploy. Phase 7 (prune-zeeker-datasette) is the next active phase.
 
 ## Milestone M1: Editorial polish
 

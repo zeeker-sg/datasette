@@ -2,17 +2,37 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: unknown
+status: ready_to_plan
 last_updated: "2026-04-26T02:29:21.000Z"
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 26
   completed_plans: 25
-  percent: 96
+  percent: 57
 ---
 
-## Phase 6: Port auxiliary pages — CODE COMPLETE (pending HUMAN UAT)
+## Phase 6: Port auxiliary pages — SHIPPED 2026-04-26
+
+**HUMAN UAT close-out (2026-04-26):** Visual sweep + verifier re-baseline both passed.
+Eight UAT-triggered polish commits landed inside Phase 6 before close: aux-page
+container margins (`a72a83b`), /status changelog sort + content rewrite
+(`0c6a98b`, `e6cd559`, `67dc556`), /sql landing copy for casual researchers
+(`4f5dfd6`), /sql/{db} schema reference card (`7d5f9e1`), home page search
+re-point + /sql links (`2dfae70`), /how-to-use Option-2 button consistency
+(`a7e214f`, `17dcba0`), /how-to-use URL accuracy audit (`db39492`), code-review
+WR-01/02/03 cleared (`05b97af`), and a fresh phase-06-pre baseline plus
+self-healing baseline cascade across the verify_phase_03/04/06 chain (`8ed46ef`).
+`bash scripts/verify_phase_06.sh` exits PASS, all 11 sections green.
+
+Two known follow-ups out-of-scope for Phase 6 are recorded on 06-HUMAN-UAT.md:
+(a) `metadata.json` `allow_download` config gap on named databases (`/{db}.db`
+returns 403); (b) FTS5 shadow tables missing for `judgments`,
+`judgments_fragments`, and the eight `*_news` tables (data-layer build
+pipeline). Production smoke against `data.zeeker.sg` remains the only Phase 6
+UAT item still pending and is gated on deploy.
+
+
 
 **Plan 06-06 SHIPPED 2026-04-26** — Wave-3 final-gate: appended 777-line Phase-6 CSS section to `zeeker.css` between `END phase 05` delimiter and FOOTER LINK OVERRIDE block (cascade preserved; brace balance 407=407; ZERO new design tokens; body-class scoped under `.page-developers`/`.page-status`/`.page-sources`/`.page-about`/`.page-how-to-use`/`.page-search`/`.page-sql`/`.page-sql-db`; generic `.aux-card` + `.guide-hero` available globally) — `58051e5`; `base.html` one-line edit binds `<body class="{{ page_class or '' }}">` so phase-6 CSS scopes activate when handlers pass `page_class` (footer Search re-point already shipped in Plan 06-03; Edit 2 was no-op) — `fac8bbb`; authored fresh `scripts/verify_phase_06.sh` (262 lines, 11 sections A-K) per Pitfall 11 (does NOT modify verify_phase_05.sh) — delegates Phase-4 invariants to verify_phase_04.sh; positively asserts italic-accent H1 + frontend CSS link + no _zeeker_/zeeker-base.css leak on every aux route; /llms.txt content-type + body header; /robots.txt + GPTBot block; /search State A/B + XSS autoescape; /sql landing + editor textarea; D-01 negative assert (/-/search + /-/sql STILL reach datasette via Caddy); Cache-Control on 8 cacheable routes; main.py router-order line-number invariant (aux=128 < search=129 < sql=130 < database=131); base.html nav re-point; verify_api_parity.sh wrap against `phase-03-pre` baseline — `84e60f2`. Local-stack verifier run (after `docker compose up -d --build frontend` to load Phase-6 routes): Sections B-J all PASS (49 OK lines); Sections A and K FAIL on pre-existing **Category-A (S3 metadata refresh)** + **Category-B (daily import drift)** environmental drift — row counts 8498→10508, 20037→27553; image size 44.7MB→65.2MB; metadata source field "Singapore LawWatch" → "Various curated sources". These drifts are NOT Phase 6 regressions; Phase 6 adds zero datasette routes (T-06-06-03 mitigation) — resolution is HUMAN UAT re-baseline (`scripts/capture_baseline.sh phase-06-pre`). Mitigates T-06-06-01..04 via threat model deliverables. Full pytest suite 155 passed, 0 skipped, 0 regressions.
 
