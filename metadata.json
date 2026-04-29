@@ -17,6 +17,7 @@
       "source_url": "https://www.mlaw.gov.sg/news/",
       "tables": {
         "mlaw_news": {
+          "sort_desc": "published_date",
           "title": "Ministry of Law News",
           "description": "Press releases, speeches, parliamentary speeches, and announcements from the Ministry of Law Singapore (2026 onwards). Full article text is stored but not displayed; use the AI-generated summary for search and reading.",
           "columns": {
@@ -43,6 +44,7 @@
           }
         },
         "judiciary_news": {
+          "sort_desc": "published_date",
           "title": "Singapore Judiciary News",
           "description": "News, speeches, and media releases from the Singapore Judiciary — Supreme Court, State Courts, Family Justice Courts, and related tribunals. Covers significant rulings, practice directions, speeches, and court administration updates.",
           "columns": {
@@ -70,6 +72,7 @@
           }
         },
         "acra_news": {
+          "sort_desc": "published_date",
           "title": "ACRA News",
           "display": {
             "table_mode": "feed",
@@ -85,6 +88,7 @@
           }
         },
         "agc_news": {
+          "sort_desc": "published_date",
           "title": "AGC News",
           "display": {
             "table_mode": "feed",
@@ -100,6 +104,7 @@
           }
         },
         "ccs_news": {
+          "sort_desc": "published_date",
           "title": "CCS News",
           "display": {
             "table_mode": "feed",
@@ -115,6 +120,7 @@
           }
         },
         "ipos_news": {
+          "sort_desc": "published_date",
           "title": "IPOS News",
           "display": {
             "table_mode": "feed",
@@ -130,6 +136,7 @@
           }
         },
         "mom_news": {
+          "sort_desc": "published_date",
           "title": "MOM News",
           "display": {
             "table_mode": "feed",
@@ -145,6 +152,7 @@
           }
         },
         "pdpc_news": {
+          "sort_desc": "published_date",
           "title": "PDPC News",
           "display": {
             "table_mode": "feed",
@@ -166,6 +174,7 @@
       "description": "Singapore legal news, FAQ, and reference materials.",
       "tables": {
         "headlines": {
+          "sort_desc": "date",
           "title": "Headlines",
           "description": "Daily Singapore legal news headlines from major outlets.",
           "display": {
@@ -203,6 +212,7 @@
       "description": "Singapore court judgments — Court of Appeal, High Court, State Courts.",
       "tables": {
         "judgments": {
+          "sort_desc": "decision_date",
           "title": "Judgments",
           "description": "Singapore court judgments with summary, parties, and citation.",
           "display": {
