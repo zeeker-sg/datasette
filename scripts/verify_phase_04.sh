@@ -138,7 +138,7 @@ else
   fail "/static/css/zeeker.css code=$CSS_CODE type='$CSS_TYPE' (expected 200 + text/css)"
 fi
 
-for font in inter-latin jetbrains-mono-latin fraunces-latin; do
+for font in equity_ot_b_regular equity_ot_b_bold equity_ot_b_italic equity_ot_b_bold_italic jetbrains-mono-latin; do
   F_CODE=$(curl -s -o /dev/null -w '%{http_code}' "$BASE_URL/static/fonts/${font}.woff2")
   if [ "$F_CODE" = "200" ]; then
     ok "/static/fonts/${font}.woff2 → 200"
