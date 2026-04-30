@@ -18,6 +18,18 @@
 }
 
 data.zeeker.sg {
+    # JSON access log — covers ALL traffic: HTML, API, crawlers.
+    # Mounted to ./logs/caddy/ on the host via docker-compose.prod.yml.
+    # Analyse with: goaccess access.log --log-format=CADDY -o report.html
+    log {
+        output file /var/log/caddy/access.log {
+            roll_size 100mb
+            roll_keep 10
+            roll_keep_for 720h
+        }
+        format json
+    }
+
     # Same suffix matcher as dev. `path *.json *.csv *.db` + `path /-/*`
     # are OR'd per caddyserver.com/docs/caddyfile/matchers.
     @datasette {
