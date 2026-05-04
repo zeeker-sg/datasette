@@ -1,10 +1,12 @@
 # Production Caddyfile for data.zeeker.sg (M2 Phase 4).
 #
-# Differs from the dev Caddyfile in TWO ways only:
+# Differs from the dev Caddyfile in THREE ways only:
 #   1. No `auto_https off` — Caddy auto-provisions a TLS cert from
 #      Let's Encrypt for the named `data.zeeker.sg` site block.
 #   2. Named site block `data.zeeker.sg { ... }` replaces the bare
 #      `:80 { ... }` so Caddy binds to the hostname and issues the cert.
+#   3. Cache-Control headers on data API responses (*.json *.csv *.db)
+#      so Cloudflare caches them — not appropriate for the dev server.
 #
 # Suffix-routing contract is IDENTICAL to the dev Caddyfile (Phase 3).
 # Byte-for-byte the same @datasette matcher + the same reverse_proxy
@@ -29,6 +31,14 @@ data.zeeker.sg {
         }
         format json
     }
+
+    # Tell Cloudflare to cache data API responses. s-maxage=86400 (24h)
+    # is safe because data only changes once per build. max-age=3600
+    # is what browsers see — shorter, since users may want fresher data.
+    @cacheable {
+        path *.json *.csv *.db
+    }
+    header @cacheable Cache-Control "public, max-age=3600, s-maxage=86400"
 
     # Same suffix matcher as dev. `path *.json *.csv *.db` + `path /-/*`
     # are OR'd per caddyserver.com/docs/caddyfile/matchers.
