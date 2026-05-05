@@ -12,6 +12,12 @@
 # Byte-for-byte the same @datasette matcher + the same reverse_proxy
 # order. This is load-bearing — API parity (REQ-api-byte-parity)
 # depends on zero routing drift between dev and prod.
+#
+# HOST DEPLOY NOTE: the live host loads Caddyfile.host-caddy (gitignored)
+# via docker-compose.host-caddy.yml, NOT this file. Changes here must be
+# manually ported to Caddyfile.host-caddy on the host.
+# After editing: use `docker compose ... restart caddy` (not `up -d`) —
+# Edit rewrites the inode and up -d won't re-resolve the bind mount.
 
 {
     # auto_https is ON by default when a hostname is named.
