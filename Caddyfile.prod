@@ -41,7 +41,7 @@ data.zeeker.sg {
     # Block Meta AI crawlers. They ignore robots.txt and cause multi-day
     # pagination surges whenever new content appears. 403 at Caddy layer
     # before any proxy cost is incurred.
-    @meta_crawler header_regexp User-Agent "meta-externalagent|facebookexternalhit|FacebookBot"
+    @meta_crawler header_regexp User-Agent "meta-externalagent|meta-webindexer|facebookexternalhit|FacebookBot"
     respond @meta_crawler "Forbidden" 403
 
     # Tell Cloudflare to cache data API responses. s-maxage=86400 (24h)
