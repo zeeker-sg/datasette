@@ -32,7 +32,7 @@ recent_updates:
   - date: "2026-04-18"
     type: "data"
     title: "Singapore court judgments come online"
-    description: "More than ten thousand Singapore court judgments — title, court, date, parties, case number, and an AI-written summary — are now searchable on the site. Daily incremental updates run as new rulings are published."
+    description: "Singapore court judgments are now searchable — title, court, date, parties, case number, and an AI-written summary for each ruling. The archive spans more than twenty years across all court tiers, with daily updates as new judgments are published."
 
   - date: "2026-04-22"
     type: "feature"
@@ -43,3 +43,18 @@ recent_updates:
     type: "feature"
     title: "Search every database, write your own SQL"
     description: "Two new tools join the site. /search runs a full-text search across every database from one box. /sql gives each database its own query editor with worked examples, a schema reference, and exports to CSV or JSON."
+
+  - date: "2026-05-08"
+    type: "data"
+    title: "PDPC enforcement decisions added"
+    description: "Commission's Decisions and Voluntary Undertakings from the Personal Data Protection Commission are now searchable, with full decision text extracted from the source PDFs."
+
+  - date: "2026-05-08"
+    type: "feature"
+    title: "Paragraph-level search within court judgments"
+    description: "Each court judgment is now broken into its numbered paragraphs. Search for a phrase and land directly on the paragraph where it appears, with full surrounding context — rather than scanning the entire document."
+
+  - date: "2026-05-13"
+    type: "feature"
+    title: "Machine-readable API for AI tools and developers"
+    description: "A Model Context Protocol endpoint is now live at mcp.zeeker.sg. It exposes the full Datasette API — search, SQL, and schema — in a format that AI assistants and developer tools can query directly."
