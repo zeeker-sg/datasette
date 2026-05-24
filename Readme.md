@@ -2,7 +2,7 @@
 
 A containerised **Datasette** deployment that serves Singapore‑focused legal datasets from SQLite files stored in S3. The container runs in *read‑only* (immutable) mode and can refresh itself automatically.
 
-> **Heads‑up!** This repository ships the infrastructure only – it contains **no SQLite data**. To generate your own databases, run the companion ETL project **[sglawwatch‑to‑sqlite](https://github.com/houfu/sglawwatch-to-sqlite)** (or any tool that outputs SQLite) and upload the resulting `.db` files to your S3 bucket.
+> **Heads‑up!** This repository ships the infrastructure only – it contains **no SQLite data**. To generate your own databases, run the companion ETL project **[sglawwatch‑to‑sqlite](https://github.com/zeeker-sg/sglawwatch-to-sqlite)** (or any tool that outputs SQLite) and upload the resulting `.db` files to your S3 bucket.
 
 ## Why this project?
 
@@ -25,7 +25,7 @@ A containerised **Datasette** deployment that serves Singapore‑focused legal d
 ## Quick start (Docker)
 
 ```bash
-git clone https://github.com/houfu/zeeker-datasette.git
+git clone https://github.com/zeeker-sg/datasette.git
 cd zeeker-datasette
 
 # Provide your credentials – see .env.example
