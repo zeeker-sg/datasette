@@ -204,10 +204,26 @@
               "source_url": "item_url"
             }
           }
+        },
+        "commentaries": {
+          "sort_desc": "pub_date",
+          "title": "Commentaries",
+          "display": {
+            "table_mode": "feed",
+            "row_mode": "article",
+            "columns": {
+              "kicker": "content_type",
+              "title": "title",
+              "byline": "author",
+              "body": "full_text",
+              "date": "pub_date",
+              "source_url": "link"
+            }
+          }
         }
       }
     },
-    "Zeeker-Judgements": {
+    "zeeker-judgements": {
       "title": "Zeeker Judgements",
       "description": "Singapore court judgments — Court of Appeal, High Court, State Courts.",
       "tables": {
@@ -225,6 +241,30 @@
               "date": "decision_date",
               "body": "text",
               "source_url": "source_url"
+            }
+          }
+        }
+      }
+    },
+    "pdpc": {
+      "title": "PDPC",
+      "description": "Personal Data Protection Commission enforcement decisions under the PDPA.",
+      "license": "All rights reserved",
+      "license_url": "https://www.pdpc.gov.sg/privacy-policy",
+      "tables": {
+        "enforcement_decisions": {
+          "sort_desc": "decision_date",
+          "title": "Enforcement Decisions",
+          "display": {
+            "table_mode": "feed",
+            "row_mode": "article",
+            "columns": {
+              "kicker": "decision_type",
+              "title": "title",
+              "byline": "organisation",
+              "body": "summary",
+              "date": "decision_date",
+              "source_url": "decision_url"
             }
           }
         }

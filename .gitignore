@@ -83,3 +83,7 @@ docker-compose.override.yml
 
 # Phase 7-02 baseline-capture override (workaround; drop after 07-03 ships)
 docker-compose.no-s3.yml
+
+# Local-only deploy overlay (host Caddy fronting docker stack)
+docker-compose.host-caddy.yml
+Caddyfile.host-caddy
