@@ -8,11 +8,14 @@ from zeeker_frontend.urls import (
     path_with_removed_args,
     toggle_facet_value,
     clear_facet_value,
-    set_sort,
     export_url,
     tilde_encode,
     row_url,
 )
+
+# NOTE: set_sort tests were removed with the tabular table mode (catalogue
+# posture). The function survives only as dead code pending the main.py:96
+# Jinja-global deregistration owned by another workstream.
 
 
 class TestPathWithAddedArgs:
@@ -71,24 +74,6 @@ class TestClearFacetValue:
     def test_removes_only_matching_pair(self):
         r = clear_facet_value("/p", "category=A&category=B", "category", "A")
         assert "category=B" in r and "category=A" not in r
-
-
-class TestSetSort:
-    def test_unsorted_to_asc(self):
-        r = set_sort("/p", "", "date", None)
-        assert "_sort=date" in r and "_sort_desc" not in r
-
-    def test_asc_to_desc(self):
-        r = set_sort("/p", "_sort=date", "date", "asc")
-        assert "_sort_desc=date" in r and "_sort=date" not in r.replace("_sort_desc", "")
-
-    def test_desc_to_clear(self):
-        r = set_sort("/p", "_sort_desc=date", "date", "desc")
-        assert "_sort" not in r
-
-    def test_preserves_other_params(self):
-        r = set_sort("/p", "_search=foo&_size=50", "date", None)
-        assert "_search=foo" in r and "_size=50" in r and "_sort=date" in r
 
 
 class TestExportUrl:

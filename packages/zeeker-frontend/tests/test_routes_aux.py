@@ -36,6 +36,49 @@ def _mock_datasette(*, raise_on=None):
     sglawwatch = _load("sglawwatch.json")
     metadata = _load("metadata.json")
 
+    # Catalogue posture — exercise the protected-column + hidden-table
+    # filters in routes_aux. Mirror the live schema (verified 2026-06-12
+    # against https://data.zeeker.sg/sglawwatch/*.json?_size=1):
+    #   headlines carries a protected `text` column;
+    #   commentaries carries a protected `full_text` column;
+    #   about_singapore_law_fragments is a *_fragments chunk table whose
+    #   `content_text` is in default_deny_names.
+    sglawwatch = json.loads(json.dumps(sglawwatch))  # deep copy; don't taint fixture
+    for t in sglawwatch["tables"]:
+        if t["name"] == "headlines":
+            t["columns"] = t["columns"] + ["text"]
+    sglawwatch["tables"].append({
+        "name": "commentaries",
+        "columns": ["id", "title", "author", "pub_date", "link",
+                    "content_type", "description", "full_text"],
+        "count": 42,
+        "hidden": False,
+        "fts_table": None,
+        "num_relationships_for_table": 0,
+    })
+    sglawwatch["tables"].append({
+        "name": "about_singapore_law_fragments",
+        "columns": ["id", "item_id", "fragment_order", "content_text", "char_count"],
+        "count": 900,
+        "hidden": False,  # hidden by the *_fragments predicate, not the flag
+        "fts_table": None,
+        "num_relationships_for_table": 0,
+    })
+
+    metadata = json.loads(json.dumps(metadata))
+    metadata["plugins"] = dict(metadata.get("plugins") or {})
+    metadata["plugins"]["strip-columns"] = {
+        "default_deny_names": ["content_text", "full_text", "html_raw", "footnote_text"],
+        "tables": {
+            "sglawwatch": {
+                "headlines": ["text"],
+                "commentaries": ["full_text"],
+                "about_singapore_law": ["content"],
+                "about_singapore_law_fragments": ["content_text"],
+            },
+        },
+    }
+
     def handler(request: httpx.Request) -> httpx.Response:
         path = request.url.path
         if raise_on and raise_on in path:
@@ -109,6 +152,36 @@ async def test_developers_renders(client_aux):
 
 
 @pytest.mark.asyncio
+async def test_developers_no_sql_surface(client_aux):
+    """Catalogue posture — /developers documents no SQL surface at all."""
+    r = await client_aux.get("/developers")
+    body = r.text
+    assert "?sql=" not in body
+    assert "SQL query interface" not in body
+    assert "SQLite database download" not in body
+    assert 'href="/sql"' not in body
+    # Content policy note present
+    assert "Content policy" in body
+    assert "source_url" in body
+
+
+@pytest.mark.asyncio
+async def test_developers_excludes_protected_columns(client_aux):
+    """Schema reference must not enumerate protected full-text columns."""
+    r = await client_aux.get("/developers")
+    body = r.text
+    assert "content_text" not in body
+    assert "full_text" not in body
+    assert "<code>text</code>" not in body  # headlines.text (per-table config)
+    # Non-protected columns still listed
+    assert "<code>title</code>" in body
+    assert "<code>summary</code>" in body
+    # Hidden-from-listings: fragments + FTS shadows never surface
+    assert "_fragments" not in body
+    assert "_fts" not in body
+
+
+@pytest.mark.asyncio
 async def test_status_renders(client_aux):
     r = await client_aux.get("/status")
     assert r.status_code == 200
@@ -165,8 +238,8 @@ async def test_how_to_use_documents_only_working_urls(client_aux):
     These three patterns must NOT ship in /how-to-use copy. The doc was
     rewritten to advertise /-/search.json (Datasette-native, returns 200)
     as the JSON-API search alternative, and to drop the .db whole-database
-    download claim until the metadata.json allow_download config is
-    extended to named databases.
+    download claim. Catalogue posture additionally removed every ?sql=
+    pattern (the SQL surface no longer exists).
     """
     r = await client_aux.get("/how-to-use")
     body = r.text
@@ -176,10 +249,13 @@ async def test_how_to_use_documents_only_working_urls(client_aux):
     assert "/search.csv?" not in body
     assert " /search.json" not in body and "(/search.json" not in body
     assert "/{database}.db" not in body
+    # SQL surface removed — no ?sql= pattern may ship anywhere in the copy.
+    assert "?sql=" not in body
+    assert "SQL for Researchers" not in body
+    assert "sqlitebrowser.org" not in body  # DB-download implication dropped
     # Correct alternatives advertised
     assert "/-/search.json" in body
     assert "/{database}/{table}.csv" in body
-    assert "/{database}.csv?sql=" in body
 
 
 @pytest.mark.asyncio
@@ -195,10 +271,12 @@ async def test_how_to_use_button_consistency_option_2(client_aux):
     r = await client_aux.get("/how-to-use")
     body = r.text
     # Terminal CTA card present, with the canonical action triad.
+    # (Catalogue posture: "Open the SQL Editor" replaced by the API docs CTA.)
     assert "cta-section" in body
     assert "Ready to start?" in body
     assert ">Try Global Search<" in body
-    assert ">Open the SQL Editor<" in body
+    assert ">Read the API Docs<" in body
+    assert "Open the SQL Editor" not in body
     assert ">Browse Databases<" in body
     # Mid-page buttons are gone — these literal copies should no longer ship
     # outside the terminal CTA. (`>Try Global Search<` survives only inside
@@ -217,6 +295,50 @@ async def test_llms_txt_format(client_aux):
     assert r.headers.get("content-type", "").startswith("text/plain")
     assert r.text.startswith("# data.zeeker.sg")
     assert "_zeeker" not in r.text
+
+
+@pytest.mark.asyncio
+async def test_llms_txt_catalogue_posture(client_aux):
+    """Catalogue posture — llms.txt has no SQL endpoint, no protected column
+    names, and carries the content-policy line; still lists visible tables."""
+    r = await client_aux.get("/llms.txt")
+    body = r.text
+    # SQL endpoint removed entirely
+    assert "?sql=" not in body
+    assert "Execute SQL" not in body
+    # Content-policy line present
+    assert "Full text columns are not distributed" in body
+    assert "source_url" in body
+    # Visible tables still enumerated
+    assert "- headlines" in body
+    assert "- about_singapore_law" in body
+    assert "- case_summaries" in body
+    assert "- commentaries" in body
+    # Hidden-from-listings: fragments + FTS shadows never surface
+    assert "about_singapore_law_fragments" not in body
+    assert "headlines_fts" not in body
+    # Protected column names never enumerated
+    assert "content_text" not in body
+    assert "full_text" not in body
+    # headlines.text protected via per-table config; non-protected cols remain
+    headlines_line = next(
+        line for line in body.splitlines()
+        if line.startswith("- headlines")
+    )
+    headline_cols = [c.strip() for c in headlines_line.split(":", 1)[1].split(",")]
+    assert "text" not in headline_cols
+    assert "title" in headline_cols and "summary" in headline_cols
+    # about_singapore_law.content protected via per-table config
+    asl_line = next(
+        line for line in body.splitlines()
+        if line.startswith("- about_singapore_law")
+    )
+    asl_cols = [c.strip() for c in asl_line.split(":", 1)[1].split(",")]
+    assert "content" not in asl_cols
+    assert "title" in asl_cols
+    # Pagination/search params still documented
+    assert "_size" in body and "_next" in body and "_search" in body
+    assert "/-/search.json" in body
 
 
 @pytest.mark.asyncio
@@ -241,3 +363,30 @@ async def test_aux_cache_control(client_aux):
 async def test_developers_503_on_upstream_error(client_aux_503):
     r = await client_aux_503.get("/developers")
     assert r.status_code == 503
+
+
+# --- /sql removal — stale-link redirects -------------------------------
+
+
+@pytest.mark.asyncio
+async def test_sql_redirects_to_developers(client_aux):
+    """GET /sql → 301 /developers (SQL surface removed; no cold 404s)."""
+    r = await client_aux.get("/sql")
+    assert r.status_code == 301
+    assert r.headers["location"] == "/developers"
+
+
+@pytest.mark.asyncio
+async def test_sql_db_redirects_to_developers(client_aux):
+    """GET /sql/{db} → 301 /developers for any db segment."""
+    r = await client_aux.get("/sql/sglawwatch")
+    assert r.status_code == 301
+    assert r.headers["location"] == "/developers"
+
+
+@pytest.mark.asyncio
+async def test_sql_redirect_needs_no_upstream(client_aux_503):
+    """Redirects are static — they must work even when datasette is down."""
+    r = await client_aux_503.get("/sql")
+    assert r.status_code == 301
+    assert r.headers["location"] == "/developers"

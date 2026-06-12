@@ -85,12 +85,32 @@ async def test_home_filters_wildcard_databases_key(client_with_mocked_datasette)
 
 
 @pytest.mark.asyncio
-async def test_home_renders_card_per_database(client_with_mocked_datasette, databases_fixture):
+async def test_home_renders_card_per_visible_database(client_with_mocked_datasette, databases_fixture):
     r = await client_with_mocked_datasette.get("/")
     body = r.text
-    # Count <article class="card"> occurrences
+    # Count <article class="card"> occurrences — the _zeeker_platform db in
+    # the fixture is filtered out (db-level _zeeker prefix rule).
+    visible = [name for name in databases_fixture if not name.startswith("_zeeker")]
     card_count = body.count('<article class="card">')
-    assert card_count == len(databases_fixture)
+    assert card_count == len(visible)
+
+
+@pytest.mark.asyncio
+async def test_home_filters_zeeker_platform_database(client_with_mocked_datasette):
+    r = await client_with_mocked_datasette.get("/")
+    assert "_zeeker_platform" not in r.text
+
+
+@pytest.mark.asyncio
+async def test_home_table_counts_recomputed_from_filtered_source(client_with_mocked_datasette):
+    """The sglawwatch fixture entry advertises a raw tables_count of 99 but
+    only 3 tables survive the hidden predicate (fragments / fts / hidden /
+    _zeeker filtered). The page must show the recomputed count, never 99."""
+    r = await client_with_mocked_datasette.get("/")
+    body = r.text
+    assert "99" not in body, "raw datasette tables_count leaked into the page"
+    # statband total = 3 (sglawwatch) + 2 (sg-gov-newsrooms) + 1 (judgements)
+    assert '<div class="stat-num">6</div>' in body
 
 
 @pytest.mark.asyncio
@@ -111,17 +131,11 @@ async def test_home_search_targets_frontend_route_not_datasette(
 
 
 @pytest.mark.asyncio
-async def test_home_links_to_sql_editor(client_with_mocked_datasette):
-    """Home page must surface the new /sql editor.
-
-    HUMAN UAT — visitor feedback: 'no link to the new /sql pages' from the
-    home page. The SQL stat-band tile, the §02 'Write SQL' how-to-use card,
-    and the CTA all link to /sql now.
-    """
+async def test_home_has_no_sql_editor_links(client_with_mocked_datasette):
+    """Catalogue posture — the /sql editor was removed entirely; the home
+    page must not link to it."""
     r = await client_with_mocked_datasette.get("/")
-    body = r.text
-    # At least one href to the SQL landing
-    assert 'href="/sql"' in body
+    assert 'href="/sql"' not in r.text
 
 
 @pytest.mark.asyncio

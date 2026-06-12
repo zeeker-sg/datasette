@@ -61,21 +61,6 @@ def clear_facet_value(path: str, qs: str, col: str, val: str) -> str:
     return f"{path}?{new_qs}" if new_qs else path
 
 
-def set_sort(path: str, qs: str, col: str, current_state: str | None) -> str:
-    """Cycle: unsorted → asc → desc → unsorted.
-
-    current_state must be 'asc', 'desc', or None.
-    """
-    cleaned_path = path_with_removed_args(path, qs, {"_sort", "_sort_desc"})
-    base_qs = cleaned_path.split("?", 1)[1] if "?" in cleaned_path else ""
-    if current_state is None:
-        return path_with_added_args(path, base_qs, {"_sort": col})
-    if current_state == "asc":
-        return path_with_added_args(path, base_qs, {"_sort_desc": col})
-    # desc → clear
-    return cleaned_path
-
-
 def export_url(db: str, table: str, ext: str, query_string: str) -> str:
     """Build /{db}/{table}.{ext}?{qs} — Caddy @datasette intercepts.
 

@@ -1,6 +1,9 @@
-{# Judgment broadsheet — sketch 003-B. Full-width centered, dark dateline strip, tag chips. #}
+{# Judgment broadsheet — sketch 003-B. Full-width centered, dark dateline strip, tag chips.
+   Catalogue posture: body_col is server-guaranteed to be a summary-class
+   column (court_summary / summary — never content_text). The judgment full
+   text lives at the source; we render a prominent link instead. #}
 {% set court_col = display_columns.get("kicker") %}
-{% set citation_col = display_columns.get("citation") %}
+{% set citation_col = display_columns.get("citation") or "citation" %}
 {% set date_col = display_columns.get("date") %}
 {% set body_col = display_columns.get("body") %}
 {% set source_url_col = display_columns.get("source_url") %}
@@ -30,6 +33,12 @@
       {% if para.strip() %}<p>{{ para.strip() }}</p>{% endif %}
     {% endfor %}
   </div>
+  {% endif %}
+
+  {% if source_url_col and row.get(source_url_col) %}
+  <p class="judgment-source-cta">
+    <a class="btn-primary" href="{{ row[source_url_col] }}" rel="noopener noreferrer">Read the full judgment at the source ↗</a>
+  </p>
   {% endif %}
 
   {# Subject tags row — try common column names, fall back gracefully #}

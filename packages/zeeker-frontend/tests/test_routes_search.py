@@ -28,6 +28,24 @@ from zeeker_frontend.main import app
 _FIXTURES = Path(__file__).parent / "fixtures"
 _ITALIC_H1 = re.compile(r"<h1>.*?<em[^>]*>[^<]+</em>.*?</h1>", re.DOTALL)
 
+SENTINEL = "SENTINEL-FULL-TEXT-MUST-NOT-RENDER"
+
+# Site metadata served by the mock — includes the strip-columns config so
+# the handler's protected-column exclusions are exercised.
+_MOCK_METADATA = {
+    "title": "data.zeeker.sg",
+    "menu_links": [],
+    "plugins": {
+        "strip-columns": {
+            "default_deny_names": ["content_text", "full_text", "html_raw", "footnote_text"],
+            "tables": {
+                "sglawwatch": {"headlines": ["text"]},
+                "zeeker-judgements": {"judgments": ["content_text"]},
+            },
+        }
+    },
+}
+
 
 @pytest.fixture(autouse=True)
 def _clear_cache():
@@ -54,7 +72,7 @@ def _mock_factory(*, hits: dict[str, dict], raise_on: str | None = None):
         if raise_on and raise_on in path:
             raise httpx.ConnectError("simulated upstream failure")
         if path == "/-/metadata.json":
-            return httpx.Response(200, json={"title": "data.zeeker.sg", "menu_links": []})
+            return httpx.Response(200, json=_MOCK_METADATA)
         if path in hits:
             return httpx.Response(200, json=hits[path])
         return httpx.Response(404, json={"ok": False, "error": "not found"})
@@ -240,6 +258,50 @@ async def test_search_row_link_uses_tilde_encode_not_urlencode():
         assert "/sglawwatch/headlines/cat~2Fdog" in r.text
         # Confirm we did NOT ship the broken urlencode form.
         assert "cat%2Fdog" not in r.text
+    finally:
+        await app.state.http.aclose()
+
+
+@pytest.mark.asyncio
+async def test_search_sentinel_full_text_never_renders(client_search):
+    """Catalogue posture — the protected `text` column carries a sentinel in
+    the fixture; it must never appear in search HTML (title or meta-foot)."""
+    r = await client_search.get("/search?q=DBS")
+    assert r.status_code == 200
+    assert SENTINEL not in r.text
+
+
+@pytest.mark.asyncio
+async def test_search_title_heuristic_skips_protected_column():
+    """A protected column that happens to be first in declared order must
+    NOT become the result title (the old heuristic would have picked it)."""
+    custom = {
+        "ok": True,
+        "rows": [
+            {
+                "id": "abc",
+                "text": SENTINEL + " full text body that must stay hidden",
+                "title": "A perfectly safe headline",
+            }
+        ],
+        "columns": ["id", "text", "title"],
+        "primary_keys": ["id"],
+        "filtered_table_rows_count": 1,
+        "query_ms": 1.0,
+        "truncated": False,
+    }
+    app.state.http = _mock_factory(hits={"/sglawwatch/headlines.json": custom})
+    app.state.searchable_tables = {"sglawwatch": ["headlines"]}
+    app.state.changelog = []
+    try:
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app),
+            base_url="http://testserver",
+        ) as ac:
+            r = await ac.get("/search?q=safe")
+        assert r.status_code == 200
+        assert SENTINEL not in r.text
+        assert "A perfectly safe headline" in r.text
     finally:
         await app.state.http.aclose()
 

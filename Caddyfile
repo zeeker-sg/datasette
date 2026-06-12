@@ -3,9 +3,14 @@
 # Phase 3 of milestone M2 (Frontend / API Split).
 # Role: suffix-based router. Caddy decides upstream by URL pattern.
 #
-#   *.json | *.csv | *.db | /-/*   →  zeeker-datasette:8001 (data API)
-#   everything else                →  frontend:8000 (HTML; mostly 404 until
-#                                     Phase 4-6 port routes)
+#   *.json | *.csv | /-/*   →  zeeker-datasette:8001 (data API)
+#   everything else         →  frontend:8000 (HTML; mostly 404 until
+#                              Phase 4-6 port routes)
+#
+# NOTE: *.db was removed from the matcher (content lockdown). Database
+# downloads are disabled (allow_download off); .db URLs now fall through
+# to the frontend, which 404s them. Keep this matcher byte-parallel with
+# Caddyfile.prod (REQ-api-byte-parity).
 #
 # Source: caddyserver.com/docs/caddyfile/matchers ("Multiple paths will be
 #   OR'ed together"; *.suffix = "suffix match"; /prefix/* = "prefix match")
@@ -36,7 +41,7 @@
 	# by Caddy (per caddyserver.com/docs/caddyfile/matchers); the first
 	# is suffix globs, the second is the /-/* prefix glob.
 	@datasette {
-		path *.json *.csv *.db
+		path *.json *.csv
 		path /-/*
 	}
 	# Matched requests → datasette (data API).

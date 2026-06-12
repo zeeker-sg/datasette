@@ -17,7 +17,7 @@ A containerised **Datasette** deployment that serves Singapore‑focused legal d
 * Auto‑download every `*.db` file from an S3 bucket at container start‑up (`scripts/download_from_s3.py`).
 * Local cache under `/data`, mounted as `./data` when using *docker‑compose*.
 * Optional nightly refresh via `zeeker-refresh-cron.sh` or manual `uv run scripts/manage.py refresh`.
-* REST‑style JSON API exposed at `/db-name/table.json`, `/-/sql`, etc.
+* REST‑style JSON catalogue API exposed at `/db-name/table.json`, `/db-name/table.csv`, `/-/search.json`, etc. — serves summaries, identifying data, and source URLs (full text is not distributed; follow each record's `source_url`).
 * Custom home page and banner indicating read‑only mode.
 
 > **Need full‑text search or other plugins?** Add the plugin to `requirements.txt` (or `pyproject.toml`) and rebuild the image.

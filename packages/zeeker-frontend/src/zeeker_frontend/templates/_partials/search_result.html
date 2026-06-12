@@ -12,12 +12,14 @@
 
    group provides:
      - group.db, group.table          — identifiers
-     - group.primary_keys             — list of PK column names (used for the
-                                        meta foot iteration filter)
-     - group.columns                  — declared column order from Datasette
-                                        (used for the meta foot iteration)
      - group.title_col                — the column name picked as the title
-                                        source (skipped in meta foot)
+                                        source (non-PK, non-protected)
+     - group.meta_columns             — SAFE meta-foot column list, computed
+                                        server-side: declared column order
+                                        minus the title column, PK columns,
+                                        and ALL protected (full-text) columns.
+                                        The partial must only iterate this
+                                        list — never group.columns raw.
 
    q is the raw search term (autoescaped by Jinja in .html templates).
 #}
@@ -34,12 +36,12 @@
     {% endif %}
   </h3>
   <div class="search-result-foot">
-    {# Iterate Datasette's declared `columns` array (stable order) to render
-       the next 3 short string columns, skipping the title column and PK
-       columns. NOT row.items() — declared order is stable across Python
-       dict iteration changes. #}
+    {# Iterate the server-computed safe column list (stable declared order,
+       title/PK/protected columns already excluded) and render the next 3
+       short string columns. NOT row.items() — declared order is stable
+       across Python dict iteration changes. #}
     {%- set ns = namespace(rendered=0) %}
-    {%- for col in group.columns if col != group.title_col and col not in group.primary_keys %}
+    {%- for col in group.meta_columns %}
       {%- if ns.rendered < 3 %}
         {%- set val = row.get(col) %}
         {%- if val is string and val and val|length < 200 %}

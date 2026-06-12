@@ -7,6 +7,7 @@
   "source_url": "https://data.zeeker.sg/sources",
   "about": "Providing free access to structured data for research, analysis, and application development",
   "about_url": "https://data.zeeker.sg/about",
+  "allow_sql": {"id": "owner"},
   "databases": {
     "sg-gov-newsrooms": {
       "title": "SG Government Newsrooms",
@@ -16,10 +17,16 @@
       "source": "Singapore Government Ministries & Judiciary",
       "source_url": "https://www.mlaw.gov.sg/news/",
       "tables": {
+        "_zeeker_schemas": {
+          "hidden": true
+        },
+        "_zeeker_updates": {
+          "hidden": true
+        },
         "mlaw_news": {
           "sort_desc": "published_date",
           "title": "Ministry of Law News",
-          "description": "Press releases, speeches, parliamentary speeches, and announcements from the Ministry of Law Singapore (2026 onwards). Full article text is stored but not displayed; use the AI-generated summary for search and reading.",
+          "description": "Press releases, speeches, parliamentary speeches, and announcements from the Ministry of Law Singapore (2026 onwards). Full article text is indexed for search but not distributed; read the original at source_url. The AI-generated summary is provided for browsing.",
           "columns": {
             "id": "Unique identifier (SHA-256 hash of source URL)",
             "title": "Title of the news item or speech",
@@ -27,7 +34,7 @@
             "category": "Content type: press-releases, speeches, parliamentary-speeches, announcements",
             "source_url": "URL to the original page on mlaw.gov.sg",
             "summary": "AI-generated summary highlighting key policy and legal points (~100 words)",
-            "content_text": "Full extracted article text (hidden — query directly via SQL)",
+            "content_text": "Full extracted article text (indexed for search only — not distributed; read the original at source_url)",
             "created_at": "Timestamp when this record was first imported"
           },
           "display": {
@@ -55,7 +62,7 @@
             "courts": "Pipe-separated court names (e.g. Supreme Court|State Courts)",
             "source_url": "URL to the original page on judiciary.gov.sg",
             "summary": "AI-generated summary highlighting key judicial developments (~100 words)",
-            "content_text": "Full extracted text (hidden — query directly via SQL)",
+            "content_text": "Full extracted text (indexed for search only — not distributed; read the original at source_url)",
             "created_at": "Timestamp when this record was first imported"
           },
           "display": {
@@ -173,6 +180,21 @@
       "title": "SG Law Watch",
       "description": "Singapore legal news, FAQ, and reference materials.",
       "tables": {
+        "_zeeker_schemas": {
+          "hidden": true
+        },
+        "_zeeker_updates": {
+          "hidden": true
+        },
+        "metadata": {
+          "hidden": true
+        },
+        "schema_versions": {
+          "hidden": true
+        },
+        "about_singapore_law_fragments": {
+          "hidden": true
+        },
         "headlines": {
           "sort_desc": "date",
           "title": "Headlines",
@@ -192,14 +214,13 @@
         },
         "about_singapore_law": {
           "title": "About Singapore Law",
-          "description": "Reference longform on Singapore legal topics.",
+          "description": "Catalogue of reference chapters on Singapore legal topics. Full text is indexed for search but not distributed; read each chapter at its source URL.",
           "display": {
-            "table_mode": "longform-list",
-            "row_mode": "longform",
+            "table_mode": "feed",
+            "row_mode": "article",
             "columns": {
               "kicker": "section",
               "title": "title",
-              "body": "content",
               "date": "last_scraped",
               "source_url": "item_url"
             }
@@ -215,7 +236,7 @@
               "kicker": "content_type",
               "title": "title",
               "byline": "author",
-              "body": "full_text",
+              "body": "description",
               "date": "pub_date",
               "source_url": "link"
             }
@@ -227,19 +248,29 @@
       "title": "Zeeker Judgements",
       "description": "Singapore court judgments — Court of Appeal, High Court, State Courts.",
       "tables": {
+        "_zeeker_schemas": {
+          "hidden": true
+        },
+        "_zeeker_updates": {
+          "hidden": true
+        },
+        "judgments_fragments": {
+          "hidden": true
+        },
         "judgments": {
           "sort_desc": "decision_date",
           "title": "Judgments",
-          "description": "Singapore court judgments with summary, parties, and citation.",
+          "description": "Singapore court judgments with summary, parties, and citation. Full judgment text is indexed for search but not distributed; read the full judgment at source_url.",
           "display": {
-            "table_mode": "tabular",
+            "table_mode": "feed",
             "row_mode": "judgment",
             "columns": {
               "title": "case_name",
               "kicker": "court",
+              "byline": "citation",
               "citation": "citation",
               "date": "decision_date",
-              "body": "text",
+              "body": "summary",
               "source_url": "source_url"
             }
           }
@@ -247,14 +278,24 @@
       }
     },
     "pdpc": {
-      "title": "PDPC",
-      "description": "Personal Data Protection Commission enforcement decisions under the PDPA.",
-      "license": "All rights reserved",
-      "license_url": "https://www.pdpc.gov.sg/privacy-policy",
+      "title": "PDPC Enforcement Decisions",
+      "description": "Enforcement decisions published by Singapore's Personal Data Protection Commission.",
+      "source": "Personal Data Protection Commission",
+      "source_url": "https://www.pdpc.gov.sg/all-commissions-decisions",
       "tables": {
+        "_zeeker_schemas": {
+          "hidden": true
+        },
+        "_zeeker_updates": {
+          "hidden": true
+        },
+        "enforcement_decisions_fragments": {
+          "hidden": true
+        },
         "enforcement_decisions": {
           "sort_desc": "decision_date",
           "title": "Enforcement Decisions",
+          "description": "PDPC enforcement decisions with organisation, decision type, penalty, and summary. Decision text is indexed for search but not distributed; read the full decision at decision_url.",
           "display": {
             "table_mode": "feed",
             "row_mode": "article",
@@ -269,24 +310,44 @@
           }
         }
       }
-    },
-    "*": {
-      "allow_sql": true,
-      "allow_facet": true,
-      "allow_download": true,
-      "tables": {
-        "_zeeker_schemas": {
-          "hidden": true
-        },
-        "_zeeker_updates": {
-          "hidden": true
-        }
-      }
     }
   },
   "plugins": {
     "datasette-search-all": {
       "template": "Search across all available data"
+    },
+    "strip-columns": {
+      "default_deny_names": [
+        "content_text",
+        "full_text",
+        "html_raw",
+        "footnote_text"
+      ],
+      "tables": {
+        "sg-gov-newsrooms": {
+          "acra_news": ["content_text"],
+          "agc_news": ["content_text"],
+          "ccs_news": ["content_text"],
+          "ipos_news": ["content_text"],
+          "judiciary_news": ["content_text"],
+          "mlaw_news": ["content_text"],
+          "mom_news": ["content_text"],
+          "pdpc_news": ["content_text"]
+        },
+        "sglawwatch": {
+          "commentaries": ["full_text"],
+          "headlines": ["text"],
+          "about_singapore_law": ["content"],
+          "about_singapore_law_fragments": ["content_text"]
+        },
+        "zeeker-judgements": {
+          "judgments": ["content_text"],
+          "judgments_fragments": ["content_text", "html_raw", "footnote_text"]
+        },
+        "pdpc": {
+          "enforcement_decisions_fragments": ["text"]
+        }
+      }
     }
   },
   "menu_links": [

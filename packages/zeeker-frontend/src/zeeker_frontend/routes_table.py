@@ -1,4 +1,11 @@
-"""GET /{db}/{table} — table browse page (Phase 5)."""
+"""GET /{db}/{table} — table browse page (Phase 5; catalogue posture).
+
+LIST-ALWAYS: tables render feed mode (or longform-list when display says so).
+There is no tabular mode — the site is a catalogue of summaries, identifying
+data, and source links; raw column grids (and full-text columns) never render.
+Display slots are computed SERVER-SIDE via compute_display_slots, which
+excludes primary keys and protected columns from every slot.
+"""
 from __future__ import annotations
 
 from datetime import datetime
@@ -8,15 +15,15 @@ import httpx
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse
 
-from zeeker_frontend.datasette_client import fetch_table, fetch_site_metadata
+from zeeker_frontend.datasette_client import (
+    compute_display_slots,
+    fetch_site_metadata,
+    fetch_table,
+    is_hidden_table_name,
+    protected_columns,
+)
 
 router = APIRouter()
-
-# T-05-03 mitigation — both prefix AND suffix per RESEARCH Pitfall 6.
-_HIDDEN_TABLE_PREFIXES = ("_zeeker",)
-_HIDDEN_TABLE_SUFFIXES = (
-    "_fts", "_fts_data", "_fts_idx", "_fts_docsize", "_fts_config",
-)
 
 
 def _db_title(site_metadata: dict, db: str) -> str:
@@ -26,8 +33,10 @@ def _db_title(site_metadata: dict, db: str) -> str:
 
 @router.get("/{db}/{table}", response_class=HTMLResponse)
 async def table_page(request: Request, db: str, table: str):
-    # Hidden-table guard — same wording for missing vs. hidden (no info disclosure).
-    if table.startswith(_HIDDEN_TABLE_PREFIXES) or table.endswith(_HIDDEN_TABLE_SUFFIXES):
+    # Hidden-table guard — same wording for missing vs. hidden (no info
+    # disclosure). Uses the shared name predicate (_zeeker*, *_fts*,
+    # *_fragments).
+    if is_hidden_table_name(table):
         raise HTTPException(status_code=404, detail="Table not found")
 
     client: httpx.AsyncClient = request.app.state.http
@@ -46,9 +55,23 @@ async def table_page(request: Request, db: str, table: str):
     table_meta = (db_entry.get("tables") or {}).get(table) or {}
     display = table_meta.get("display") or {}
 
-    # D-04 — tabular fallback when no display hint set.
-    table_mode = display.get("table_mode") or "tabular"
+    # LIST-ALWAYS — feed unless display explicitly opts into longform-list.
+    table_mode = "longform-list" if display.get("table_mode") == "longform-list" else "feed"
     row_mode = display.get("row_mode") or "tabular"
+
+    rows = payload.get("rows") or []
+    columns = payload.get("columns") or []
+    primary_keys = payload.get("primary_keys") or []
+
+    # Protected (full-text) columns — from site metadata plugins.strip-columns.
+    # These can never occupy a display slot and gate the CSV export link
+    # (Datasette 403s .csv for protected tables).
+    protected = protected_columns(site_metadata, db, table, columns)
+    display_columns = compute_display_slots(
+        columns, rows, primary_keys, protected,
+        table_meta=table_meta,
+        overrides=display.get("columns") or {},
+    )
 
     # Pitfall 2 — datasette next_url is fully-qualified to internal hostname
     # and points to .json. Strip host + path; reuse only the querystring.
@@ -59,15 +82,6 @@ async def table_page(request: Request, db: str, table: str):
         if parsed.query:
             next_url = f"/{db}/{table}?{parsed.query}"
 
-    # Sort state for column-header cycling in tabular mode.
-    qp = dict(request.query_params)
-    if qp.get("_sort"):
-        current_sort_dir, current_sort_col = "asc", qp["_sort"]
-    elif qp.get("_sort_desc"):
-        current_sort_dir, current_sort_col = "desc", qp["_sort_desc"]
-    else:
-        current_sort_dir, current_sort_col = None, None
-
     # Applied facet/column filters — anything that's a plain column name in the
     # query string. Used by applied_facets.html for the .filter-chip row.
     applied_filters = [
@@ -76,7 +90,7 @@ async def table_page(request: Request, db: str, table: str):
     ]
 
     # Active FTS term — surfaced as a removable chip + drives "No results" copy.
-    active_search = qp.get("_search") or ""
+    active_search = request.query_params.get("_search") or ""
 
     merged_metadata = {
         "title": db_entry.get("title"),
@@ -98,9 +112,9 @@ async def table_page(request: Request, db: str, table: str):
         context={
             "database": db,
             "table": table,
-            "rows": payload.get("rows") or [],
-            "columns": payload.get("columns") or [],
-            "primary_keys": payload.get("primary_keys") or [],
+            "rows": rows,
+            "columns": columns,
+            "primary_keys": primary_keys,
             "facet_results": payload.get("facet_results") or {},
             "suggested_facets": payload.get("suggested_facets") or [],
             "filtered_table_rows_count": payload.get("filtered_table_rows_count"),
@@ -109,7 +123,8 @@ async def table_page(request: Request, db: str, table: str):
             "table_mode": table_mode,
             "row_mode": row_mode,
             "display": display,
-            "display_columns": display.get("columns") or {},
+            "display_columns": display_columns,
+            "is_protected_table": bool(protected),
             "table_meta": table_meta,
             "metadata": merged_metadata,
             "breadcrumbs": [
@@ -118,8 +133,6 @@ async def table_page(request: Request, db: str, table: str):
             ],
             "breadcrumb_table": breadcrumb_table,
             "current_year": datetime.now().year,
-            "current_sort_col": current_sort_col,
-            "current_sort_dir": current_sort_dir,
             "applied_filters": applied_filters,
             "active_search": active_search,
             "human_description_en": payload.get("human_description_en"),

@@ -1,4 +1,7 @@
-{# Article reading layout — sketch 003-A magazine variant. #}
+{# Article reading layout — sketch 003-A magazine variant.
+   Catalogue posture: body_col is server-guaranteed to be a summary-class
+   (never protected) column; the aside iterates aside_columns, the
+   server-computed list of non-protected columns with values < 200 chars. #}
 {% set body_col = display_columns.get("body") %}
 {% set byline_col = display_columns.get("byline") %}
 {% set date_col = display_columns.get("date") %}
@@ -30,11 +33,9 @@
     <div class="aside-block">
       <h3>Record</h3>
       <dl>
-        {% for col in columns %}
-          {% if col != body_col and col != display_columns.get("title") %}
+        {% for col in aside_columns %}
           <dt>{{ col }}</dt>
           <dd>{{ row[col] if row[col] is not none else "—" }}</dd>
-          {% endif %}
         {% endfor %}
       </dl>
     </div>
@@ -42,7 +43,9 @@
       <h3>Export this record</h3>
       <ul class="export-links">
         <li><a href="/{{ database }}/{{ table }}/{{ pk }}.json">View as JSON ↗</a></li>
+        {% if not is_protected_table %}
         <li><a href="/{{ database }}/{{ table }}.csv?{{ primary_keys[0] if primary_keys else 'rowid' }}={{ pk }}">Download CSV ↗</a></li>
+        {% endif %}
       </ul>
     </div>
     <div class="aside-block">

@@ -83,7 +83,10 @@
     </form>
     {% include "_partials/applied_facets.html" %}
     <div class="db-toolbar-export">
+      {# Protected tables: .csv 403s upstream (strip-columns) — JSON only. #}
+      {% if not is_protected_table %}
       <a href="{{ export_url(database, table, 'csv', request_qs) }}">CSV ↗</a>
+      {% endif %}
       <a href="{{ export_url(database, table, 'json', request_qs) }}">JSON ↗</a>
     </div>
   </div>
@@ -95,13 +98,11 @@
     <div class="feed-layout">
       <main class="feed-main">
         {% if rows %}
-          {% if table_mode == "feed" %}
-            {% include "_partials/table_feed.html" %}
-          {% elif table_mode == "longform-list" %}
+          {# LIST-ALWAYS — feed unless display opts into longform-list. #}
+          {% if table_mode == "longform-list" %}
             {% include "_partials/table_longform_list.html" %}
           {% else %}
-            {# D-04 default: tabular fallback #}
-            {% include "_partials/table_tabular.html" %}
+            {% include "_partials/table_feed.html" %}
           {% endif %}
           {% include "_partials/pagination.html" %}
         {% else %}

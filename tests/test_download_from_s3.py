@@ -147,7 +147,8 @@ class TestZeekerS3Downloader:
         result = downloader._check_base_assets_exist()
 
         assert result is True
-        assert mock_s3_client.head_object.call_count == 3  # 3 required files
+        # Phase-7 prune: only assets/default/metadata.json is checked now
+        assert mock_s3_client.head_object.call_count == 1
 
     def test_check_base_assets_exist_missing_files(self, downloader):
         """Test base assets check when some files are missing"""

@@ -5,10 +5,18 @@
   "tables": [
     {
       "name": "about_singapore_law",
-      "columns": ["id", "title", "category", "content", "source_url", "published_date", "created_at", "updated_at"],
+      "columns": ["id", "item_url", "title", "section", "home_page", "last_scraped", "content_length"],
       "count": 280,
       "hidden": false,
-      "fts_table": null,
+      "fts_table": "about_singapore_law_fts",
+      "num_relationships_for_table": 0
+    },
+    {
+      "name": "about_singapore_law_fragments",
+      "columns": ["id", "item_id", "fragment_order", "content_text", "char_count"],
+      "count": 4200,
+      "hidden": false,
+      "fts_table": "about_singapore_law_fragments_fts",
       "num_relationships_for_table": 0
     },
     {
@@ -21,10 +29,26 @@
     },
     {
       "name": "headlines",
-      "columns": ["id", "title", "published_date", "source_url", "summary"],
+      "columns": ["id", "category", "title", "source_link", "author", "date", "summary", "text", "imported_on"],
       "count": 500,
       "hidden": false,
       "fts_table": "headlines_fts",
+      "num_relationships_for_table": 0
+    },
+    {
+      "name": "metadata",
+      "columns": ["key", "value"],
+      "count": 12,
+      "hidden": true,
+      "fts_table": null,
+      "num_relationships_for_table": 0
+    },
+    {
+      "name": "schema_versions",
+      "columns": ["table_name", "version", "updated_at"],
+      "count": 4,
+      "hidden": true,
+      "fts_table": null,
       "num_relationships_for_table": 0
     },
     {
@@ -76,9 +100,16 @@
       "num_relationships_for_table": 0
     }
   ],
-  "views": [],
-  "queries": {},
-  "allow_execute_sql": true,
+  "views": [
+    {"name": "recent_headlines_view", "private": false},
+    {"name": "_zeeker_audit_view", "private": false},
+    {"name": "headlines_fts_view", "private": false}
+  ],
+  "queries": [
+    {"name": "recent_headlines", "title": "Recent Headlines", "sql": "SELECT title, date FROM headlines ORDER BY date DESC LIMIT 20", "private": false},
+    {"name": "_zeeker_admin_query", "title": "Internal admin query", "sql": "SELECT 1", "private": false}
+  ],
+  "allow_execute_sql": false,
   "table_counts": {
     "about_singapore_law": 280,
     "case_summaries": 150,

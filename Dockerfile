@@ -33,6 +33,7 @@ COPY scripts/ ./scripts/
 # rebase) does not silently re-introduce UI plugins into the image.
 COPY plugins/__init__.py ./plugins/__init__.py
 COPY plugins/cache_headers.py ./plugins/cache_headers.py
+COPY plugins/strip_columns.py ./plugins/strip_columns.py
 
 # Copy base metadata configuration
 COPY metadata.json .

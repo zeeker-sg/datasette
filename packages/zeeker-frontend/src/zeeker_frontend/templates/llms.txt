@@ -1,13 +1,12 @@
 # data.zeeker.sg
-> Open legal data platform providing structured access to Singapore legal datasets
+> Open legal data catalogue providing structured access to Singapore legal datasets: summaries, identifying data, and source URLs. Full text columns are not distributed; fetch the source_url for full content.
 
 ## API
 Base URL: https://data.zeeker.sg
 
 ## Endpoints
 - GET /{database}/{table}.json - Table data as JSON
-- GET /{database}/{table}.csv - Table data as CSV
-- GET /{database}.json?sql={query} - Execute SQL query
+- GET /{database}/{table}.csv - Table data as CSV (tables without protected full-text columns; protected tables are JSON-only)
 - GET /-/search.json?q={query} - Full-text search
 
 ## Databases
@@ -28,3 +27,4 @@ Tables:
 - _shape: Response shape (objects, arrays, array, object)
 - _sort: Sort by column
 - _sort_desc: Sort descending by column
+- _search: Full-text search within a table

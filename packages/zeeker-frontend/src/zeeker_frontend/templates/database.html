@@ -53,9 +53,9 @@
         {% endif %}
         <dt>Export</dt>
         <dd class="export-links">
-          <a href="/{{ database }}.csv">CSV</a>
+          {# No /{db}.csv — database-level CSV requires a SQL query (removed). #}
+          {# No /{db}.db — whole-database downloads are disabled (catalogue posture). #}
           <a href="/{{ database }}.json">JSON</a>
-          <a href="/{{ database }}.db">SQLite</a>
         </dd>
       </dl>
     </div>
@@ -87,12 +87,6 @@
       <span class="stat-label">on disk</span>
     </div>
     {% endif %}
-    <div>
-      <div class="stat-num">SQL</div>
-      <span class="stat-label">
-        <a href="/{{ database }}?sql=SELECT+name+FROM+sqlite_master+WHERE+type%3D%27table%27" style="color: inherit; text-decoration: underline;">open query</a>
-      </span>
-    </div>
   </div>
 </div>
 
@@ -107,7 +101,6 @@
              autocomplete="off">
       <button type="submit">Filter</button>
     </form>
-    <a class="fts-badge" href="/{{ database }}?sql=SELECT+*+FROM+sqlite_master+WHERE+type%3D%27table%27">Schema</a>
   </div>
 </div>
 
@@ -148,7 +141,10 @@
           </div>
           <div class="date-col">
             {% if table.fts_table or table.fts %}<span class="fts-badge">FTS</span><br>{% endif %}
+            {# Protected tables: .csv 403s upstream (strip-columns) — JSON only. #}
+            {% if protected_tables is not defined or table.name not in protected_tables %}
             <a href="/{{ database }}/{{ table.name }}.csv">CSV</a> ·
+            {% endif %}
             <a href="/{{ database }}/{{ table.name }}.json">JSON</a>
           </div>
         </div>

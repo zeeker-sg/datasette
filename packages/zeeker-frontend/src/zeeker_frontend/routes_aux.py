@@ -20,22 +20,57 @@ from pathlib import Path
 
 import httpx
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import HTMLResponse, PlainTextResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
 
 from zeeker_frontend.datasette_client import (
     fetch_database,
     fetch_databases,
     fetch_site_metadata,
+    is_hidden_table,
 )
 
 router = APIRouter()
 
 _STATIC_DIR = Path(__file__).parent / "static"
 
+# Catalogue posture — protected full-text column names that must never be
+# enumerated on /developers or /llms.txt. The single source of truth is the
+# plugins.strip-columns block in repo-root metadata.json (served via
+# /-/metadata.json); this constant is a defensive fallback for deployments
+# where that block has not propagated yet.
+_FALLBACK_DENY_NAMES = ("content_text", "full_text", "html_raw", "footnote_text")
+
 
 def _hidden(t: dict) -> bool:
-    """Phase 6 D-15 dual-predicate hidden-table filter (RESEARCH Pitfall 4)."""
-    return bool(t.get("hidden")) or t.get("name", "").startswith("_zeeker")
+    """Hidden-from-listings predicate (catalogue posture).
+
+    Delegates to the canonical shared predicate in datasette_client
+    (hidden/private flag OR _zeeker prefix OR *_fts* shadow OR *_fragments).
+    """
+    return is_hidden_table(t)
+
+
+def _protected_columns(site_metadata: dict, db: str, table: str) -> set[str]:
+    """Protected column names for (db, table) per the strip-columns contract.
+
+    A column is protected if its name is in default_deny_names OR listed for
+    its (db, table) in plugins.strip-columns.tables. Falls back to the
+    hardcoded deny names when the metadata block is absent.
+    """
+    cfg = (site_metadata.get("plugins") or {}).get("strip-columns") or {}
+    deny = set(cfg.get("default_deny_names") or _FALLBACK_DENY_NAMES)
+    per_table = ((cfg.get("tables") or {}).get(db) or {}).get(table) or []
+    return deny | set(per_table)
+
+
+def _strip_protected(site_metadata: dict, db: str, table: dict) -> dict:
+    """Return a copy of the table dict with protected column names removed
+    from its `columns` list. Never mutates the upstream payload."""
+    protected = _protected_columns(site_metadata, db, table.get("name", ""))
+    return {
+        **table,
+        "columns": [c for c in (table.get("columns") or []) if c not in protected],
+    }
 
 
 async def _collect_db_blocks(client: httpx.AsyncClient) -> list[dict]:
@@ -43,6 +78,10 @@ async def _collect_db_blocks(client: httpx.AsyncClient) -> list[dict]:
 
     Returns: list of {name, title, description, source_url, license, license_url, size,
                       tables: [filtered table dicts]} per database.
+
+    Table dicts have protected full-text column names stripped from their
+    `columns` lists (catalogue posture — protected columns are never
+    enumerated in docs surfaces).
 
     Raises HTTPException(503) on upstream connection failure (database listing).
     Per-database fetch errors are tolerated (skip that database).
@@ -65,7 +104,11 @@ async def _collect_db_blocks(client: httpx.AsyncClient) -> list[dict]:
             continue
         if payload is None:
             continue
-        tables = [t for t in (payload.get("tables") or []) if not _hidden(t)]
+        tables = [
+            _strip_protected(site_metadata, name, t)
+            for t in (payload.get("tables") or [])
+            if not _hidden(t)
+        ]
         db_meta = (site_metadata.get("databases") or {}).get(name) or {}
         blocks.append({
             "name": name,
@@ -239,3 +282,20 @@ async def robots_txt():
         content=(_STATIC_DIR / "robots.txt").read_text(encoding="utf-8"),
         media_type="text/plain; charset=utf-8",
     )
+
+
+# --- /sql removal (catalogue posture) -----------------------------------
+# The in-browser SQL editor was removed entirely. Stale bookmarks/links to
+# /sql and /sql/{db} permanently redirect to the developer docs instead of
+# 404ing. These routes register via aux_router, which main.py includes
+# BEFORE database_router, so /sql never falls through to the /{db} catch-all.
+
+
+@router.get("/sql")
+async def sql_redirect():
+    return RedirectResponse(url="/developers", status_code=301)
+
+
+@router.get("/sql/{db}")
+async def sql_db_redirect(db: str):
+    return RedirectResponse(url="/developers", status_code=301)

@@ -93,7 +93,6 @@ templates.env.globals["path_with_replaced_args"] = zurls.path_with_replaced_args
 templates.env.globals["path_with_removed_args"] = zurls.path_with_removed_args
 templates.env.globals["toggle_facet_value"] = zurls.toggle_facet_value
 templates.env.globals["clear_facet_value"] = zurls.clear_facet_value
-templates.env.globals["set_sort"] = zurls.set_sort
 templates.env.globals["export_url"] = zurls.export_url
 templates.env.globals["row_url"] = zurls.row_url
 templates.env.globals["tilde_encode"] = zurls.tilde_encode
@@ -105,7 +104,6 @@ app.state.templates = templates
 from zeeker_frontend.routes_home import router as home_router
 from zeeker_frontend.routes_aux import router as aux_router
 from zeeker_frontend.routes_search import router as search_router
-from zeeker_frontend.routes_sql import router as sql_router
 from zeeker_frontend.routes_database import router as database_router
 from zeeker_frontend.routes_table import router as table_router
 from zeeker_frontend.routes_row import router as row_router
@@ -127,7 +125,9 @@ def frontend_test() -> dict[str, str]:
 app.include_router(home_router)
 app.include_router(aux_router)        # Phase 6 — must precede database_router (RESEARCH Pitfall 3)
 app.include_router(search_router)     # Phase 6 — must precede database_router (RESEARCH Pitfall 3)
-app.include_router(sql_router)        # Phase 6 — must precede database_router (RESEARCH Pitfall 3)
+# /sql was removed (catalogue posture — no SQL surface). Stale-link 301
+# redirects live in routes_aux (which precedes database_router, so /sql is
+# never swallowed by the /{db} catch-all).
 app.include_router(database_router)
 app.include_router(table_router)
 app.include_router(row_router)

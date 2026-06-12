@@ -1,4 +1,6 @@
-{# Feed-card layout — sketch 004-A. Slot-driven via display.columns. #}
+{# Feed-card layout — sketch 004-A. Slot-driven; display_columns is computed
+   server-side (metadata overrides + heuristic; protected columns excluded).
+   "Record" remains only as a last-ditch fallback when no title slot exists. #}
 {% set kicker_col = display_columns.get("kicker") %}
 {% set title_col = display_columns.get("title") %}
 {% set body_col = display_columns.get("body") %}
@@ -20,7 +22,7 @@
       {% endif %}
     </header>
     <h2 class="va-item-title">
-      <a href="{{ href }}">{% if title_col %}{{ row[title_col] }}{% else %}Record{% endif %}</a>
+      <a href="{{ href }}">{% if title_col and row.get(title_col) %}{{ row[title_col] }}{% else %}Record{% endif %}</a>
     </h2>
     {% if body_col and row[body_col] %}
     <p class="va-item-excerpt">{{ row[body_col]|striptags|truncate(280) }}</p>

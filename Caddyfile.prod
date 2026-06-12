@@ -5,7 +5,7 @@
 #      Let's Encrypt for the named `data.zeeker.sg` site block.
 #   2. Named site block `data.zeeker.sg { ... }` replaces the bare
 #      `:80 { ... }` so Caddy binds to the hostname and issues the cert.
-#   3. Cache-Control headers on data API responses (*.json *.csv *.db)
+#   3. Cache-Control headers on data API responses (*.json *.csv)
 #      so Cloudflare caches them — not appropriate for the dev server.
 #
 # Suffix-routing contract is IDENTICAL to the dev Caddyfile (Phase 3).
@@ -47,15 +47,24 @@ data.zeeker.sg {
     # Tell Cloudflare to cache data API responses. s-maxage=86400 (24h)
     # is safe because data only changes once per build. max-age=3600
     # is what browsers see — shorter, since users may want fresher data.
+    # *.db excluded (downloads disabled — content lockdown). Requests
+    # bearing an Authorization header are excluded: owner-token responses
+    # carry full protected content for the same URLs anonymous users hit
+    # and must NEVER enter the shared CDN cache (the datasette-side
+    # cache_headers plugin marks them no-store; this matcher must not
+    # overwrite that).
     @cacheable {
-        path *.json *.csv *.db
+        path *.json *.csv
+        not header Authorization *
     }
     header @cacheable Cache-Control "public, max-age=3600, s-maxage=86400"
 
-    # Same suffix matcher as dev. `path *.json *.csv *.db` + `path /-/*`
+    # Same suffix matcher as dev. `path *.json *.csv` + `path /-/*`
     # are OR'd per caddyserver.com/docs/caddyfile/matchers.
+    # *.db removed (content lockdown — database downloads disabled);
+    # .db URLs fall through to the frontend, which 404s them.
     @datasette {
-        path *.json *.csv *.db
+        path *.json *.csv
         path /-/*
     }
     # Matched requests → datasette (data API — unchanged from Phase 3).

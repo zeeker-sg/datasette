@@ -1,4 +1,8 @@
-"""Integration tests for GET /{db}/{table}/{pk} (Phase 5, Plan 03)."""
+"""Integration tests for GET /{db}/{table}/{pk} (Phase 5; catalogue posture).
+
+Uniform catalogue rule: protected (full-text) column values NEVER render on
+row pages — no <details> full-content blocks, no full text in the aside.
+"""
 from __future__ import annotations
 
 import re
@@ -10,6 +14,10 @@ from zeeker_frontend.main import app
 from zeeker_frontend.datasette_client import reset_metadata_cache
 
 
+SENTINEL = "SENTINEL-FULL-TEXT-MUST-NOT-RENDER"
+JUDGMENT_SENTINEL = "JUDGMENT-SENTINEL-FULL-TEXT-MUST-NOT-RENDER"
+
+
 @pytest.fixture(autouse=True)
 def _clear_cache():
     reset_metadata_cache()
@@ -17,9 +25,27 @@ def _clear_cache():
     reset_metadata_cache()
 
 
+_STRIP_COLUMNS = {
+    "default_deny_names": ["content_text", "full_text", "html_raw", "footnote_text"],
+    "tables": {
+        "sglawwatch": {
+            "commentaries": ["full_text"],
+            "headlines": ["text"],
+            "about_singapore_law": ["content"],
+            "about_singapore_law_fragments": ["content_text"],
+        },
+        "zeeker-judgements": {
+            "judgments": ["content_text"],
+            "judgments_fragments": ["content_text", "html_raw", "footnote_text"],
+        },
+    },
+}
+
+
 METADATA_WITH_DISPLAY = {
     "title": "data.zeeker.sg",
     "menu_links": [],
+    "plugins": {"strip-columns": _STRIP_COLUMNS},
     "databases": {
         "sglawwatch": {
             "title": "SG Law Watch",
@@ -39,7 +65,7 @@ METADATA_WITH_DISPLAY = {
                         },
                     },
                 },
-                "about_singapore_law": {  # NO display.row_mode → tabular fallback
+                "about_singapore_law": {  # NO display.row_mode → catalogue-record fallback
                     "title": "About Singapore Law",
                 },
                 "longform_articles": {
@@ -56,19 +82,21 @@ METADATA_WITH_DISPLAY = {
                 },
             },
         },
-        "Zeeker-Judgements": {
+        "zeeker-judgements": {
             "title": "Zeeker Judgements",
             "tables": {
                 "judgments": {
                     "title": "Judgments",
                     "display": {
-                        "table_mode": "tabular",
                         "row_mode": "judgment",
                         "columns": {
                             "title": "case_name",
                             "kicker": "court",
                             "citation": "citation",
-                            "body": "text",
+                            # Deliberately maps body to the PROTECTED column —
+                            # the server must drop it and fall back to the
+                            # summary-class heuristic (summary/court_summary).
+                            "body": "content_text",
                             "date": "decision_date",
                             "source_url": "source_url",
                         },
@@ -87,7 +115,7 @@ LONGFORM_ROW_FIXTURE = {
     "rows": [{
         "rowid": 1,
         "title": "A long-form analysis of administrative law",
-        "body": ("Lorem ipsum " * 100).strip(),  # > 200 chars
+        "body": ("Lorem ipsum " * 100).strip(),  # > 200 chars, NOT protected
         "date": "2025-12-01",
         "source_url": "https://example.com/article",
     }],
@@ -98,7 +126,8 @@ LONGFORM_ROW_FIXTURE = {
 }
 
 
-# Synthetic fixture for tabular fallback — row with long-text field
+# Synthetic fixture for the catalogue-record fallback — row with a PROTECTED
+# long-text field (`content` is protected for sglawwatch/about_singapore_law).
 TABULAR_ROW_FIXTURE = {
     "database": "sglawwatch",
     "table": "about_singapore_law",
@@ -106,7 +135,7 @@ TABULAR_ROW_FIXTURE = {
         "rowid": 1,
         "section": "Constitutional Law",
         "title": "On the separation of powers",
-        "content": ("This is a very long-form discourse on " * 30).strip(),  # > 200 chars
+        "content": (SENTINEL + " This is a very long-form discourse on " * 10).strip(),
         "last_scraped": "2025-12-01",
         "item_url": "https://example.com/article",
     }],
@@ -126,7 +155,7 @@ def _mock_factory(headlines_row, judgments_row, *, raise_on=None):
             return httpx.Response(200, json=METADATA_WITH_DISPLAY)
         if path.startswith("/sglawwatch/headlines/") and path.endswith(".json"):
             return httpx.Response(200, json=headlines_row)
-        if path.startswith("/Zeeker-Judgements/judgments/") and path.endswith(".json"):
+        if path.startswith("/zeeker-judgements/judgments/") and path.endswith(".json"):
             return httpx.Response(200, json=judgments_row)
         if path.startswith("/sglawwatch/longform_articles/") and path.endswith(".json"):
             return httpx.Response(200, json=LONGFORM_ROW_FIXTURE)
@@ -190,16 +219,60 @@ async def test_row_article_mode_does_not_render_dateline(client_row):
     assert 'class="dateline"' not in r.text
 
 
+@pytest.mark.asyncio
+async def test_row_article_aside_never_renders_protected_value(client_row):
+    """The headlines `text` column is protected — even though its sample
+    value is shorter than 200 chars, it must never appear in the aside."""
+    r = await client_row.get("/sglawwatch/headlines/fdd3ea972982da1e8326e4233586bd8e")
+    assert SENTINEL not in r.text
+
+
+@pytest.mark.asyncio
+async def test_row_article_protected_table_has_no_csv_export(client_row):
+    r = await client_row.get("/sglawwatch/headlines/fdd3ea972982da1e8326e4233586bd8e")
+    body = r.text
+    assert ".csv?" not in body, "CSV export anchor must not render for protected table"
+    assert re.search(r'href="/sglawwatch/headlines/fdd3ea972982da1e8326e4233586bd8e\.json"', body)
+
+
 # ===== judgment mode =====
 
 @pytest.mark.asyncio
 async def test_row_judgment_mode_renders_dateline(client_row):
-    r = await client_row.get("/Zeeker-Judgements/judgments/1")
+    r = await client_row.get("/zeeker-judgements/judgments/1")
     assert r.status_code == 200
     body = r.text
     assert 'class="dateline"' in body
     # tag-chip from synthetic subject_tags
     assert "tag-chip" in body
+
+
+@pytest.mark.asyncio
+async def test_row_judgment_body_is_summary_not_full_text(client_row):
+    """display.columns.body points at protected content_text — the server
+    must drop the override and fall back to a summary-class column."""
+    r = await client_row.get("/zeeker-judgements/judgments/1")
+    body = r.text
+    assert JUDGMENT_SENTINEL not in body
+    # the summary-class fallback renders instead
+    assert "upheld the conviction and sentence" in body
+
+
+@pytest.mark.asyncio
+async def test_row_judgment_prominent_source_link(client_row):
+    r = await client_row.get("/zeeker-judgements/judgments/1")
+    body = r.text
+    assert "Read the full judgment at the source" in body
+    assert "elitigation.sg/judgments/sgca/2025/12.pdf" in body
+
+
+@pytest.mark.asyncio
+async def test_row_judgment_keeps_citation_court_date_chrome(client_row):
+    r = await client_row.get("/zeeker-judgements/judgments/1")
+    body = r.text
+    assert "[2025] SGCA 12" in body
+    assert "Court of Appeal" in body
+    assert "2025-03-15" in body
 
 
 # ===== longform mode (no aside) =====
@@ -213,23 +286,28 @@ async def test_row_longform_mode_no_aside(client_row):
     assert 'class="aside"' not in body  # longform has NO sidebar
 
 
-# ===== tabular fallback (no display.row_mode) =====
+# ===== catalogue-record fallback (no display.row_mode) =====
 
 @pytest.mark.asyncio
 async def test_row_tabular_fallback_renders_dl(client_row):
     r = await client_row.get("/sglawwatch/about_singapore_law/1")
     assert r.status_code == 200
     body = r.text
-    assert "<dl" in body  # key-value list
+    assert "<dl" in body  # key-value list of short values
 
 
 @pytest.mark.asyncio
-async def test_row_tabular_long_text_uses_details(client_row):
-    # TABULAR_ROW_FIXTURE has 'content' field > 200 chars
+async def test_row_tabular_never_renders_full_text(client_row):
+    """INVERTED from the old <details> design: the protected long-text
+    `content` column must NOT appear at all — no <details>, no preview."""
     r = await client_row.get("/sglawwatch/about_singapore_law/1")
     body = r.text
-    assert "<details" in body
-    assert "Show full content" in body
+    assert "<details" not in body
+    assert "Show full content" not in body
+    assert SENTINEL not in body
+    # short identifying values still render
+    assert "Constitutional Law" in body
+    assert "On the separation of powers" in body
 
 
 # ===== Cache-Control =====
@@ -276,6 +354,12 @@ async def test_row_zeeker_prefix_returns_404(client_row):
 @pytest.mark.asyncio
 async def test_row_fts_suffix_returns_404(client_row):
     r = await client_row.get("/sglawwatch/headlines_fts/some-pk")
+    assert r.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_row_fragments_suffix_returns_404(client_row):
+    r = await client_row.get("/zeeker-judgements/judgments_fragments/some-pk")
     assert r.status_code == 404
 
 

@@ -26,10 +26,16 @@ ls -la /data
 # '/app/templates' does not exist.`); the same applies to --static. The
 # frontend service now owns all HTML rendering + static assets, so neither
 # flag is needed by the datasette image.
+# Catalogue lockdown (belt-and-braces with metadata.json "allow_sql": false,
+# which can be overwritten at runtime by the S3 base-metadata download):
+#   default_allow_sql off  -> no arbitrary ?sql= execution
+#   allow_download off     -> no .db file downloads
 echo "Starting Datasette in immutable mode"
 exec uv run datasette serve --host 0.0.0.0 --port 8001 \
     --metadata /app/metadata.json \
     --plugins-dir /app/plugins \
+    --setting default_allow_sql off \
+    --setting allow_download off \
     --cors \
     --immutable \
     $(ls /data/*.db)
