@@ -54,6 +54,7 @@ async def table_page(request: Request, db: str, table: str):
     db_entry = (site_metadata.get("databases") or {}).get(db) or {}
     table_meta = (db_entry.get("tables") or {}).get(table) or {}
     display = table_meta.get("display") or {}
+    display_columns = display.get("columns") or {}
 
     # LIST-ALWAYS — feed unless display explicitly opts into longform-list.
     table_mode = "longform-list" if display.get("table_mode") == "longform-list" else "feed"

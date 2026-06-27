@@ -17,12 +17,6 @@
       "source": "Singapore Government Ministries & Judiciary",
       "source_url": "https://www.mlaw.gov.sg/news/",
       "tables": {
-        "_zeeker_schemas": {
-          "hidden": true
-        },
-        "_zeeker_updates": {
-          "hidden": true
-        },
         "mlaw_news": {
           "sort_desc": "published_date",
           "title": "Ministry of Law News",
@@ -180,19 +174,10 @@
       "title": "SG Law Watch",
       "description": "Singapore legal news, FAQ, and reference materials.",
       "tables": {
-        "_zeeker_schemas": {
-          "hidden": true
-        },
-        "_zeeker_updates": {
-          "hidden": true
-        },
         "metadata": {
           "hidden": true
         },
         "schema_versions": {
-          "hidden": true
-        },
-        "about_singapore_law_fragments": {
           "hidden": true
         },
         "headlines": {
@@ -248,15 +233,6 @@
       "title": "Zeeker Judgements",
       "description": "Singapore court judgments — Court of Appeal, High Court, State Courts.",
       "tables": {
-        "_zeeker_schemas": {
-          "hidden": true
-        },
-        "_zeeker_updates": {
-          "hidden": true
-        },
-        "judgments_fragments": {
-          "hidden": true
-        },
         "judgments": {
           "sort_desc": "decision_date",
           "title": "Judgments",
@@ -283,15 +259,6 @@
       "source": "Personal Data Protection Commission",
       "source_url": "https://www.pdpc.gov.sg/all-commissions-decisions",
       "tables": {
-        "_zeeker_schemas": {
-          "hidden": true
-        },
-        "_zeeker_updates": {
-          "hidden": true
-        },
-        "enforcement_decisions_fragments": {
-          "hidden": true
-        },
         "enforcement_decisions": {
           "sort_desc": "decision_date",
           "title": "Enforcement Decisions",

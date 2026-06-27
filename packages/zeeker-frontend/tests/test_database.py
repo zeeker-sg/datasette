@@ -83,6 +83,16 @@ async def test_database_filters_hidden_zeeker_tables(client_with_mocked_datasett
 
 
 @pytest.mark.asyncio
+async def test_database_filters_fragments_tables(client_with_mocked_datasette):
+    """_fragments tables should be hidden by platform convention even when
+    Datasette's hidden flag is not set (e.g. overlay doesn't carry the entry)."""
+    r = await client_with_mocked_datasette.get("/sglawwatch")
+    assert "_fragments" not in r.text, (
+        "_fragments tables leaked into the rendered page"
+    )
+
+
+@pytest.mark.asyncio
 async def test_database_filters_fts_tables(client_with_mocked_datasette):
     """The captured sglawwatch fixture includes `headlines_fts`, `headlines_fts_data`,
     etc., all with hidden=true. The rendered editorial-row list must exclude them.

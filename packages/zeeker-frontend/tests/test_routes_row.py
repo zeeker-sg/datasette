@@ -65,8 +65,9 @@ METADATA_WITH_DISPLAY = {
                         },
                     },
                 },
-                "about_singapore_law": {  # NO display.row_mode → catalogue-record fallback
+                "about_singapore_law": {  # explicit tabular (catalogue-record fallback)
                     "title": "About Singapore Law",
+                    "display": {"row_mode": "tabular"},
                 },
                 "longform_articles": {
                     "title": "Longform",
