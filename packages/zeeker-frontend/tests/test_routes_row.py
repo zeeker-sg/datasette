@@ -39,8 +39,9 @@ METADATA_WITH_DISPLAY = {
                         },
                     },
                 },
-                "about_singapore_law": {  # NO display.row_mode → tabular fallback
+                "about_singapore_law": {  # explicit tabular overrides convention
                     "title": "About Singapore Law",
+                    "display": {"row_mode": "tabular"},
                 },
                 "longform_articles": {
                     "title": "Longform",
@@ -276,6 +277,12 @@ async def test_row_zeeker_prefix_returns_404(client_row):
 @pytest.mark.asyncio
 async def test_row_fts_suffix_returns_404(client_row):
     r = await client_row.get("/sglawwatch/headlines_fts/some-pk")
+    assert r.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_row_fragments_suffix_returns_404(client_row):
+    r = await client_row.get("/sglawwatch/headlines_fragments/some-pk")
     assert r.status_code == 404
 
 

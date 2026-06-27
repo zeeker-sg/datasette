@@ -7,7 +7,11 @@ import httpx
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse
 
-from zeeker_frontend.datasette_client import fetch_database, fetch_site_metadata
+from zeeker_frontend.datasette_client import (
+    fetch_database,
+    fetch_site_metadata,
+    is_hidden_table,
+)
 
 router = APIRouter()
 
@@ -26,13 +30,16 @@ async def database(request: Request, db: str):
         # Pitfall 1 revisited: explicit 404 — NOT a generic 500 traceback.
         raise HTTPException(status_code=404, detail="Database not found")
 
-    # Datasette's `hidden: true` flag covers FTS internals (*_fts, *_fts_data,
-    # *_fts_docsize, *_fts_idx) but NOT the `_zeeker_*` platform tables — those
-    # are only hidden when per-database metadata.json opts them in (M1 did
-    # this; not every overlay carries it). Match both: flag AND prefix.
+    # Two layers of hiding:
+    #   1. Datasette's `hidden: true` flag (covers most FTS internals when the
+    #      overlay sets it, but is NOT reliable for every database — some
+    #      overlays don't carry the per-table hidden:true entries).
+    #   2. is_hidden_table() — platform naming conventions: `_zeeker_*`,
+    #      `*_fragments`, and FTS shadow tables.  This catches the tables
+    #      that Datasette doesn't know about and that overlays forget.
     visible_tables = [
         t for t in payload.get("tables", [])
-        if not t.get("hidden") and not t.get("name", "").startswith("_zeeker")
+        if not t.get("hidden") and not is_hidden_table(t.get("name", ""))
     ]
 
     # Per-DB title/description live in /-/metadata.json.databases[db]. Source/license

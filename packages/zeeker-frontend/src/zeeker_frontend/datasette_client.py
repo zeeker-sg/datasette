@@ -62,6 +62,41 @@ def reset_metadata_cache() -> None:
     _METADATA_CACHE["expires_at"] = 0.0
 
 
+# ── Hidden-table conventions ───────────────────────────────────────────
+# Platform conventions that should ALWAYS be hidden, regardless of what
+# metadata.json says.  These are zeeker-specific (not Datasette internals):
+#
+#   _zeeker_*       — platform metadata tables (_zeeker_schemas, _zeeker_updates)
+#   *_fragments     — row-chunk fragments for long-text search indexing
+#
+# Datasette's own FTS shadow tables (*_fts, *_fts_data, …) are already
+# marked hidden=true by Datasette itself, but we list them here too so
+# the guard in routes_table / routes_row (which checks by name before
+# hitting the API) catches them.
+_HIDDEN_TABLE_PREFIXES = ("_zeeker",)
+_HIDDEN_TABLE_SUFFIXES = (
+    "_fragments",
+    "_fragments_fts", "_fragments_fts_data", "_fragments_fts_idx",
+    "_fragments_fts_docsize", "_fragments_fts_config",
+    "_fts", "_fts_data", "_fts_idx", "_fts_docsize", "_fts_config",
+)
+
+
+def is_hidden_table(name: str) -> bool:
+    """True if a table should be hidden from the UI based on platform naming
+    conventions — independent of Datasette's ``hidden`` metadata flag.
+
+    Covers ``_zeeker_*`` platform tables, ``*_fragments`` chunk tables (and
+    their FTS shadows), and Datasette FTS internals.  Use alongside the
+    ``hidden`` flag from the API payload: a table is visible only when
+    ``not t.get("hidden") and not is_hidden_table(t["name"])``.
+    """
+    return (
+        name.startswith(_HIDDEN_TABLE_PREFIXES)
+        or name.endswith(_HIDDEN_TABLE_SUFFIXES)
+    )
+
+
 # Phase 5 — table + row endpoint helpers.
 # Allowlist per RESEARCH §Pitfall 7 (querystring smuggling): only forward
 # known datasette params + plain column-name filters + column__operator.
@@ -129,8 +164,9 @@ async def discover_searchable_tables(
 
     Filtering predicates (mandatory, both required — RESEARCH Pitfall 4):
       - `t.get("hidden")` — drops *_fts internal virtual tables
-      - `t.get("name", "").startswith("_zeeker")` — drops platform tables
-        which can have hidden=False in some overlays
+      - `is_hidden_table(name)` — drops `_zeeker_*` platform tables and
+        `*_fragments` chunk tables which can have hidden=False in some
+        overlays
 
     Boot tolerance (RESEARCH Pitfall 10): any httpx error → empty dict.
     routes_search renders 503 friendly when cache empty AND q non-empty.
@@ -154,7 +190,7 @@ async def discover_searchable_tables(
         for t in payload.get("tables") or []:
             if t.get("hidden"):
                 continue
-            if t.get("name", "").startswith("_zeeker"):
+            if is_hidden_table(t.get("name", "")):
                 continue
             if t.get("fts_table"):
                 names.append(t["name"])

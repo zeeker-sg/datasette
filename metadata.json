@@ -29,18 +29,6 @@
             "summary": "AI-generated summary highlighting key policy and legal points (~100 words)",
             "content_text": "Full extracted article text (hidden — query directly via SQL)",
             "created_at": "Timestamp when this record was first imported"
-          },
-          "display": {
-            "table_mode": "feed",
-            "row_mode": "article",
-            "columns": {
-              "kicker": "category",
-              "title": "title",
-              "byline": "published_date",
-              "body": "summary",
-              "date": "published_date",
-              "source_url": "source_url"
-            }
           }
         },
         "judiciary_news": {
@@ -57,115 +45,31 @@
             "summary": "AI-generated summary highlighting key judicial developments (~100 words)",
             "content_text": "Full extracted text (hidden — query directly via SQL)",
             "created_at": "Timestamp when this record was first imported"
-          },
-          "display": {
-            "table_mode": "feed",
-            "row_mode": "article",
-            "columns": {
-              "kicker": "content_type",
-              "title": "title",
-              "byline": "published_date",
-              "body": "summary",
-              "date": "published_date",
-              "source_url": "source_url"
-            }
           }
         },
         "acra_news": {
           "sort_desc": "published_date",
-          "title": "ACRA News",
-          "display": {
-            "table_mode": "feed",
-            "row_mode": "article",
-            "columns": {
-              "kicker": "category",
-              "title": "title",
-              "byline": "published_date",
-              "body": "summary",
-              "date": "published_date",
-              "source_url": "source_url"
-            }
-          }
+          "title": "ACRA News"
         },
         "agc_news": {
           "sort_desc": "published_date",
-          "title": "AGC News",
-          "display": {
-            "table_mode": "feed",
-            "row_mode": "article",
-            "columns": {
-              "kicker": "category",
-              "title": "title",
-              "byline": "published_date",
-              "body": "summary",
-              "date": "published_date",
-              "source_url": "source_url"
-            }
-          }
+          "title": "AGC News"
         },
         "ccs_news": {
           "sort_desc": "published_date",
-          "title": "CCS News",
-          "display": {
-            "table_mode": "feed",
-            "row_mode": "article",
-            "columns": {
-              "kicker": "category",
-              "title": "title",
-              "byline": "published_date",
-              "body": "summary",
-              "date": "published_date",
-              "source_url": "source_url"
-            }
-          }
+          "title": "CCS News"
         },
         "ipos_news": {
           "sort_desc": "published_date",
-          "title": "IPOS News",
-          "display": {
-            "table_mode": "feed",
-            "row_mode": "article",
-            "columns": {
-              "kicker": "category",
-              "title": "title",
-              "byline": "published_date",
-              "body": "summary",
-              "date": "published_date",
-              "source_url": "source_url"
-            }
-          }
+          "title": "IPOS News"
         },
         "mom_news": {
           "sort_desc": "published_date",
-          "title": "MOM News",
-          "display": {
-            "table_mode": "feed",
-            "row_mode": "article",
-            "columns": {
-              "kicker": "category",
-              "title": "title",
-              "byline": "published_date",
-              "body": "summary",
-              "date": "published_date",
-              "source_url": "source_url"
-            }
-          }
+          "title": "MOM News"
         },
         "pdpc_news": {
           "sort_desc": "published_date",
-          "title": "PDPC News",
-          "display": {
-            "table_mode": "feed",
-            "row_mode": "article",
-            "columns": {
-              "kicker": "category",
-              "title": "title",
-              "byline": "published_date",
-              "body": "summary",
-              "date": "published_date",
-              "source_url": "source_url"
-            }
-          }
+          "title": "PDPC News"
         }
       }
     },
@@ -176,19 +80,7 @@
         "headlines": {
           "sort_desc": "date",
           "title": "Headlines",
-          "description": "Daily Singapore legal news headlines from major outlets.",
-          "display": {
-            "table_mode": "feed",
-            "row_mode": "article",
-            "columns": {
-              "kicker": "category",
-              "title": "title",
-              "byline": "author",
-              "body": "summary",
-              "date": "date",
-              "source_url": "source_link"
-            }
-          }
+          "description": "Daily Singapore legal news headlines from major outlets."
         },
         "about_singapore_law": {
           "title": "About Singapore Law",
@@ -207,19 +99,7 @@
         },
         "commentaries": {
           "sort_desc": "pub_date",
-          "title": "Commentaries",
-          "display": {
-            "table_mode": "feed",
-            "row_mode": "article",
-            "columns": {
-              "kicker": "content_type",
-              "title": "title",
-              "byline": "author",
-              "body": "full_text",
-              "date": "pub_date",
-              "source_url": "link"
-            }
-          }
+          "title": "Commentaries"
         }
       }
     },
@@ -248,40 +128,28 @@
     },
     "pdpc": {
       "title": "PDPC",
-      "description": "Personal Data Protection Commission enforcement decisions under the PDPA.",
+      "description": "Personal Data Protection Commission enforcement decisions and regulatory materials under the PDPA.",
       "license": "All rights reserved",
       "license_url": "https://www.pdpc.gov.sg/privacy-policy",
       "tables": {
         "enforcement_decisions": {
           "sort_desc": "decision_date",
-          "title": "Enforcement Decisions",
-          "display": {
-            "table_mode": "feed",
-            "row_mode": "article",
-            "columns": {
-              "kicker": "decision_type",
-              "title": "title",
-              "byline": "organisation",
-              "body": "summary",
-              "date": "decision_date",
-              "source_url": "decision_url"
-            }
-          }
+          "title": "Enforcement Decisions"
+        },
+        "guidance_by_topic": {
+          "sort_desc": "published_date",
+          "title": "Guidance by Topic"
+        },
+        "regulatory_guidance": {
+          "sort_desc": "published_date",
+          "title": "Regulatory Guidance"
         }
       }
     },
     "*": {
       "allow_sql": true,
       "allow_facet": true,
-      "allow_download": true,
-      "tables": {
-        "_zeeker_schemas": {
-          "hidden": true
-        },
-        "_zeeker_updates": {
-          "hidden": true
-        }
-      }
+      "allow_download": true
     }
   },
   "plugins": {

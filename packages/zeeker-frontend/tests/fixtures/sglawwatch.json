@@ -52,6 +52,14 @@
       "num_relationships_for_table": 0
     },
     {
+      "name": "about_singapore_law_fragments",
+      "columns": ["id", "judgment_id", "text_chunk"],
+      "count": 2454,
+      "hidden": false,
+      "fts_table": "about_singapore_law_fragments_fts",
+      "num_relationships_for_table": 0
+    },
+    {
       "name": "_zeeker_schemas",
       "columns": ["id", "table_name", "schema_json"],
       "count": 3,

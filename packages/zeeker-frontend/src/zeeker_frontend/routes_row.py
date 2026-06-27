@@ -7,14 +7,14 @@ import httpx
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse
 
-from zeeker_frontend.datasette_client import fetch_row, fetch_site_metadata
+from zeeker_frontend.datasette_client import (
+    fetch_row,
+    fetch_site_metadata,
+    is_hidden_table,
+)
+from zeeker_frontend.routes_table import _detect_feed_columns
 
 router = APIRouter()
-
-_HIDDEN_TABLE_PREFIXES = ("_zeeker",)
-_HIDDEN_TABLE_SUFFIXES = (
-    "_fts", "_fts_data", "_fts_idx", "_fts_docsize", "_fts_config",
-)
 
 _PK_DISPLAY_MAX = 12  # UI-SPEC §Always-present chrome — truncate UUID/hash PKs in breadcrumb
 
@@ -33,7 +33,7 @@ def _truncate_pk(pk: str, n: int = _PK_DISPLAY_MAX) -> str:
 @router.get("/{db}/{table}/{pk}", response_class=HTMLResponse)
 async def row_page(request: Request, db: str, table: str, pk: str):
     # Hidden-table guard — same wording for missing vs. hidden.
-    if table.startswith(_HIDDEN_TABLE_PREFIXES) or table.endswith(_HIDDEN_TABLE_SUFFIXES):
+    if is_hidden_table(table):
         raise HTTPException(status_code=404, detail="Table not found")
 
     client: httpx.AsyncClient = request.app.state.http
@@ -58,8 +58,20 @@ async def row_page(request: Request, db: str, table: str, pk: str):
     display = table_meta.get("display") or {}
     display_columns = display.get("columns") or {}
 
+    # Feed-by-convention: if no explicit display.columns set, auto-detect
+    # from column names so the row page can use the article layout without
+    # a metadata hint.
+    if not display_columns:
+        detected = _detect_feed_columns(payload.get("columns") or [])
+        if detected:
+            display_columns = detected
+
     # D-04 — tabular fallback when no display.row_mode set.
-    row_mode = display.get("row_mode") or "tabular"
+    # If the table matched the feed convention and no explicit row_mode
+    # was set, default to "article" so the row page matches the feed.
+    row_mode = display.get("row_mode")
+    if not row_mode:
+        row_mode = "article" if display_columns else "tabular"
 
     # Page H1 — slot-driven if display.columns.title is set; else generic "Record".
     title_col = display_columns.get("title")
