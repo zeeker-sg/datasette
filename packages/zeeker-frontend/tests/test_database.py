@@ -106,6 +106,65 @@ async def test_database_filters_fts_tables(client_with_mocked_datasette):
 
 
 @pytest.mark.asyncio
+async def test_database_filters_fragments_tables(client_with_mocked_datasette):
+    """*_fragments chunk tables (full-text content) must not be listed even
+    when Datasette reports hidden=false (name predicate)."""
+    r = await client_with_mocked_datasette.get("/sglawwatch")
+    assert 'href="/sglawwatch/about_singapore_law_fragments"' not in r.text
+    assert "Fragments" not in r.text
+
+
+@pytest.mark.asyncio
+async def test_database_filters_metadata_and_schema_versions(client_with_mocked_datasette):
+    """sglawwatch's `metadata` and `schema_versions` tables are flagged
+    hidden via site metadata — they must not appear in the table list."""
+    r = await client_with_mocked_datasette.get("/sglawwatch")
+    assert 'href="/sglawwatch/metadata"' not in r.text
+    assert 'href="/sglawwatch/schema_versions"' not in r.text
+
+
+@pytest.mark.asyncio
+async def test_database_filters_views(client_with_mocked_datasette):
+    """Views pass through the same hidden predicate as tables."""
+    r = await client_with_mocked_datasette.get("/sglawwatch")
+    body = r.text
+    # visible view listed
+    assert 'href="/sglawwatch/recent_headlines_view"' in body
+    # _zeeker-prefixed and *_fts* views filtered
+    assert "_zeeker_audit_view" not in body
+    assert "headlines_fts_view" not in body
+
+
+@pytest.mark.asyncio
+async def test_database_filters_canned_queries(client_with_mocked_datasette):
+    """Canned queries pass through the same hidden predicate as tables."""
+    r = await client_with_mocked_datasette.get("/sglawwatch")
+    body = r.text
+    assert 'href="/sglawwatch/recent_headlines"' in body
+    assert "Recent Headlines" in body
+    assert "_zeeker_admin_query" not in body
+
+
+@pytest.mark.asyncio
+async def test_database_no_sql_links(client_with_mocked_datasette):
+    """The /sql editor is gone — no ?sql= links may render."""
+    r = await client_with_mocked_datasette.get("/sglawwatch")
+    assert "?sql=" not in r.text
+
+
+@pytest.mark.asyncio
+async def test_database_protected_table_json_export_only(client_with_mocked_datasette):
+    """headlines carries protected column `text` → no per-table CSV anchor;
+    unprotected about_singapore_law keeps both."""
+    r = await client_with_mocked_datasette.get("/sglawwatch")
+    body = r.text
+    assert 'href="/sglawwatch/headlines.csv"' not in body
+    assert 'href="/sglawwatch/headlines.json"' in body
+    assert 'href="/sglawwatch/about_singapore_law.csv"' in body
+    assert 'href="/sglawwatch/about_singapore_law.json"' in body
+
+
+@pytest.mark.asyncio
 async def test_database_italic_accent_h1(client_with_mocked_datasette):
     """Last-word-italic H1 split (M1 WARN-04)."""
     import re

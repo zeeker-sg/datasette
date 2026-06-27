@@ -1,4 +1,9 @@
-"""GET /{db} — database overview page. Phase 4."""
+"""GET /{db} — database overview page. Phase 4; catalogue posture.
+
+Listing surfaces (tables, views, canned queries) are all filtered through the
+shared hidden predicate in datasette_client.is_hidden_table — Datasette's
+hidden/private flags plus the name rules (_zeeker*, *_fts*, *_fragments).
+"""
 from __future__ import annotations
 
 from datetime import datetime
@@ -11,9 +16,31 @@ from zeeker_frontend.datasette_client import (
     fetch_database,
     fetch_site_metadata,
     is_hidden_table,
+    is_protected_table,
 )
 
 router = APIRouter()
+
+
+def _normalize_named(items) -> list[dict]:
+    """Normalize views/queries payloads to a list of dicts with `name`.
+
+    Live Datasette 0.65 serves both as lists (of dicts or strings); older
+    captures show `queries` as a dict keyed by name. Handle all three.
+    """
+    if not items:
+        return []
+    if isinstance(items, dict):
+        items = [
+            {"name": k, **(v if isinstance(v, dict) else {})}
+            for k, v in items.items()
+        ]
+    out: list[dict] = []
+    for item in items:
+        if isinstance(item, str):
+            item = {"name": item}
+        out.append(item)
+    return out
 
 
 @router.get("/{db}", response_class=HTMLResponse)
@@ -30,17 +57,21 @@ async def database(request: Request, db: str):
         # Pitfall 1 revisited: explicit 404 — NOT a generic 500 traceback.
         raise HTTPException(status_code=404, detail="Database not found")
 
-    # Two layers of hiding:
-    #   1. Datasette's `hidden: true` flag (covers most FTS internals when the
-    #      overlay sets it, but is NOT reliable for every database — some
-    #      overlays don't carry the per-table hidden:true entries).
-    #   2. is_hidden_table() — platform naming conventions: `_zeeker_*`,
-    #      `*_fragments`, and FTS shadow tables.  This catches the tables
-    #      that Datasette doesn't know about and that overlays forget.
+    # Shared hidden predicate — covers Datasette's hidden flag AND the
+    # name rules (_zeeker* platform tables, *_fts* shadows, *_fragments
+    # chunk tables). Applied to tables, views AND canned queries.
     visible_tables = [
-        t for t in payload.get("tables", [])
-        if not t.get("hidden") and not is_hidden_table(t.get("name", ""))
+        t for t in payload.get("tables", []) if not is_hidden_table(t)
     ]
+    views = [
+        v for v in _normalize_named(payload.get("views")) if not is_hidden_table(v)
+    ]
+    canned_queries = []
+    for q in _normalize_named(payload.get("queries")):
+        if is_hidden_table(q):
+            continue
+        q.setdefault("title", q.get("name"))
+        canned_queries.append(q)
 
     # Per-DB title/description live in /-/metadata.json.databases[db]. Source/license
     # are already merged into /{db}.json top-level by datasette — pass both up.
@@ -59,6 +90,19 @@ async def database(request: Request, db: str):
         "menu_links": site_metadata.get("menu_links", []),
     }
 
+    # Protected tables (strip-columns) — their .csv export 403s, so the
+    # template renders the JSON link only.
+    protected_table_names = {
+        t.get("name")
+        for t in visible_tables
+        if is_protected_table(
+            site_metadata, db, t.get("name", ""),
+            # /{db}.json table dicts carry the column list (verified live);
+            # guard against shapes where `columns` is a count.
+            t.get("columns") if isinstance(t.get("columns"), list) else None,
+        )
+    }
+
     breadcrumb_label = merged_metadata["title"] or db.replace("-", " ").replace("_", " ").title()
 
     response = request.app.state.templates.TemplateResponse(
@@ -67,8 +111,9 @@ async def database(request: Request, db: str):
         context={
             "database": db,
             "tables": visible_tables,
-            "views": payload.get("views", []),
-            "canned_queries": payload.get("queries", []),
+            "views": views,
+            "canned_queries": canned_queries,
+            "protected_tables": protected_table_names,
             "size": payload.get("size"),
             "metadata": merged_metadata,
             "breadcrumbs": [{"label": breadcrumb_label}],

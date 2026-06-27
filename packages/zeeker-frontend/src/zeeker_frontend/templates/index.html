@@ -62,9 +62,9 @@
       <span class="stat-label">{{ plural(ns.total_tables, 'plural_table', 'plural_tables') }}</span>
     </div>
     {% endif %}
-    <a href="/sql" class="statband-link">
-      <div class="stat-num">SQL</div>
-      <span class="stat-label">full query access</span>
+    <a href="/developers" class="statband-link">
+      <div class="stat-num">API</div>
+      <span class="stat-label">open JSON access</span>
     </a>
     <div>
       <div class="stat-num">CSV · JSON</div>
@@ -80,10 +80,10 @@
     <div class="section-head">
       <h2>
         {{ s('home_section1_line1', 'Curated public data,')|safe }}
-        <em>{{ s('home_section1_line2', 'ready to query')|safe }}</em>.
+        <em>{{ s('home_section1_line2', 'ready to browse')|safe }}</em>.
       </h2>
       <div class="aside">
-        {{ s('home_section1_aside', 'Every dataset ships with schema, source citation, and full SQL access.') }}
+        {{ s('home_section1_aside', 'Every dataset ships with schema, source citation, and an open JSON API.') }}
         <br>
         <a href="/search">Search across all data →</a>
       </div>
@@ -144,14 +144,14 @@
         <p>Open any database above. Each page lists its tables with descriptions, schemas, and full-text search where available.</p>
       </div>
       <div class="how-item">
-        <div class="kicker">Query</div>
-        <h3>Write SQL</h3>
-        <p>Every database has its own read-only editor with worked examples and a schema reference. <a href="/sql">Open the SQL editor →</a></p>
+        <div class="kicker">Verify</div>
+        <h3>Follow the source</h3>
+        <p>This is a catalogue: each record carries a summary, identifying details, and a link to the original publication. Follow the source link to read the full document where it lives.</p>
       </div>
       <div class="how-item">
         <div class="kicker">Export</div>
         <h3>Pull the data</h3>
-        <p>Append <code>.csv</code>, <code>.json</code>, or <code>.db</code> to any URL. Use the JSON API for programmatic access.</p>
+        <p>Append <code>.json</code> or <code>.csv</code> to any table URL. Use the JSON API for programmatic access. <a href="/developers">Read the API docs →</a></p>
       </div>
     </div>
   </div>
@@ -167,7 +167,7 @@
     <p>{{ s('home_cta_body', 'Open, citable, machine-readable. CC-BY-4.0 unless noted otherwise.') }}</p>
     <div class="cta-actions">
       <a href="/search" class="btn-primary">{{ s('home_cta_primary', 'Start searching') }}</a>
-      <a href="/sql" class="btn-ghost">{{ s('home_cta_sql', 'Write SQL') }}</a>
+      <a href="/developers" class="btn-ghost">{{ s('home_cta_api', 'Use the API') }}</a>
       <a href="/how-to-use" class="btn-ghost">{{ s('home_cta_ghost', 'Read the guide') }}</a>
     </div>
   </div>

@@ -1,27 +1,35 @@
 {
-  "database": "Zeeker-Judgements",
+  "database": "zeeker-judgements",
   "table": "judgments",
   "rows": [
     {
       "rowid": 1,
-      "case_name": "Public Prosecutor v Tan Cheng Yew",
-      "court": "Court of Appeal",
+      "id": "2025_SGCA_12",
       "citation": "[2025] SGCA 12",
+      "case_name": "Public Prosecutor v Tan Cheng Yew",
       "decision_date": "2025-03-15",
-      "text": "The appellant was charged under section 420 of the Penal Code... [synthetic test body, ~120 chars total to keep fixture compact]",
+      "court": "Court of Appeal",
       "subject_tags": "[\"criminal-law\", \"cheating\", \"sentencing\"]",
-      "source_url": "https://www.elitigation.sg/judgments/sgca/2025/12.pdf"
+      "source_url": "https://www.elitigation.sg/judgments/sgca/2025/12.pdf",
+      "content_text": "JUDGMENT-SENTINEL-FULL-TEXT-MUST-NOT-RENDER 1. The appellant was charged under section 420 of the Penal Code. 2. The full grounds of decision run to many paragraphs and must never be readable on the catalogue site.",
+      "court_summary": "Outcome: appeal dismissed; sentence of 36 months upheld.",
+      "summary": "The Court of Appeal upheld the conviction and sentence for cheating offences, clarifying the sentencing framework.",
+      "created_at": "2025-03-20T08:00:00"
     }
   ],
   "columns": [
     "rowid",
-    "case_name",
-    "court",
+    "id",
     "citation",
+    "case_name",
     "decision_date",
-    "text",
+    "court",
     "subject_tags",
-    "source_url"
+    "source_url",
+    "content_text",
+    "court_summary",
+    "summary",
+    "created_at"
   ],
   "primary_keys": [],
   "primary_key_values": ["1"],

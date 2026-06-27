@@ -11,7 +11,7 @@
   <header class="guide-hero">
     <div class="kicker">№ 01 · DEVELOPERS</div>
     <h1>Developer <em>portal</em></h1>
-    <p class="lede">Access data programmatically via REST API, CSV exports, and SQL queries.</p>
+    <p class="lede">Access catalogue data programmatically via the JSON API and CSV exports.</p>
   </header>
 
   {# 1. API overview --------------------------------------------- #}
@@ -19,8 +19,8 @@
     <h2>API overview</h2>
     <p>
       Every database and table on data.zeeker.sg is available through a REST API. You can
-      retrieve data as JSON or CSV, run SQL queries, and perform full-text search — all
-      without authentication. CORS is enabled on all endpoints.
+      retrieve table rows as JSON or CSV, filter and sort them, and perform full-text
+      search — all without authentication. CORS is enabled on all endpoints.
     </p>
     <p>
       The API is powered by
@@ -33,7 +33,19 @@
     </p>
   </section>
 
-  {# 2. Stable URL patterns -------------------------------------- #}
+  {# 2. Content policy ------------------------------------------- #}
+  <section class="aux-card">
+    <h2>Content policy</h2>
+    <p>
+      This site is a <strong>catalogue</strong>. Records carry summaries, identifying
+      data (titles, citations, dates, courts, categories), and a link to the original
+      publication. Full text columns are indexed for search relevance but are
+      <strong>not distributed</strong> via the website, the JSON API, or CSV exports.
+      To read a full document, follow the record's <code>source_url</code>.
+    </p>
+  </section>
+
+  {# 3. Stable URL patterns -------------------------------------- #}
   <section class="aux-card">
     <h2>Stable URL patterns</h2>
     <table class="api-table">
@@ -42,14 +54,14 @@
       </thead>
       <tbody>
         <tr><td><code>/{database}/{table}.json</code></td><td>Retrieve table rows as JSON</td></tr>
-        <tr><td><code>/{database}/{table}.csv</code></td><td>Export table rows as CSV</td></tr>
-        <tr><td><code>/{database}.json?sql=...</code></td><td>Execute a SQL query and return results as JSON</td></tr>
-        <tr><td><code>/search?q=...</code></td><td>Full-text search across all databases</td></tr>
+        <tr><td><code>/{database}/{table}.csv</code></td><td>Export table rows as CSV (tables without protected full-text columns; protected tables are JSON-only)</td></tr>
+        <tr><td><code>/{database}/{table}/{pk}.json</code></td><td>Retrieve a single record as JSON</td></tr>
+        <tr><td><code>/search?q=...</code></td><td>Full-text search across all databases (HTML); <code>/-/search.json?q=...</code> for JSON</td></tr>
       </tbody>
     </table>
   </section>
 
-  {# 3. Common parameters ---------------------------------------- #}
+  {# 4. Common parameters ---------------------------------------- #}
   <section class="aux-card">
     <h2>Common parameters</h2>
     <table class="api-table">
@@ -62,11 +74,13 @@
         <tr><td><code>_shape</code></td><td>Response shape: <code>objects</code> (default), <code>arrays</code>, <code>array</code>, <code>object</code></td></tr>
         <tr><td><code>_sort</code></td><td>Sort results by column (ascending)</td></tr>
         <tr><td><code>_sort_desc</code></td><td>Sort results by column (descending)</td></tr>
+        <tr><td><code>_search</code></td><td>Full-text search within a table (tables with a search index)</td></tr>
+        <tr><td><code>{column}__exact</code></td><td>Filter rows by column value (also <code>__contains</code>, <code>__gte</code>, <code>__lte</code>, …)</td></tr>
       </tbody>
     </table>
   </section>
 
-  {# 4. curl examples (only when databases non-empty) ------------ #}
+  {# 5. curl examples (only when databases non-empty) ------------ #}
   {% if databases %}
   {% set example_db = databases[0] %}
   {% set example_table = example_db.tables[0].name if example_db.tables else 'table' %}
@@ -80,15 +94,15 @@
     <h3>Download as CSV</h3>
     <pre><code>curl "https://data.zeeker.sg/{{ example_db.name }}/{{ example_table }}.csv" -o data.csv</code></pre>
 
-    <h3>Run a SQL query</h3>
-    <pre><code>curl "https://data.zeeker.sg/{{ example_db.name }}.json?sql=SELECT+*+FROM+[{{ example_table }}]+LIMIT+10"</code></pre>
+    <h3>Search within a table</h3>
+    <pre><code>curl "https://data.zeeker.sg/{{ example_db.name }}/{{ example_table }}.json?_search=contract&_size=10"</code></pre>
 
-    <h3>Full-text search</h3>
-    <pre><code>curl "https://data.zeeker.sg/search?q=contract"</code></pre>
+    <h3>Full-text search across all databases</h3>
+    <pre><code>curl "https://data.zeeker.sg/-/search.json?q=contract"</code></pre>
   </section>
   {% endif %}
 
-  {# 5. Export formats ------------------------------------------- #}
+  {# 6. Export formats ------------------------------------------- #}
   <section class="aux-card">
     <h2>Export formats</h2>
 
@@ -103,38 +117,18 @@
 
     <h3>CSV</h3>
     <p>
-      Append <code>.csv</code> to any table URL. Use <code>?_stream=on</code> for large
-      exports that stream all rows without pagination.
-    </p>
-
-    <h3>SQLite database download</h3>
-    <p>
-      Download the entire database file directly for offline analysis. Available from each
-      database page via the download link.
+      Append <code>.csv</code> to a table URL. Use <code>?_stream=on</code> for large
+      exports that stream all rows without pagination. CSV export is available for
+      tables without protected full-text columns; tables that carry protected columns
+      are JSON-only.
     </p>
   </section>
-
-  {# 6. SQL query interface -------------------------------------- #}
-  {% if databases %}
-  <section class="aux-card">
-    <h2>SQL query interface</h2>
-    <p>
-      Each database supports a SQL query interface. Open a database to run queries directly
-      in your browser.
-    </p>
-    <ul>
-      {% for db in databases %}
-      <li><a href="/{{ db.name }}">{{ db.title or db.name }}</a></li>
-      {% endfor %}
-    </ul>
-  </section>
-  {% endif %}
 
   {# 7. Schema reference ----------------------------------------- #}
   {% if databases %}
   <section class="aux-card">
     <h2>Schema reference</h2>
-    <p>Tables and columns available in each database.</p>
+    <p>Tables and columns available in each database. Protected full-text columns are not listed and are not served by the API.</p>
 
     {% for db in databases %}
     <h3>

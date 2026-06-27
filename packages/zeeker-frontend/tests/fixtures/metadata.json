@@ -21,6 +21,34 @@
   "plugins": {
     "datasette-search-all": {
       "template": "Search across all available data"
+    },
+    "strip-columns": {
+      "default_deny_names": ["content_text", "full_text", "html_raw", "footnote_text"],
+      "tables": {
+        "sg-gov-newsrooms": {
+          "acra_news": ["content_text"],
+          "agc_news": ["content_text"],
+          "ccs_news": ["content_text"],
+          "ipos_news": ["content_text"],
+          "judiciary_news": ["content_text"],
+          "mlaw_news": ["content_text"],
+          "mom_news": ["content_text"],
+          "pdpc_news": ["content_text"]
+        },
+        "sglawwatch": {
+          "commentaries": ["full_text"],
+          "headlines": ["text"],
+          "about_singapore_law": ["content"],
+          "about_singapore_law_fragments": ["content_text"]
+        },
+        "zeeker-judgements": {
+          "judgments": ["content_text"],
+          "judgments_fragments": ["content_text", "html_raw", "footnote_text"]
+        },
+        "pdpc": {
+          "enforcement_decisions_fragments": ["text"]
+        }
+      }
     }
   },
   "menu_links": [

@@ -24,6 +24,10 @@ services:
       - AWS_REGION=${AWS_REGION:-default}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      # Owner full-access token: requests with "Authorization: Bearer <token>"
+      # bypass the strip-columns catalogue lockdown (full JSON/CSV/SQL).
+      # Unset/empty → no bypass exists.
+      - ZEEKER_FULL_ACCESS_TOKEN=${ZEEKER_FULL_ACCESS_TOKEN:-}
 #    volumes:
 #      - ./templates:/app/templates
 #      - ./static:/app/static

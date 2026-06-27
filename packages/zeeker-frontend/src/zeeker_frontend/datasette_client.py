@@ -5,6 +5,7 @@ Design per RESEARCH §"Pattern 2: Thin Handler + Graceful Error" and
 """
 from __future__ import annotations
 
+import re
 import time
 from typing import Any
 
@@ -13,6 +14,242 @@ import httpx
 
 _METADATA_CACHE: dict[str, Any] = {"payload": None, "expires_at": 0.0}
 _METADATA_TTL_SECONDS = 60.0
+
+
+# ============================================================
+# Catalogue posture — shared hidden-table predicate
+# ============================================================
+#
+# HIDDEN-FROM-LISTINGS contract: _zeeker_* platform tables, *_fts* shadow
+# tables, *_fragments chunk tables, and anything Datasette flags hidden
+# (which, via site metadata, covers sglawwatch's `metadata` and
+# `schema_versions`) must not appear on ANY listing surface: database page,
+# homepage counts, search discovery, etc. Centralized here so every route
+# uses the exact same predicate.
+
+
+def is_hidden_table_name(name: str) -> bool:
+    """Name-only part of the hidden predicate (no payload dict needed)."""
+    name = name or ""
+    return (
+        name.startswith("_zeeker")
+        or "_fts" in name
+        or name.endswith("_fragments")
+    )
+
+
+def is_hidden_table(table: dict | str) -> bool:
+    """Shared hidden predicate: Datasette `hidden`/`private` flag OR name rules.
+
+    Accepts either a table/view/query dict (with `name` key) or a bare name.
+    """
+    if isinstance(table, str):
+        return is_hidden_table_name(table)
+    return (
+        bool(table.get("hidden"))
+        or bool(table.get("private"))
+        or is_hidden_table_name(table.get("name", ""))
+    )
+
+
+# ============================================================
+# Catalogue posture — protected (full-text) columns
+# ============================================================
+#
+# Single source of truth lives in repo-root metadata.json under
+# plugins["strip-columns"]:
+#   { "default_deny_names": [...],
+#     "tables": { "<db>": { "<table>": ["col", ...] } } }
+# A column is protected if its name is in default_deny_names OR listed for
+# its (db, table). The frontend must NEVER render a protected column's value
+# anywhere (table feed, row pages, search results).
+#
+# DB keys are matched case-insensitively as a defensive content measure —
+# the served name is `zeeker-judgements` but historical metadata used
+# `Zeeker-Judgements`; a casing mismatch must not disable protection.
+
+
+def _strip_columns_config(site_metadata: dict) -> dict:
+    return ((site_metadata or {}).get("plugins") or {}).get("strip-columns") or {}
+
+
+def _per_table_deny(site_metadata: dict, db: str, table: str) -> set[str]:
+    tables_cfg = _strip_columns_config(site_metadata).get("tables") or {}
+    db_cfg = None
+    for key, value in tables_cfg.items():
+        if key == db or key.lower() == (db or "").lower():
+            db_cfg = value or {}
+            break
+    if not db_cfg:
+        return set()
+    return set((db_cfg.get(table) or []))
+
+
+def protected_columns(
+    site_metadata: dict,
+    db: str,
+    table: str,
+    columns: list[str] | None = None,
+) -> set[str]:
+    """Return the set of protected column names for (db, table).
+
+    With `columns` supplied, returns only protected names actually present
+    in the table (the useful form for "is this table protected?" checks and
+    for slot exclusion).
+    """
+    cfg = _strip_columns_config(site_metadata)
+    deny = set(cfg.get("default_deny_names") or [])
+    deny |= _per_table_deny(site_metadata, db, table)
+    if columns is not None:
+        return {c for c in columns if c in deny}
+    return deny
+
+
+def is_protected_table(
+    site_metadata: dict,
+    db: str,
+    table: str,
+    columns: list[str] | None = None,
+) -> bool:
+    """True when the table carries at least one protected column.
+
+    When `columns` is known we intersect with reality; when not, we fall back
+    to "the table has an explicit per-table deny entry" (defaults can't be
+    checked without the column list).
+    """
+    if columns is not None:
+        return bool(protected_columns(site_metadata, db, table, columns))
+    return bool(_per_table_deny(site_metadata, db, table))
+
+
+# ============================================================
+# Catalogue posture — server-side display-slot heuristic
+# ============================================================
+#
+# DISPLAY CONTRACT: every table renders feed/list mode. Slots:
+# kicker / title / byline / body / date / source_url. display.columns in
+# site metadata overrides; missing slots are filled by this heuristic.
+# PKs and protected columns are excluded from ALL slots — body must map to
+# a summary-class column, never a protected one (overrides pointing at a
+# protected column are dropped, then re-filled heuristically).
+
+_SLOTS = ("kicker", "title", "byline", "body", "date", "source_url")
+_TITLE_CANDIDATES = ("title", "name", "headline", "case_name")
+_DATE_CANDIDATES = ("published_date", "decision_date", "date", "published", "created_at")
+_BODY_CANDIDATES = ("summary", "court_summary", "description", "abstract")
+_KICKER_CANDIDATES = ("category", "content_type", "type", "court", "courts")
+_SOURCE_URL_CANDIDATES = ("source_url", "url", "source_link", "link", "item_url")
+_DATE_SHAPED_RE = re.compile(r"^\d{4}-\d{2}(-\d{2})?")
+
+
+def _sample_value(rows: list[dict], col: str):
+    """First non-empty value for `col` across the first few rows."""
+    for row in (rows or [])[:10]:
+        v = row.get(col)
+        if v is not None and v != "":
+            return v
+    return None
+
+
+def _is_date_shaped(value) -> bool:
+    return isinstance(value, str) and bool(_DATE_SHAPED_RE.match(value))
+
+
+def compute_display_slots(
+    columns: list[str],
+    rows: list[dict],
+    primary_keys: list[str],
+    protected: set[str],
+    table_meta: dict | None = None,
+    overrides: dict | None = None,
+) -> dict[str, str | None]:
+    """Compute the slot → column mapping server-side.
+
+    Starts from metadata display.columns overrides (sanitized: protected
+    columns can never occupy a slot), then fills missing slots with the
+    contract heuristic using sample values from the payload rows.
+    """
+    columns = list(columns or [])
+    pks = set(primary_keys or []) | {"rowid"}
+    protected = set(protected or [])
+    eligible = [c for c in columns if c not in pks and c not in protected]
+
+    slots: dict[str, str | None] = {s: None for s in _SLOTS}
+    # Overrides may include extra slots beyond the contract six (e.g.
+    # `citation` for judgment chrome) — keep them, but a protected column
+    # can never occupy ANY slot.
+    for slot, col in (overrides or {}).items():
+        if col in columns and col not in protected:
+            slots[slot] = col
+
+    def first_of(candidates, predicate=None):
+        for c in candidates:
+            if c in eligible:
+                if predicate is None or predicate(_sample_value(rows, c)):
+                    return c
+        return None
+
+    if not slots["title"]:
+        slots["title"] = first_of(_TITLE_CANDIDATES)
+    if not slots["title"]:
+        used = {c for c in slots.values() if c}
+        for c in eligible:
+            if c in used:
+                continue
+            v = _sample_value(rows, c)
+            if isinstance(v, str) and 0 < len(v) <= 200:
+                slots["title"] = c
+                break
+
+    if not slots["date"]:
+        sort_desc = (table_meta or {}).get("sort_desc")
+        if (
+            sort_desc
+            and sort_desc in eligible
+            and _is_date_shaped(_sample_value(rows, sort_desc))
+        ):
+            slots["date"] = sort_desc
+    if not slots["date"]:
+        slots["date"] = first_of(_DATE_CANDIDATES)
+
+    if not slots["body"]:
+        slots["body"] = first_of(
+            _BODY_CANDIDATES,
+            # Sample-value sanity check: accept absent/empty samples, reject
+            # non-string payloads and absurdly long values (full text
+            # masquerading as a summary column).
+            lambda v: v is None or (isinstance(v, str) and len(v) < 5000),
+        )
+
+    if not slots["kicker"]:
+        slots["kicker"] = first_of(_KICKER_CANDIDATES)
+
+    if not slots["source_url"]:
+        slots["source_url"] = first_of(
+            _SOURCE_URL_CANDIDATES,
+            lambda v: isinstance(v, str) and v.startswith(("http://", "https://")),
+        )
+
+    return slots
+
+
+def safe_aside_columns(
+    columns: list[str],
+    row: dict,
+    protected: set[str],
+    exclude: set[str] | None = None,
+) -> list[str]:
+    """Row-page aside list: columns that are NOT protected and whose value
+    is < 200 chars. Protected column values must never render anywhere."""
+    exclude = exclude or set()
+    out: list[str] = []
+    for c in columns or []:
+        if c in protected or c in exclude:
+            continue
+        v = row.get(c)
+        if v is None or len(str(v)) < 200:
+            out.append(c)
+    return out
 
 
 async def fetch_databases(client: httpx.AsyncClient) -> list[dict]:
@@ -60,41 +297,6 @@ def reset_metadata_cache() -> None:
     """Test helper — clear the cache between tests."""
     _METADATA_CACHE["payload"] = None
     _METADATA_CACHE["expires_at"] = 0.0
-
-
-# ── Hidden-table conventions ───────────────────────────────────────────
-# Platform conventions that should ALWAYS be hidden, regardless of what
-# metadata.json says.  These are zeeker-specific (not Datasette internals):
-#
-#   _zeeker_*       — platform metadata tables (_zeeker_schemas, _zeeker_updates)
-#   *_fragments     — row-chunk fragments for long-text search indexing
-#
-# Datasette's own FTS shadow tables (*_fts, *_fts_data, …) are already
-# marked hidden=true by Datasette itself, but we list them here too so
-# the guard in routes_table / routes_row (which checks by name before
-# hitting the API) catches them.
-_HIDDEN_TABLE_PREFIXES = ("_zeeker",)
-_HIDDEN_TABLE_SUFFIXES = (
-    "_fragments",
-    "_fragments_fts", "_fragments_fts_data", "_fragments_fts_idx",
-    "_fragments_fts_docsize", "_fragments_fts_config",
-    "_fts", "_fts_data", "_fts_idx", "_fts_docsize", "_fts_config",
-)
-
-
-def is_hidden_table(name: str) -> bool:
-    """True if a table should be hidden from the UI based on platform naming
-    conventions — independent of Datasette's ``hidden`` metadata flag.
-
-    Covers ``_zeeker_*`` platform tables, ``*_fragments`` chunk tables (and
-    their FTS shadows), and Datasette FTS internals.  Use alongside the
-    ``hidden`` flag from the API payload: a table is visible only when
-    ``not t.get("hidden") and not is_hidden_table(t["name"])``.
-    """
-    return (
-        name.startswith(_HIDDEN_TABLE_PREFIXES)
-        or name.endswith(_HIDDEN_TABLE_SUFFIXES)
-    )
 
 
 # Phase 5 — table + row endpoint helpers.
@@ -162,11 +364,10 @@ async def discover_searchable_tables(
     dict on /{db}.json carries an `fts_table` field (string when FTS is
     available, None otherwise — verified live).
 
-    Filtering predicates (mandatory, both required — RESEARCH Pitfall 4):
-      - `t.get("hidden")` — drops *_fts internal virtual tables
-      - `is_hidden_table(name)` — drops `_zeeker_*` platform tables and
-        `*_fragments` chunk tables which can have hidden=False in some
-        overlays
+    Filtering uses the shared hidden predicate `is_hidden_table` — drops
+    hidden-flagged tables, _zeeker* platform tables (which can have
+    hidden=False in some overlays), *_fts* shadows, and *_fragments chunk
+    tables (full-text content; never a search listing surface).
 
     Boot tolerance (RESEARCH Pitfall 10): any httpx error → empty dict.
     routes_search renders 503 friendly when cache empty AND q non-empty.
@@ -188,9 +389,7 @@ async def discover_searchable_tables(
             continue
         names: list[str] = []
         for t in payload.get("tables") or []:
-            if t.get("hidden"):
-                continue
-            if is_hidden_table(t.get("name", "")):
+            if is_hidden_table(t):
                 continue
             if t.get("fts_table"):
                 names.append(t["name"])
@@ -222,43 +421,5 @@ async def search_table(
     return r.json()
 
 
-async def execute_sql(
-    client: httpx.AsyncClient,
-    db: str,
-    sql: str,
-    params: dict[str, Any] | None = None,
-) -> tuple[dict | None, str | None]:
-    """Execute read-only SQL against /{db}.json?sql=…&_param_<name>=…
-
-    Returns (body, error):
-      - (body, None)           on 200 with body.error null/missing
-      - (body, body.error)     on 200 with body.error populated (rare)
-      - (None, body.error)     on 400 — Datasette's friendly SQL error
-      - (None, "Database not found")  on 404
-      - raises httpx.HTTPError on 5xx
-
-    Always sends _shape=objects. Binds params via `_param_<name>` URL keys
-    (NEVER concatenates values into the SQL string — RESEARCH Pitfall 7 /
-    threat T-06-02-01). 400 path reads the body BEFORE raise_for_status() so
-    Datasette's friendly error message survives (RESEARCH Pitfall 1 / threat
-    T-06-02-03).
-    """
-    ds_params: dict[str, Any] = {"sql": sql, "_shape": "objects"}
-    for name, value in (params or {}).items():
-        ds_params[f"_param_{name}"] = value
-    r = await client.get(f"/{db}.json", params=ds_params)
-    if r.status_code == 404:
-        return None, "Database not found"
-    # Defensive parse — if upstream returns HTML (Caddy 502, datasette
-    # error page, network MITM page) rather than JSON, surface a clean
-    # error string instead of letting ValueError propagate as 500. The
-    # sibling _safe_search_one in routes_search.py already catches both
-    # httpx.HTTPError and ValueError; matching that contract here.
-    try:
-        body = r.json()
-    except ValueError:
-        return None, "Upstream returned a non-JSON response"
-    if r.status_code == 400:
-        return None, body.get("error") or "Query failed"
-    r.raise_for_status()
-    return body, body.get("error")
+# NOTE: execute_sql was removed with the /sql editor (catalogue posture —
+# the site exposes no SQL surface; routes_sql.py is gone).

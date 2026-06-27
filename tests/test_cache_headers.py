@@ -114,3 +114,53 @@ async def test_original_cache_control_replaced(wrapped_app):
     cc = headers.get("cache-control", "")
     # Should not contain the original max-age=5
     assert "max-age=5" not in cc
+
+
+def make_error_app(status):
+    async def error_app(scope, receive, send):
+        await send(
+            {
+                "type": "http.response.start",
+                "status": status,
+                "headers": [
+                    (b"cache-control", b"max-age=5"),
+                    (b"content-type", b"text/plain"),
+                ],
+            }
+        )
+        await send({"type": "http.response.body", "body": b"error"})
+
+    from plugins.cache_headers import asgi_wrapper
+
+    return asgi_wrapper(MockDatasette())(error_app)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("status", [301, 403, 404, 500])
+async def test_non_2xx_responses_get_no_store(status):
+    """Non-2xx responses (403 lockdowns, errors) must never be CDN-cached."""
+    app = make_error_app(status)
+    headers = await collect_response(app, make_scope("/sglawwatch/headlines.json"))
+    assert headers.get("cache-control") == "no-store"
+
+
+@pytest.mark.asyncio
+async def test_2xx_response_still_cached():
+    app = make_error_app(200)
+    headers = await collect_response(app, make_scope("/sglawwatch/headlines.json"))
+    cc = headers.get("cache-control", "")
+    assert "public" in cc
+    assert "no-store" not in cc
+
+
+@pytest.mark.asyncio
+async def test_authorized_requests_never_cached(wrapped_app):
+    """Owner-token responses can carry full protected content for URLs
+    anonymous users also hit — they must never enter the shared CDN cache."""
+    scope = make_scope("/sglawwatch/headlines.json")
+    scope["headers"] = [(b"authorization", b"Bearer anything")]
+    headers = await collect_response(wrapped_app, scope)
+    cc = headers.get("cache-control", "")
+    assert "no-store" in cc
+    assert "private" in cc
+    assert "public" not in cc

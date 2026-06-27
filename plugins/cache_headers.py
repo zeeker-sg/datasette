@@ -30,6 +30,13 @@ BROWSER_TTL = 300
 STATIC_TTL = 86400
 
 
+def _has_authorization_header(scope):
+    return any(
+        name.lower() == b"authorization"
+        for name, _ in scope.get("headers") or []
+    )
+
+
 @hookimpl
 def asgi_wrapper(datasette):
     def wrap_with_cache_headers(app):
@@ -48,7 +55,13 @@ def asgi_wrapper(datasette):
                 return
 
             # Determine cache policy for this path
-            if any(path.startswith(prefix) for prefix in NO_CACHE_PREFIXES):
+            if _has_authorization_header(scope):
+                # Authenticated (owner-token) responses may contain full
+                # protected content for the same URL anonymous users hit —
+                # they must NEVER enter the shared CDN cache, or the cached
+                # full variant would be served to everyone.
+                cache_header = "no-store, private"
+            elif any(path.startswith(prefix) for prefix in NO_CACHE_PREFIXES):
                 cache_header = "no-store"
             elif path.startswith(STATIC_PREFIX):
                 cache_header = f"public, max-age={STATIC_TTL}, s-maxage={STATIC_TTL}"
@@ -57,13 +70,22 @@ def asgi_wrapper(datasette):
 
             async def send_with_cache_headers(event):
                 if event["type"] == "http.response.start":
+                    status = event.get("status", 200)
+                    # Never cache non-2xx responses (403s from the
+                    # strip-columns content lockdown, 404s, 5xx, redirects)
+                    # — a CDN-cached error would mask recovery and a cached
+                    # 403 body is pointless to serve for an hour.
+                    if 200 <= status < 300:
+                        effective_header = cache_header
+                    else:
+                        effective_header = "no-store"
                     headers = list(event.get("headers", []))
                     # Remove existing Cache-Control header (Datasette sets max-age=5)
                     headers = [
                         (k, v) for k, v in headers
                         if k.lower() != b"cache-control"
                     ]
-                    headers.append((b"cache-control", cache_header.encode()))
+                    headers.append((b"cache-control", effective_header.encode()))
                     event = {**event, "headers": headers}
                 await send(event)
 

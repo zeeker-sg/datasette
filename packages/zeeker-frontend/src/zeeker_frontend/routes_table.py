@@ -1,4 +1,11 @@
-"""GET /{db}/{table} — table browse page (Phase 5)."""
+"""GET /{db}/{table} — table browse page (Phase 5; catalogue posture).
+
+LIST-ALWAYS: tables render feed mode (or longform-list when display says so).
+There is no tabular mode — the site is a catalogue of summaries, identifying
+data, and source links; raw column grids (and full-text columns) never render.
+Display slots are computed SERVER-SIDE via compute_display_slots, which
+excludes primary keys and protected columns from every slot.
+"""
 from __future__ import annotations
 
 from datetime import datetime
@@ -9,9 +16,11 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse
 
 from zeeker_frontend.datasette_client import (
-    fetch_table,
+    compute_display_slots,
     fetch_site_metadata,
-    is_hidden_table,
+    fetch_table,
+    is_hidden_table_name,
+    protected_columns,
 )
 
 router = APIRouter()
@@ -22,62 +31,12 @@ def _db_title(site_metadata: dict, db: str) -> str:
     return entry.get("title") or db.replace("-", " ").replace("_", " ").title()
 
 
-# ── Feed-by-convention auto-detection ──────────────────────────────────
-# A table renders as a feed when it looks like a document/news table:
-# it has a title-like column AND a date-like column.  If a text-like body
-# column is also present, the feed card shows an excerpt; otherwise it
-# collapses to title + meta + source (the _show_excerpt gate in
-# table_feed.html handles the absence gracefully).
-#
-# Convention column names (case-insensitive):
-_TITLE_COLS = frozenset({"title", "case_name", "name", "subject", "heading"})
-_DATE_COLS = frozenset({
-    "published_date", "date", "decision_date", "last_scraped",
-    "created_at", "updated_at", "judgment_date", "pub_date",
-})
-_BODY_COLS = frozenset({
-    "content", "body", "text", "content_text", "summary",
-    "description", "facts", "reasons", "full_text",
-})
-_SOURCE_COLS = frozenset({
-    "source_url", "source_link", "item_url", "link", "decision_url", "page_url",
-})
-
-
-def _detect_feed_columns(columns: list[str]) -> dict | None:
-    """Auto-detect feed layout from column names.
-
-    Returns a display.columns dict (title, date, body, source_url, kicker)
-    if the table matches the feed convention (title + date present), else
-    None (caller falls back to tabular).  The dict is populated with
-    whatever convention matches were found; missing slots are omitted so
-    table_feed.html gracefully renders without them.
-    """
-    cols_lower = {c.lower() for c in columns}
-    title_match = cols_lower & _TITLE_COLS
-    date_match = cols_lower & _DATE_COLS
-    if not title_match or not date_match:
-        return None
-
-    # Map back to actual column names (preserve case)
-    result: dict[str, str] = {}
-    for c in columns:
-        cl = c.lower()
-        if cl in _TITLE_COLS and "title" not in result:
-            result["title"] = c
-        elif cl in _DATE_COLS and "date" not in result:
-            result["date"] = c
-        elif cl in _BODY_COLS and "body" not in result:
-            result["body"] = c
-        elif cl in _SOURCE_COLS and "source_url" not in result:
-            result["source_url"] = c
-    return result
-
-
 @router.get("/{db}/{table}", response_class=HTMLResponse)
 async def table_page(request: Request, db: str, table: str):
-    # Hidden-table guard — same wording for missing vs. hidden (no info disclosure).
-    if is_hidden_table(table):
+    # Hidden-table guard — same wording for missing vs. hidden (no info
+    # disclosure). Uses the shared name predicate (_zeeker*, *_fts*,
+    # *_fragments).
+    if is_hidden_table_name(table):
         raise HTTPException(status_code=404, detail="Table not found")
 
     client: httpx.AsyncClient = request.app.state.http
@@ -97,26 +56,23 @@ async def table_page(request: Request, db: str, table: str):
     display = table_meta.get("display") or {}
     display_columns = display.get("columns") or {}
 
-    # D-04 — tabular fallback when no display hint set.
-    # Feed-by-convention: if no table_mode is explicitly set, auto-detect
-    # feed layout from column names.  Tables with title+date columns get a
-    # feed; everything else falls back to tabular.
-    columns_list = payload.get("columns") or []
-    explicit_table_mode = display.get("table_mode")
-    if explicit_table_mode:
-        table_mode = explicit_table_mode
-    else:
-        detected = _detect_feed_columns(columns_list)
-        if detected:
-            table_mode = "feed"
-            # Merge: convention detection fills gaps, explicit display.columns
-            # takes priority for any slot the builder set manually.
-            merged_cols = dict(detected)
-            merged_cols.update(display_columns)
-            display_columns = merged_cols
-        else:
-            table_mode = "tabular"
+    # LIST-ALWAYS — feed unless display explicitly opts into longform-list.
+    table_mode = "longform-list" if display.get("table_mode") == "longform-list" else "feed"
     row_mode = display.get("row_mode") or "tabular"
+
+    rows = payload.get("rows") or []
+    columns = payload.get("columns") or []
+    primary_keys = payload.get("primary_keys") or []
+
+    # Protected (full-text) columns — from site metadata plugins.strip-columns.
+    # These can never occupy a display slot and gate the CSV export link
+    # (Datasette 403s .csv for protected tables).
+    protected = protected_columns(site_metadata, db, table, columns)
+    display_columns = compute_display_slots(
+        columns, rows, primary_keys, protected,
+        table_meta=table_meta,
+        overrides=display.get("columns") or {},
+    )
 
     # Pitfall 2 — datasette next_url is fully-qualified to internal hostname
     # and points to .json. Strip host + path; reuse only the querystring.
@@ -127,15 +83,6 @@ async def table_page(request: Request, db: str, table: str):
         if parsed.query:
             next_url = f"/{db}/{table}?{parsed.query}"
 
-    # Sort state for column-header cycling in tabular mode.
-    qp = dict(request.query_params)
-    if qp.get("_sort"):
-        current_sort_dir, current_sort_col = "asc", qp["_sort"]
-    elif qp.get("_sort_desc"):
-        current_sort_dir, current_sort_col = "desc", qp["_sort_desc"]
-    else:
-        current_sort_dir, current_sort_col = None, None
-
     # Applied facet/column filters — anything that's a plain column name in the
     # query string. Used by applied_facets.html for the .filter-chip row.
     applied_filters = [
@@ -144,7 +91,7 @@ async def table_page(request: Request, db: str, table: str):
     ]
 
     # Active FTS term — surfaced as a removable chip + drives "No results" copy.
-    active_search = qp.get("_search") or ""
+    active_search = request.query_params.get("_search") or ""
 
     merged_metadata = {
         "title": db_entry.get("title"),
@@ -166,9 +113,9 @@ async def table_page(request: Request, db: str, table: str):
         context={
             "database": db,
             "table": table,
-            "rows": payload.get("rows") or [],
-            "columns": payload.get("columns") or [],
-            "primary_keys": payload.get("primary_keys") or [],
+            "rows": rows,
+            "columns": columns,
+            "primary_keys": primary_keys,
             "facet_results": payload.get("facet_results") or {},
             "suggested_facets": payload.get("suggested_facets") or [],
             "filtered_table_rows_count": payload.get("filtered_table_rows_count"),
@@ -178,6 +125,7 @@ async def table_page(request: Request, db: str, table: str):
             "row_mode": row_mode,
             "display": display,
             "display_columns": display_columns,
+            "is_protected_table": bool(protected),
             "table_meta": table_meta,
             "metadata": merged_metadata,
             "breadcrumbs": [
@@ -186,8 +134,6 @@ async def table_page(request: Request, db: str, table: str):
             ],
             "breadcrumb_table": breadcrumb_table,
             "current_year": datetime.now().year,
-            "current_sort_col": current_sort_col,
-            "current_sort_dir": current_sort_dir,
             "applied_filters": applied_filters,
             "active_search": active_search,
             "human_description_en": payload.get("human_description_en"),

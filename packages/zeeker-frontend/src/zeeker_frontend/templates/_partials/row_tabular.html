@@ -1,25 +1,38 @@
-{# Default tabular fallback — key-value <dl>; long-text fields use native <details>. #}
+{# Generic catalogue-record layout (default when no display.row_mode).
+   Catalogue posture: mapped slots + short-value <dl> only — NO full text,
+   no <details> blocks. aside_columns is server-computed (non-protected,
+   value < 200 chars); protected column values never render. #}
+{% set kicker_col = display_columns.get("kicker") %}
+{% set body_col = display_columns.get("body") %}
+{% set date_col = display_columns.get("date") %}
+{% set source_url_col = display_columns.get("source_url") %}
+
 <div class="article-grid row-tabular-grid">
-  <article class="article row-tabular">
+  <article class="article row-catalogue">
+    {% if (kicker_col and row.get(kicker_col)) or (date_col and row.get(date_col)) %}
+    <p class="byline">
+      {% if kicker_col and row.get(kicker_col) %}{{ row[kicker_col] }}{% endif %}
+      {% if kicker_col and row.get(kicker_col) and date_col and row.get(date_col) %} · {% endif %}
+      {% if date_col and row.get(date_col) %}<time>{{ row[date_col] }}</time>{% endif %}
+    </p>
+    {% endif %}
+    {% if body_col and row.get(body_col) %}
+    <div class="article-body">
+      <p>{{ row[body_col]|striptags|truncate(600) }}</p>
+    </div>
+    {% endif %}
     <dl class="row-dl">
-      {% for col in columns %}
+      {% for col in aside_columns %}
       <dt>{{ col }}</dt>
-      <dd>
-        {% set val = row[col] %}
-        {% if val is none %}
-          <span class="muted">—</span>
-        {% elif long_text_columns.get(col) %}
-          <details>
-            <summary>Show full content</summary>
-            <div class="row-dd-long">{{ val }}</div>
-          </details>
-          <div class="row-dd-preview">{{ val[:200] }}…</div>
-        {% else %}
-          {{ val }}
-        {% endif %}
-      </dd>
+      <dd>{% if row[col] is none %}<span class="muted">—</span>{% else %}{{ row[col] }}{% endif %}</dd>
       {% endfor %}
     </dl>
+    {% if source_url_col and row.get(source_url_col) %}
+    <div class="coda">
+      <p class="coda-label">Original source</p>
+      <p><a href="{{ row[source_url_col] }}" rel="noopener noreferrer">{{ row[source_url_col] }}</a></p>
+    </div>
+    {% endif %}
   </article>
   <aside class="aside">
     <div class="aside-block">

@@ -1,4 +1,6 @@
-{# Longform reading — article variant without aside. Max-width 62ch reading column. #}
+{# Longform reading — article variant without aside. Max-width 62ch reading column.
+   Catalogue posture: body_col comes from server-side slot computation,
+   which guarantees it can never be a protected (full-text) column. #}
 {% set body_col = display_columns.get("body") %}
 {% set date_col = display_columns.get("date") %}
 {% set source_url_col = display_columns.get("source_url") %}

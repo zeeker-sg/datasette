@@ -7,7 +7,11 @@ import httpx
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse
 
-from zeeker_frontend.datasette_client import fetch_databases, fetch_site_metadata
+from zeeker_frontend.datasette_client import (
+    fetch_databases,
+    fetch_site_metadata,
+    is_hidden_table,
+)
 
 router = APIRouter()
 
@@ -25,6 +29,17 @@ def _filter_wildcard(metadata: dict) -> dict:
     return {**metadata, "databases": cleaned}
 
 
+def _visible_tables_count(entry: dict) -> int:
+    """Visible-table count for a /.json database entry (see caller comment)."""
+    tables = entry.get("tables")
+    if isinstance(tables, list):
+        return len([t for t in tables if not is_hidden_table(t)])
+    truncated = entry.get("tables_and_views_truncated")
+    if isinstance(truncated, list) and not entry.get("tables_and_views_more"):
+        return len([t for t in truncated if not is_hidden_table(t)])
+    return entry.get("tables_count") or 0
+
+
 @router.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     client: httpx.AsyncClient = request.app.state.http
@@ -40,8 +55,23 @@ async def home(request: Request):
     raw_metadata = await fetch_site_metadata(client)
     metadata = _filter_wildcard(raw_metadata)
 
-    # Defensive: filter databases flagged hidden (not expected today but possible later)
-    visible_dbs = [d for d in databases if not d.get("hidden")]
+    # Filter databases flagged hidden + any _zeeker-prefixed platform db.
+    visible_dbs = [
+        d for d in databases
+        if not d.get("hidden") and not d.get("name", "").startswith("_zeeker")
+    ]
+
+    # Recompute per-db table counts from a filtered source rather than
+    # trusting Datasette's raw tables_count blindly:
+    #   - fixture/older shape: full `tables` list → recount via the shared
+    #     hidden predicate (cheapest correct option, no extra requests);
+    #   - live /.json shape: `tables_and_views_truncated` is capped at 5, so
+    #     it's only authoritative when `tables_and_views_more` is false;
+    #   - otherwise fall back to Datasette's `tables_count`, which already
+    #     excludes hidden-flagged tables (site metadata marks _zeeker_*,
+    #     *_fragments, etc. hidden, so the served count converges).
+    for d in visible_dbs:
+        d["tables_count"] = _visible_tables_count(d)
 
     response = request.app.state.templates.TemplateResponse(
         request=request,

@@ -28,7 +28,7 @@ import httpx
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse
 
-from zeeker_frontend.datasette_client import fetch_site_metadata
+from zeeker_frontend.datasette_client import fetch_site_metadata, protected_columns
 
 
 router = APIRouter()
@@ -78,18 +78,28 @@ def _derive_pk_value(row: dict, primary_keys: list[str]) -> list[str] | None:
     return parts
 
 
-def _pick_title_column(columns: list[str], primary_keys: list[str]) -> str | None:
-    """First non-PK column from the JSON `columns` array.
+def _pick_title_column(
+    columns: list[str],
+    primary_keys: list[str],
+    protected: set[str],
+) -> str | None:
+    """First non-PK, NON-PROTECTED column from the JSON `columns` array.
 
     The `columns` array preserves Datasette's declared order (verified in
     Pattern 1 response shape). Picking from this array — NOT from row.keys() —
     is robust against Python dict iteration order, JSON parser ordering, or
     future Datasette changes that might add fields to row dicts (e.g.
     _search_highlight) ahead of declared columns.
+
+    Catalogue posture: a protected (full-text) column can never be the
+    title source — its value must never render in search results.
     """
     for c in columns or []:
-        if c not in (primary_keys or []):
-            return c
+        if c in (primary_keys or []):
+            continue
+        if c in protected:
+            continue
+        return c
     return None
 
 
@@ -155,10 +165,13 @@ async def search(request: Request, q: str = "", _retry: int = 0):
             continue  # skip 0-result groups per UI-SPEC
         primary_keys = r.get("primary_keys") or []
         columns = r.get("columns") or []
+        # Protected (full-text) columns for this (db, table) — excluded from
+        # the title heuristic AND the meta-foot (catalogue posture).
+        protected = protected_columns(site_metadata, db, t, columns)
         # Compute title column SERVER-SIDE from declared `columns` array
         # (NOT row.items()). Robust against dict iteration order — see
         # _pick_title_column docstring.
-        title_col = _pick_title_column(columns, primary_keys)
+        title_col = _pick_title_column(columns, primary_keys, protected)
         for row in rows:
             # Raw PK values (list[str] | None) — template routes through
             # row_url() / tilde_encode() so reserved chars round-trip.
@@ -174,6 +187,13 @@ async def search(request: Request, q: str = "", _retry: int = 0):
                 row["__title__"] = ",".join(pk_values)
             else:
                 row["__title__"] = ""
+        # Meta-foot column list — server-side, excluding the title column,
+        # PK columns, and ALL protected columns. The partial only iterates
+        # this safe list (never raw columns).
+        meta_columns = [
+            c for c in columns
+            if c != title_col and c not in primary_keys and c not in protected
+        ]
         groups.append(
             {
                 "db": db,
@@ -183,6 +203,7 @@ async def search(request: Request, q: str = "", _retry: int = 0):
                 "primary_keys": primary_keys,
                 "columns": columns,
                 "title_col": title_col,
+                "meta_columns": meta_columns,
             }
         )
     groups.sort(key=lambda g: (g["db"], g["table"]))

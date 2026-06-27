@@ -1,9 +1,8 @@
 """Unit tests for Phase 6 datasette_client helpers.
 
-Three helpers under test:
+Two helpers under test (execute_sql was removed with the /sql editor):
   - discover_searchable_tables  — one-shot FTS probe at lifespan boot
   - search_table                — wraps /{db}/{table}.json?_search=...
-  - execute_sql                 — wraps /{db}.json?sql=...&_param_*=...
 
 All tests use httpx.MockTransport so no FastAPI app boot is required.
 Mirrors the test pattern in test_datasette_client_table_row.py.
@@ -19,7 +18,6 @@ import pytest
 
 from zeeker_frontend.datasette_client import (
     discover_searchable_tables,
-    execute_sql,
     search_table,
 )
 
@@ -140,6 +138,37 @@ async def test_discover_searchable_filters_hidden():
     assert "headlines_fts" not in result.get("sglawwatch", [])
 
 
+@pytest.mark.asyncio
+async def test_discover_searchable_filters_fragments_tables():
+    """*_fragments chunk tables carry full text copies — they must never be
+    a search surface, even when hidden=False and FTS-enabled."""
+
+    def handler(req: httpx.Request) -> httpx.Response:
+        path = req.url.path
+        if path == "/.json":
+            return httpx.Response(200, json={"sglawwatch": {"path": "sglawwatch"}})
+        if path == "/sglawwatch.json":
+            return httpx.Response(
+                200,
+                json={
+                    "tables": [
+                        {"name": "headlines", "hidden": False, "fts_table": "headlines_fts"},
+                        {
+                            "name": "about_singapore_law_fragments",
+                            "hidden": False,
+                            "fts_table": "about_singapore_law_fragments_fts",
+                        },
+                    ]
+                },
+            )
+        return httpx.Response(404, json={"ok": False})
+
+    async with _mock(handler) as c:
+        result = await discover_searchable_tables(c)
+
+    assert result == {"sglawwatch": ["headlines"]}
+
+
 # ---- search_table ----
 
 
@@ -172,91 +201,4 @@ async def test_search_table_404_returns_none():
         assert await search_table(c, "db", "tbl", "q", 10) is None
 
 
-# ---- execute_sql ----
-
-
-@pytest.mark.asyncio
-async def test_execute_sql_builds_param_url():
-    """Params dict {"id": "42"} → URL key _param_id=42; sql NEVER concatenated."""
-    captured = {}
-
-    def h(req: httpx.Request) -> httpx.Response:
-        captured["params"] = dict(req.url.params)
-        captured["path"] = req.url.path
-        return httpx.Response(
-            200,
-            json={"ok": True, "rows": [{"id": "42"}], "columns": ["id"], "error": None},
-        )
-
-    async with _mock(h) as c:
-        body, error = await execute_sql(c, "sglawwatch", "SELECT :id", {"id": "42"})
-
-    assert captured["path"] == "/sglawwatch.json"
-    assert captured["params"]["sql"] == "SELECT :id"
-    assert captured["params"]["_param_id"] == "42"
-    assert captured["params"]["_shape"] == "objects"
-    assert error is None
-    assert body is not None
-    assert body["rows"] == [{"id": "42"}]
-
-
-@pytest.mark.asyncio
-async def test_execute_sql_400_returns_friendly_error():
-    """RESEARCH Pitfall 1 — datasette returns 400 with populated `error` field;
-    handler MUST read body BEFORE raise_for_status()."""
-    with open(_FIXTURES / "sql_error_400.json") as f:
-        error_body = json.load(f)
-
-    async with _mock(lambda r: httpx.Response(400, json=error_body)) as c:
-        body, error = await execute_sql(c, "sglawwatch", "SELECT * FROM nope")
-
-    assert body is None
-    assert error is not None
-    assert "no such table" in error
-
-
-@pytest.mark.asyncio
-async def test_execute_sql_404_returns_db_not_found():
-    async with _mock(lambda r: httpx.Response(404, json={"ok": False})) as c:
-        body, error = await execute_sql(c, "missing", "SELECT 1")
-
-    assert body is None
-    assert error == "Database not found"
-
-
-@pytest.mark.asyncio
-async def test_execute_sql_shape_objects_always_set():
-    """Even when params=None, _shape=objects MUST be present."""
-    captured = {}
-
-    def h(req: httpx.Request) -> httpx.Response:
-        captured["params"] = dict(req.url.params)
-        return httpx.Response(
-            200,
-            json={"ok": True, "rows": [], "columns": [], "error": None},
-        )
-
-    async with _mock(h) as c:
-        await execute_sql(c, "sglawwatch", "SELECT 1")
-
-    assert captured["params"]["_shape"] == "objects"
-    assert captured["params"]["sql"] == "SELECT 1"
-
-
-@pytest.mark.asyncio
-async def test_execute_sql_non_json_response_returns_friendly_error():
-    """WR-02 — if upstream returns HTML (Caddy 502, datasette error page,
-    network MITM page) instead of JSON, surface a clean error string
-    instead of letting ValueError propagate as an unhandled 500."""
-    async with _mock(
-        lambda r: httpx.Response(
-            200,
-            content=b"<html><body>502 Bad Gateway</body></html>",
-            headers={"content-type": "text/html"},
-        )
-    ) as c:
-        body, error = await execute_sql(c, "sglawwatch", "SELECT 1")
-
-    assert body is None
-    assert error is not None
-    assert "non-JSON" in error or "JSON" in error
+# ---- execute_sql tests removed with the /sql editor (catalogue posture) ----

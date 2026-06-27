@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.12"
 
 [[package]]
@@ -119,7 +119,7 @@ wheels = [
 
 [[package]]
 name = "datasette"
-version = "0.65.1"
+version = "0.65.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -143,21 +143,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "uvicorn" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/db/94/e6408997861e9de3ec61fb8107efe9eaf70f765ad2cd4e20b552dd340899/datasette-0.65.1.tar.gz", hash = "sha256:d8be37ae6dafbfd8e510d49c0dc0fc6696081614d048a507eed86dd2ae433223", size = 409411, upload-time = "2024-11-29T01:18:13.219Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/80/26/80b5480921d71891b8ff880fed6d44150b9164903d683efe2eb7405b61d8/datasette-0.65.2.tar.gz", hash = "sha256:be956fb2633b8380d7f818b5ddab40d5c7346d5e9d4d24e81c43b1fb60267432", size = 410536, upload-time = "2025-11-05T18:23:25.926Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/08/f7/fc15b9ddc7a2cafe546f0e2696d71940d7604a128e2f903e98238c3435f7/datasette-0.65.1-py3-none-any.whl", hash = "sha256:ba7adf717ddcc24a2a8ac57890fffd384a2ebb909b342e4f731ba09eba764305", size = 396428, upload-time = "2024-11-29T01:18:11.269Z" },
-]
-
-[[package]]
-name = "datasette-matomo"
-version = "0.1.2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "datasette" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/e3/66/d788d8600d7e8e22a0fc877394ad97024528403699f2fecb77f1160bb809/datasette-matomo-0.1.2.tar.gz", hash = "sha256:e7ff3231be1672ec91b11cf5b41b2b6e48fe0d6ec89837c2824d5bbc38518262", size = 7362, upload-time = "2023-12-20T16:40:15.194Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/b1/9c/b92a45e0053ea330f84fa64908aebcbb0e5a754e6dbf5cb0b333060c00ae/datasette_matomo-0.1.2-py3-none-any.whl", hash = "sha256:cb749fdb1d342cdcce6014a25f1db78ab319e849eabc40c717d6d9b7b36eea0e", size = 7449, upload-time = "2023-12-20T16:40:13.52Z" },
+    { url = "https://files.pythonhosted.org/packages/a1/3a/ffa1259fc018f3bb0e6e8444982909a449478ede805def5593319ff3f732/datasette-0.65.2-py3-none-any.whl", hash = "sha256:d4f342a5c86d073bbb1880a9df792354cae4f951e427b57586713eff1896507f", size = 397412, upload-time = "2025-11-05T18:23:23.916Z" },
 ]
 
 [[package]]
@@ -170,18 +158,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/33/3d/2111599e89583f9415b8e1e89f4b57f2dd41833f95ab023ea54157c9e636/datasette_search_all-1.1.4.tar.gz", hash = "sha256:371de80eff4f2f0e5ba70cc8efcdd68c1089ebf03d743febced250012d678911", size = 10885, upload-time = "2024-09-06T03:11:56.932Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/1f/57/3d7535970622b175527e1fc270db0c193df8008ab56c2b8e628a373cdafe/datasette_search_all-1.1.4-py3-none-any.whl", hash = "sha256:8590099131899f5cb9d51d90a857ed3a828a5d8e2003fd3f0f5939a1a6bc7a8d", size = 10640, upload-time = "2024-09-06T03:11:55.455Z" },
-]
-
-[[package]]
-name = "datasette-template-sql"
-version = "1.0.2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "datasette" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/c9/02/6022d05e4ba267c60b6e775ac80d445f3ea4b0509ce14208ca84166f9c58/datasette-template-sql-1.0.2.tar.gz", hash = "sha256:664c795c319e820be635803198b505dc01621324a8b4627b269e4c174563e8c3", size = 3084, upload-time = "2021-01-29T02:30:52.816Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/70/3a/80703eb171f8294dbf77c5777b0fa644370e9c5b53cd8f9e5722cf4cacfb/datasette_template_sql-1.0.2-py3-none-any.whl", hash = "sha256:194514201e8ce3489040e89a7887d8144bf27fd32580649a904be31de2cd0752", size = 7360, upload-time = "2021-01-29T02:30:51.873Z" },
 ]
 
 [[package]]
@@ -498,6 +474,19 @@ wheels = [
 ]
 
 [[package]]
+name = "pytest-asyncio"
+version = "1.4.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pytest" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/43/7c/d36d04db312ecf4298932ef77e6e4a9e8ad017906e24e34f0b0c361a2473/pytest_asyncio-1.4.0.tar.gz", hash = "sha256:c6c0d2259945122819f171a32ecea2c349ead889ee28176caaf492143424be42", size = 58514, upload-time = "2026-05-26T09:56:04.083Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/03/e2/08a497ef684b88559c9cc5f4ad53a37e7b99e727094a86d6ea32536d5d3c/pytest_asyncio-1.4.0-py3-none-any.whl", hash = "sha256:933ca923a23075a87fb7070c0ec272a6848489824d887c85c812670932835aa1", size = 16930, upload-time = "2026-05-26T09:56:02.576Z" },
+]
+
+[[package]]
 name = "pytest-mock"
 version = "3.14.1"
 source = { registry = "https://pypi.org/simple" }
@@ -643,9 +632,7 @@ dependencies = [
     { name = "boto3" },
     { name = "click" },
     { name = "datasette" },
-    { name = "datasette-matomo" },
     { name = "datasette-search-all" },
-    { name = "datasette-template-sql" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
 ]
@@ -654,6 +641,7 @@ dependencies = [
 dev = [
     { name = "playwright" },
     { name = "pytest" },
+    { name = "pytest-asyncio" },
     { name = "pytest-mock" },
 ]
 
@@ -661,10 +649,8 @@ dev = [
 requires-dist = [
     { name = "boto3", specifier = ">=1.28.0" },
     { name = "click", specifier = ">=8.1.3" },
-    { name = "datasette", specifier = "==0.65.1" },
-    { name = "datasette-matomo", specifier = ">=0.1.2" },
+    { name = "datasette", specifier = "==0.65.2" },
     { name = "datasette-search-all", specifier = ">=1.1.4" },
-    { name = "datasette-template-sql", specifier = ">=1.0" },
     { name = "python-dotenv", specifier = ">=1.0.0" },
     { name = "pyyaml", specifier = ">=6.0.2" },
 ]
@@ -673,5 +659,6 @@ requires-dist = [
 dev = [
     { name = "playwright", specifier = ">=1.58.0" },
     { name = "pytest", specifier = ">=8.4.0" },
+    { name = "pytest-asyncio", specifier = ">=0.24.0" },
     { name = "pytest-mock", specifier = ">=3.14.1" },
 ]
