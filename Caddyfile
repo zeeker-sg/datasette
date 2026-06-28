@@ -12,6 +12,17 @@
 # to the frontend, which 404s them. Keep this matcher byte-parallel with
 # Caddyfile.prod (REQ-api-byte-parity).
 #
+# Phase-D defence-in-depth (backstop on top of plugins/strip_columns.py):
+# the datasette plugin strips protected columns from JSON, refuses CSV
+# on protected tables, and refuses ?sql= queries. Caddy also blocks
+# ?sql= and FTS shadow tables at the edge so the door stays shut even
+# if the plugin ever silently fails to load (e.g. after a botched
+# image deploy). The plugin still gates content; the Caddy block here
+# is a fail-closed second layer. Owner-bypass requests carry an
+# Authorization header and are NOT matched by @content_lockdown, so
+# they still reach datasette and the plugin's actor_from_request hook
+# maps the token to actor {id: owner}.
+#
 # Source: caddyserver.com/docs/caddyfile/matchers ("Multiple paths will be
 #   OR'ed together"; *.suffix = "suffix match"; /prefix/* = "prefix match")
 # Used by: docker-compose.yml caddy service, volume-mounted at
@@ -37,6 +48,31 @@
 }
 
 :80 {
+	# Block aggressive AI crawlers and scrapers that ignore robots.txt
+	# and cause multi-day pagination surges, 503s, and server load.
+	# 403 at Caddy layer before any proxy cost is incurred.
+	@bad_bot header_regexp User-Agent "meta-externalagent|meta-webindexer|facebookexternalhit|FacebookBot|Barkrowler"
+	respond @bad_bot "Forbidden" 403
+
+	# Block ?sql= queries and FTS shadow tables at the edge before any
+	# proxy hop. See Phase-D note in the file header.
+	#
+	# Caddy's matcher semantics: multiple matchers inside ONE @named
+	# block are OR'd (e.g. several `path` lines); BUT mixing `path` and
+	# `query` in the same block is AND'd (a request must satisfy BOTH
+	# to match). To get a true OR of "has sql= query" OR "path contains
+	# _fts*", we put each condition in its own @named matcher and write
+	# a separate respond directive for each.
+	#
+	# Path matchers use the substring form (*_fts*) NOT the suffix form
+	# (*_fts) because Datasette URLs always end in .json or .csv — a
+	# suffix-match on _fts would only match paths that end in the bare
+	# token, never the table-name patterns we want to block.
+	@sql_query query sql=*
+	@fts_shadow path *_fts* *_fts_data* *_fts_idx* *_fts_docsize* *_fts_config* *_fts_content* *_fts_segments* *_fts_segdir* *_fts_stat* *_fts_aux*
+	respond @sql_query "Forbidden" 403
+	respond @fts_shadow "Forbidden" 403
+
 	# Suffix matcher for the data-API surface. Two `path` lines are OR'd
 	# by Caddy (per caddyserver.com/docs/caddyfile/matchers); the first
 	# is suffix globs, the second is the /-/* prefix glob.
