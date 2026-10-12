@@ -1,0 +1,69 @@
+# Dependabot version updates for zeeker-datasette.
+#
+# Governance context (2026-10-12): production runs CI-pinned GHCR images and
+# the dependency pins are deliberate (datasette==0.65.x hard pin in both
+# pyproject.toml + requirements.txt + uv.lock). Dependabot proposes updates as
+# PRs only nothing auto-merges; the existing required CI check ("Run tests",
+# via the active governance ruleset) validates every update PR before a human
+# reviews it. Deploy stays a manual compose pin-bump afterwards; Dependabot
+# never touches that.
+#
+# The `uv` ecosystem (officially supported since Dependabot runner v0.11) reads
+# pyproject.toml + uv.lock. It does NOT update requirements.txt — the repo
+# keeps that file as the Dockerfile's uv.lock-absent pip fallback, and the
+# datasette-0.65.5 upgrade PR keeps all three files consistent as the
+# reference pattern. Keep that alignment on every accepted update.
+version: 2
+updates:
+  # Main datasette service (root pyproject.toml + uv.lock)
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - minor
+          - patch
+    # Stable-line discipline: Datasette 1.0 is an alpha series; this repo
+    # tracks the stable 0.65.x line (security fixes are being backported
+    # there). This explicit ignore keeps the policy enforced even if the
+    # ==0.65.x pin in the manifests is ever relaxed — PEP 440 pre-releases
+    # (1.0a*, 1.0b*, 1.0rc*, 1.0.dev*) become selectable candidates the
+    # moment constraints allow them. Major transitions require a deliberate
+    # human change to the pins, not a scheduled bot PR.
+    ignore:
+      - dependency-name: datasette
+        versions:
+          # Everything pre-1.0-stable: the 1.0 dev/alpha/beta/rc series
+          - ">=1.0.dev"
+          # And 1.0 proper and beyond — majors are human-deliberated
+          - ">=1.0"
+
+  # Frontend service (packages/zeeker-frontend pyproject.toml + uv.lock)
+  - package-ecosystem: uv
+    directory: /packages/zeeker-frontend
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - minor
+          - patch
+
+  # CI action bumps (all actions are SHA-pinned; this proposes new SHAs)
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      actions-minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - minor
+          - patch
