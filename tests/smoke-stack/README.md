@@ -68,29 +68,39 @@ cache_headers, edge lockdown, owner bypass.
 - `!reset`/`!override` compose tags require recent compose (verified on Compose v5.6.0); older CLI versions won't parse the override.
 - `smoke_checks.py` runs via urllib (no extra deps). It is deliberately independent of pytest so the gate can run standalone in pipelines.
 
-## CI automation (PR #29's manual gate made automatic)
+## CI automation (the gate, made automatic and PR-relevant)
 
 `.github/workflows/smoke-gate.yml` runs on **every relevant PR** — dependency
 manifests, Dockerfiles, compose, Caddyfiles, `entrypoint.sh`, `metadata.json`,
 plugins, frontend source, smoke-stack itself:
 
-- **Smoke (PR)** — the disposable stack + 24 checks against the
-  production-pinned baseline images, on GitHub-hosted runners (Docker +
-  compose are available there; the repo's publish jobs prove it). Runs
-  automatically; evidence artifact `smoke-pr-evidence-<run>` (log + runtime
-  provenance, 90-day retention). Tear-down safety net included.
-- **Smoke (release gate)** — pulls the **exact release image references**
-  recorded in the workflow env (`RELEASE_*_IMAGE`), verifies their registry
-  digests against `EXPECTED_*_DIGEST` values, runs the **identical** checks +
-  the negative control against those artifacts, and uploads a durable
-  evidence record (`smoke-release-evidence-<run>`) with image identities,
-  commit provenance, full check results, and the explicit tested/NOT-tested
-  boundary. **A locally rebuilt image is never substituted for the release
-  refs** — the gate's evidence is labeled with the release identities it
-  actually pulled.
-- **On master pushes** (smoke-stack or workflow changes) the **negative
-  control** runs too — the checker must keep detecting deliberate breakage.
-- Making `Smoke (PR)` / `Smoke (release gate)` required checks needs a
+- **Smoke (PR) — built PR-head images**: builds this PR's datasette +
+  frontend images **from the checked-out PR head** and runs the disposable
+  stack + 24 checks against THEM (the actual changed code — green checks on
+  fixed baseline images are not regression protection for a PR). Evidence
+  artifact `smoke-pr-evidence-<run>`: PR number + head sha, built image IDs,
+  in-image datasette version, pre-teardown runtime provenance, full check
+  log (90-day retention). Teardown safety net included.
+- **Release gate — compose-pin refs, derived expectations**: zero hardcoded
+  ids. Image refs are derived from the compose pins in `docker-compose.yml`
+  (the intended release), the expected datasette version from the
+  `datasette==` pin in `pyproject.toml`; optional digest expectations can be
+  passed (observed digests are always recorded, flagged `not-supplied` when
+  no expectation exists). Pulls + digest-reads the exact refs, verifies the
+  in-image version, then runs the identical smoke stack + negative control
+  against those refs. `tests/smoke-stack/release_gate.sh` is reusable
+  locally with the same semantics. NOTE the designed behaviour (defer/strict
+  modes): on **PRs the gate defers with recorded evidence** when the intended
+  release cannot be verified yet (compose pin lags the pyproject pin during
+  the normal bump-merge → pin-bump-merge window, or the bumped sha images
+  are not published until the bump PR merges); on **master pushes it fails
+  hard** — that strict run is the real pre-deployment blocker PRs must not
+  circumvent. Explicit refs+version always run full verification, also on
+  PRs. Evidence artifact `smoke-release-evidence-<run>`.
+- **Master pushes** touching the gate run the release gate too — after a
+  compose pin-bump merge it verifies the actually published images against
+  the (moved) compose pin + pyproject expectation, no workflow edits needed.
+- Making `Smoke (PR)` / `Release gate` **required** checks needs a
   ruleset/branch-protection change — deliberately NOT part of this PR; it is
   a separate approval step.
 
