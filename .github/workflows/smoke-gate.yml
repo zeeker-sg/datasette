@@ -98,18 +98,20 @@ jobs:
       - name: Run the disposable smoke stack (24 production-shaped checks)
         run: |
           set -o pipefail
-          bash tests/smoke-stack/run_smoke_stack.sh \
+          SMOKE_RUNTIME_FILE=/tmp/smoke-pr-provenance.txt \
+            bash tests/smoke-stack/run_smoke_stack.sh \
             "$SMOKE_DATASETTE_IMAGE" "$SMOKE_FRONTEND_IMAGE" \
             "http://127.0.0.1:8891" 1 2>&1 | tee /tmp/smoke-pr.log
 
-      - name: Compose runtime provenance (containers actually used)
+      - name: Compose runtime provenance (workflow-level supplement)
         if: always()
         run: |
           {
-            echo "## Runtime containers (smoke project)"
-            docker ps --filter "name=smoke-stack" --format \
-              '{{.Image}} | started {{.RunningFor}} | {{.Status}}'
-          } | tee /tmp/smoke-pr-provenance.txt
+            echo "## Workflow-level provenance"
+            echo "commit: ${{ github.sha }}"
+            echo "pinned-baseline datasette ref: $SMOKE_DATASETTE_IMAGE"
+            echo "pinned-baseline frontend ref : $SMOKE_FRONTEND_IMAGE"
+          } >> /tmp/smoke-pr-provenance.txt
 
       - name: Upload smoke evidence (log + provenance)
         if: always()
@@ -154,8 +156,8 @@ jobs:
           docker pull "$RELEASE_FRONTEND_IMAGE"
           DS_DIGEST="$(docker buildx imagetools inspect "$RELEASE_DATASETTE_IMAGE" | awk '/^Digest:/ {print $2; exit}')"
           FE_DIGEST="$(docker buildx imagetools inspect "$RELEASE_FRONTEND_IMAGE" | awk '/^Digest:/ {print $2; exit}')"
-          echo "ds_digest=$DS_DIGEST" >> "$GITHUB_ENV"
-          echo "fe_digest=$FE_DIGEST" >> "$GITHUB_ENV"
+          echo "DS_DIGEST=$DS_DIGEST" >> "$GITHUB_ENV"
+          echo "FE_DIGEST=$FE_DIGEST" >> "$GITHUB_ENV"
           echo "RELEASE datasette : $RELEASE_DATASETTE_IMAGE"
           echo "  expected digest : $EXPECTED_DATASETTE_DIGEST"
           echo "  registry digest : $DS_DIGEST"
@@ -176,7 +178,8 @@ jobs:
       - name: Run the identical smoke stack on the EXACT release images
         run: |
           set -o pipefail
-          bash tests/smoke-stack/run_smoke_stack.sh \
+          SMOKE_RUNTIME_FILE=/tmp/smoke-release-runtime.txt \
+            bash tests/smoke-stack/run_smoke_stack.sh \
             "$RELEASE_DATASETTE_IMAGE" "$RELEASE_FRONTEND_IMAGE" \
             "http://127.0.0.1:8891" 1 2>&1 | tee /tmp/smoke-release.log
 
@@ -189,16 +192,19 @@ jobs:
       - name: Write the durable evidence record
         if: always()
         run: |
+          PROV_SHA="${{ github.event.pull_request.head.sha }}"
           {
             echo "# Smoke release-gate evidence"
             echo "run           : ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-            echo "commit        : ${{ github.sha }}"
+            echo "commit        : ${PROV_SHA:-${{ github.sha }}} (PR head) / ${{ github.sha }} (workflow ref)"
             echo "ds image      : $RELEASE_DATASETTE_IMAGE"
             echo "ds digest     : $DS_DIGEST (expected $EXPECTED_DATASETTE_DIGEST)"
             echo "fe image      : $RELEASE_FRONTEND_IMAGE"
             echo "fe digest     : $FE_DIGEST (expected $EXPECTED_FRONTEND_DIGEST)"
-            echo "datasette ver : $(docker run --rm --entrypoint /bin/sh "$RELEASE_DATASETTE_IMAGE" -c 'cd /app && uv run python -c "import datasette; print(datasette.__version__)"' 2>/dev/null | tail -1)"
-            echo "runtime       : $(docker ps --filter 'name=smoke-stack' --format '{{.Image}} | {{.Status}}')"
+            echo "datasette ver : $(docker run --rm --entrypoint /bin/sh "$RELEASE_DATASETTE_IMAGE" -c 'cd /app && uv run python -c \"import datasette; print(datasette.__version__)\"' 2>/dev/null | tail -1)"
+            echo
+            echo "## Runtime provenance (captured before teardown)"
+            cat /tmp/smoke-release-runtime.txt 2>/dev/null || echo "(runtime file missing)"
             echo
             echo "## What was tested / what was NOT"
             echo "tested          : routing, frontend pages, data API, search-all, strip_columns," \
@@ -209,6 +215,7 @@ jobs:
             echo "image-provenance: pull-by-reference + digest-verified (buildx imagetools inspect)"
           } | tee evidence.txt
           {
+            echo
             echo "### smoke_checks output (release images)"
             cat /tmp/smoke-release.log 2>/dev/null || true
             echo

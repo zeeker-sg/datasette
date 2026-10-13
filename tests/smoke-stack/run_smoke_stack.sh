@@ -37,6 +37,15 @@ COMPOSE_ARGS=(-p smoke-stack -f docker-compose.yml -f tests/smoke-stack/docker-c
 
 cleanup() {
   local rc=$?
+  # Runtime provenance BEFORE the stack disappears (only when asked for).
+  if [ -n "${SMOKE_RUNTIME_FILE:-}" ]; then
+    {
+      echo "## Smoke stack runtime provenance (captured before teardown)"
+      echo "datasette image ref: $SMOKE_DATASETTE_IMAGE"
+      echo "frontend image ref : $SMOKE_FRONTEND_IMAGE"
+      docker ps --filter "name=smoke-stack" --format '{{.Names}} | {{.Image}} | {{.Status}}'
+    } > "$SMOKE_RUNTIME_FILE" 2>/dev/null || true
+  fi
   if [ "$KEEP" != "1" ]; then
     docker compose "${COMPOSE_ARGS[@]}" down -v --remove-orphans >/dev/null 2>&1 || true
     rm -rf "$SMOKE_DATA_DIR"
