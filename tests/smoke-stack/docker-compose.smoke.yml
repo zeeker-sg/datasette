@@ -1,0 +1,75 @@
+# Disposable, production-shaped smoke stack.
+#
+# Used ONLY together with ../docker-compose.yml:
+#
+#   docker compose -p smoke-stack \
+#     -f docker-compose.yml \
+#     -f tests/smoke-stack/docker-compose.smoke.yml up -d --wait
+#
+# Isolation guarantees (the whole point — must never touch prod):
+#   -p smoke-stack            → separate compose project: own network +
+#                               project-scoped caddy volumes; teardown is
+#                               `down -v`, prod project is untouched.
+#   container_name: !reset    → service names stay identical (root Caddyfile
+#                               upstreams `zeeker-datasette:8001` and
+#                               `frontend:8000` keep working verbatim) but the
+#                               fixed global names go back to project-scoped
+#                               ones, so prod and smoke can run side by side.
+#   caddy ports: !override    → prod binds 80/443 host-wide; smoke publishes a
+#                               single loopback-only port (8891 default).
+#   volumes (datasette):      → base compose mounts ./data:/data; relative
+#                               paths resolve to the PROJECT dir (repo root!),
+#                               so the smoke override REPLACES it with an
+#                               absolute temp-dir path set by smoke_stack.sh.
+#                               Production DB files are never mounted here.
+#   environment (datasette):  → S3_* / AWS_* are blanked so the smoke
+#                               containers can never read prod credentials
+#                               (compose auto-loads the repo .env into the
+#                               base file's ${S3_*} interpolations — this
+#                               override rewrites every key to empty).
+#   ZEEKER_FULL_ACCESS_TOKEN  → replaced with a throwaway smoke-only value.
+#   images                    → set per run via SMOKE_DATASETTE_IMAGE /
+#                               SMOKE_FRONTEND_IMAGE (baseline = the pinned
+#                               prod images; candidate = a locally built
+#                               image from the worktree). Building/starting
+#                               disposable containers is expressly NOT a
+#                               production deployment: prod containers, prod
+#                               compose pins and prod volumes stay untouched.
+services:
+  zeeker-datasette:
+    image: ${SMOKE_DATASETTE_IMAGE:?set SMOKE_DATASETTE_IMAGE to the datasette image to smoke}
+    container_name: !reset null
+    environment:
+      - S3_BUCKET=
+      - S3_PREFIX=
+      - S3_ENDPOINT_URL=
+      - AWS_REGION=
+      - AWS_ACCESS_KEY_ID=
+      - AWS_SECRET_ACCESS_KEY=
+      - ZEEKER_FULL_ACCESS_TOKEN=${SMOKE_OWNER_TOKEN:-smoke-owner-token-local-only}
+    volumes:
+      - ${SMOKE_DATA_DIR:?set SMOKE_DATA_DIR to a disposable fixture dir}:/data
+      # Single-file ro mount replaces the image-baked metadata with the
+      # fixture-shaped contract (owner-gated allow_sql + strip-columns for
+      # the fixture dbs) — the entrypoint's `--metadata /app/metadata.json`
+      # then serves exactly the config prod serves. Written once by
+      # synthetic_fixtures.py BEFORE the container starts (fresh inode, no
+      # live-edit-inode pitfalls); read-only for the container.
+      - ${SMOKE_DATA_DIR}/metadata.json:/app/metadata.json:ro
+    restart: "no"
+
+  frontend:
+    image: ${SMOKE_FRONTEND_IMAGE:?set SMOKE_FRONTEND_IMAGE to the frontend image to smoke}
+    container_name: !reset null
+    environment:
+      - ZEEKER_DATASETTE_URL=http://zeeker-datasette:8001
+    restart: "no"
+
+  caddy:
+    # caddy ALSO gets a fixed container_name in the base compose file
+    # (`zeeker-caddy`, in use by prod) — reset it here like the services
+    # above, else the smoke stack collides with the live prod container.
+    container_name: !reset null
+    ports: !override
+      - "127.0.0.1:${SMOKE_PORT:-8891}:80"
+    restart: "no"
