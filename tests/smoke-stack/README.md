@@ -68,8 +68,51 @@ cache_headers, edge lockdown, owner bypass.
 - `!reset`/`!override` compose tags require recent compose (verified on Compose v5.6.0); older CLI versions won't parse the override.
 - `smoke_checks.py` runs via urllib (no extra deps). It is deliberately independent of pytest so the gate can run standalone in pipelines.
 
-## Future work candidates
+## CI automation (PR #29's manual gate made automatic)
 
-- Wire the gate into CI as a job on dependency-affecting PRs (needs GitHub-hosted runners with compose + a free port; not yet configured per user's scope — a separately reviewable follow-up).
-- Extend fixtures with a second protected table + FTS shadow variants for wider negative coverage.
-- A CI-anchored negative control run (`run_regressions.sh`) on every smoke-gate change, so the checker itself can't rot.
+`.github/workflows/smoke-gate.yml` runs on **every relevant PR** — dependency
+manifests, Dockerfiles, compose, Caddyfiles, `entrypoint.sh`, `metadata.json`,
+plugins, frontend source, smoke-stack itself:
+
+- **Smoke (PR)** — the disposable stack + 24 checks against the
+  production-pinned baseline images, on GitHub-hosted runners (Docker +
+  compose are available there; the repo's publish jobs prove it). Runs
+  automatically; evidence artifact `smoke-pr-evidence-<run>` (log + runtime
+  provenance, 90-day retention). Tear-down safety net included.
+- **Smoke (release gate)** — pulls the **exact release image references**
+  recorded in the workflow env (`RELEASE_*_IMAGE`), verifies their registry
+  digests against `EXPECTED_*_DIGEST` values, runs the **identical** checks +
+  the negative control against those artifacts, and uploads a durable
+  evidence record (`smoke-release-evidence-<run>`) with image identities,
+  commit provenance, full check results, and the explicit tested/NOT-tested
+  boundary. **A locally rebuilt image is never substituted for the release
+  refs** — the gate's evidence is labeled with the release identities it
+  actually pulled.
+- **On master pushes** (smoke-stack or workflow changes) the **negative
+  control** runs too — the checker must keep detecting deliberate breakage.
+- Making `Smoke (PR)` / `Smoke (release gate)` required checks needs a
+  ruleset/branch-protection change — deliberately NOT part of this PR; it is
+  a separate approval step.
+
+## Coverage boundary (explicit, and stable)
+
+Covered by the disposable stack: routing, frontend pages, the frontend→
+datasette client hop, data API, strip_columns, cache_headers, edge lockdown,
+owner bypass, search-all — through a real compose stack, on runner (automatic
+per relevant PR) and release-image identities (release gate).
+
+Covered by the negative control: the checker's ability to detect deliberate
+content-protection breakage (master pushes + release gate).
+
+**Explicitly NOT covered (documented, not hidden):**
+- **S3 bootstrap/download** — smoke env blanks S3/AWS so fixtures mount
+  directly; `scripts/download_from_s3.py` has its own unit tests; CI cannot
+  safely exercise the real bucket path without credentials this repo
+  deliberately does not hold. Bounded future option: a local-only profile
+  (moto-based S3 stub container) or an explicit `SMOKE_S3=1` local profile —
+  proposed, not implemented.
+- **External TLS / Cloudflare edge** — the smoke caddy publishes plain HTTP
+  on loopback; TLS termination and CF caching are edge behaviors out of the
+  disposable stack's scope. Bounded future options: a self-signed TLS smoke
+  profile, or post-deploy header probes (cf-cache-status observations) as a
+  monitored ops runbook item — proposed, not implemented.

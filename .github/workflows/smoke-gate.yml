@@ -1,0 +1,234 @@
+# Disposable smoke-stack gateway CI.
+#
+# Two jobs on every relevant PR (dependency, app, routing, bootstrap and
+# smoke-test changes):
+#
+#   smoke-pr      — runs the disposable smoke stack (real compose stack:
+#                   datasette + frontend + caddy) on GitHub-hosted runners,
+#                   pulling the PRODUCTION-PINNED images as the baseline.
+#                   These are the SAME 24 checks as the merged manual gate.
+#   release-gate  — verifies image provenance for the intended release
+#                   references (datasette + frontend) and runs the identical
+#                   smoke stack against the EXACT release artifacts, then
+#                   uploads durable evidence (versions, digests, check and
+#                   negative-control results). The evidence record states
+#                   explicitly what was and was not tested (S3 bootstrap,
+#                   external TLS/Cloudflare are NOT covered — see README).
+#
+# On master pushes, the negative control (run_regressions.sh) runs too: the
+# checker must keep DETECTING deliberately broken content protection. The
+# negative control validates the gate itself, not a release artifact.
+#
+# No required-check or ruleset changes are made by this workflow — marking
+# "Smoke (PR) / Smoke (release gate)" required is a separate, user-approved
+# branch-protection/ruleset change. See tests/smoke-stack/README.md.
+
+name: smoke-gate
+
+on:
+  pull_request:
+    paths:
+      - "pyproject.toml"
+      - "requirements.txt"
+      - "uv.lock"
+      - "packages/zeeker-frontend/pyproject.toml"
+      - "packages/zeeker-frontend/uv.lock"
+      - "Dockerfile"
+      - "packages/zeeker-frontend/Dockerfile"
+      - "docker-compose.yml"
+      - "Caddyfile"
+      - "Caddyfile.prod"
+      - "entrypoint.sh"
+      - "metadata.json"
+      - "plugins/**"
+      - "packages/zeeker-frontend/src/**"
+      - "scripts/download_from_s3.py"
+      - "tests/smoke-stack/**"
+      - ".github/workflows/smoke-gate.yml"
+  push:
+    branches: [master]
+    paths:
+      - "tests/smoke-stack/**"
+      - ".github/workflows/smoke-gate.yml"
+
+permissions:
+  contents: read
+  packages: read
+
+env:
+  # Registry-release identities for the release gate. The gate PULLS these
+  # exact references and records their digests — a locally rebuilt image is
+  # NEVER substituted for them.
+  RELEASE_DATASETTE_IMAGE: ghcr.io/zeeker-sg/zeeker-datasette:sha-3d641f3b14363b59e9ec56371ae60175eaef67ba
+  RELEASE_FRONTEND_IMAGE: ghcr.io/zeeker-sg/zeeker-frontend:sha-3d641f3b14363b59e9ec56371ae60175eaef67ba
+  EXPECTED_DATASETTE_DIGEST: sha256:9d4194d143c3754908927c5734638a405094672e026c6f040953aca786f74856
+  EXPECTED_FRONTEND_DIGEST: sha256:ea03887acdc2f09b39190b9c9bae8519ed25888737b9662d602f4ffb2d8808ee
+
+jobs:
+  smoke-pr:
+    # Disposable smoke stack on the PRODUCTION-PINNED baseline images for
+    # every relevant PR — makes the manual/opt-in suite automatic.
+    name: Smoke (PR) — disposable stack on pinned baseline
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SMOKE_DATASETTE_IMAGE: ghcr.io/zeeker-sg/zeeker-datasette:sha-b2c15805bb43cd44c52f1ab853843b4e6a3236ca
+      SMOKE_FRONTEND_IMAGE: ghcr.io/zeeker-sg/zeeker-frontend:sha-b2c15805bb43cd44c52f1ab853843b4e6a3236ca
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Log in to GHCR (read-only, for the pinned baseline images)
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull pinned baseline images
+        run: |
+          docker pull "$SMOKE_DATASETTE_IMAGE"
+          docker pull "$SMOKE_FRONTEND_IMAGE"
+
+      - name: Install uv (same version as the CI test job / prod images)
+        uses: astral-sh/setup-uv@caf0cab7a618c569241d31dcd442f54681755d39 # v3 (uv 0.11.14)
+        with:
+          version: '0.11.14'
+          python-version: '3.12'
+
+      - name: Run the disposable smoke stack (24 production-shaped checks)
+        run: |
+          set -o pipefail
+          bash tests/smoke-stack/run_smoke_stack.sh \
+            "$SMOKE_DATASETTE_IMAGE" "$SMOKE_FRONTEND_IMAGE" \
+            "http://127.0.0.1:8891" 1 2>&1 | tee /tmp/smoke-pr.log
+
+      - name: Compose runtime provenance (containers actually used)
+        if: always()
+        run: |
+          {
+            echo "## Runtime containers (smoke project)"
+            docker ps --filter "name=smoke-stack" --format \
+              '{{.Image}} | started {{.RunningFor}} | {{.Status}}'
+          } | tee /tmp/smoke-pr-provenance.txt
+
+      - name: Upload smoke evidence (log + provenance)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: smoke-pr-evidence-${{ github.run_id }}
+          path: |
+            /tmp/smoke-pr.log
+            /tmp/smoke-pr-provenance.txt
+          retention-days: 90
+          if-no-files-found: error
+
+      - name: Tear down the disposable stack (idempotent safety net)
+        if: always()
+        run: >
+          docker compose -p smoke-stack
+          -f docker-compose.yml
+          -f tests/smoke-stack/docker-compose.smoke.yml
+          down -v --remove-orphans || true
+
+  release-gate:
+    # Pulls the EXACT release image references, verifies their registry
+    # digests against the expected values, and runs the IDENTICAL smoke
+    # stack + negative control against them. Durable evidence attached.
+    name: Smoke (release gate) — exact release images, digest-verified
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Log in to GHCR (read-only)
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull exact release images and capture registry digests
+        run: |
+          set -o pipefail
+          docker pull "$RELEASE_DATASETTE_IMAGE"
+          docker pull "$RELEASE_FRONTEND_IMAGE"
+          DS_DIGEST="$(docker buildx imagetools inspect "$RELEASE_DATASETTE_IMAGE" | awk '/^Digest:/ {print $2; exit}')"
+          FE_DIGEST="$(docker buildx imagetools inspect "$RELEASE_FRONTEND_IMAGE" | awk '/^Digest:/ {print $2; exit}')"
+          echo "ds_digest=$DS_DIGEST" >> "$GITHUB_ENV"
+          echo "fe_digest=$FE_DIGEST" >> "$GITHUB_ENV"
+          echo "RELEASE datasette : $RELEASE_DATASETTE_IMAGE"
+          echo "  expected digest : $EXPECTED_DATASETTE_DIGEST"
+          echo "  registry digest : $DS_DIGEST"
+          echo "RELEASE frontend : $RELEASE_FRONTEND_IMAGE"
+          echo "  expected digest : $EXPECTED_FRONTEND_DIGEST"
+          echo "  registry digest : $FE_DIGEST"
+          if [ "$DS_DIGEST" != "$EXPECTED_DATASETTE_DIGEST" ] || [ "$FE_DIGEST" != "$EXPECTED_FRONTEND_DIGEST" ]; then
+            echo "::error::Release image digest mismatch — the release refs moved (or the expected digests are stale). refusing to test the wrong artifact"
+            exit 1
+          fi
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@caf0cab7a618c569241d31dcd442f54681755d39 # v3 (uv 0.11.14)
+        with:
+          version: '0.11.14'
+          python-version: '3.12'
+
+      - name: Run the identical smoke stack on the EXACT release images
+        run: |
+          set -o pipefail
+          bash tests/smoke-stack/run_smoke_stack.sh \
+            "$RELEASE_DATASETTE_IMAGE" "$RELEASE_FRONTEND_IMAGE" \
+            "http://127.0.0.1:8891" 1 2>&1 | tee /tmp/smoke-release.log
+
+      - name: Negative control (the checker must catch deliberate breakage)
+        run: |
+          set -o pipefail
+          bash tests/smoke-stack/run_regressions.sh \
+            "$RELEASE_DATASETTE_IMAGE" "$RELEASE_FRONTEND_IMAGE" 2>&1 | tee /tmp/smoke-regressions.log
+
+      - name: Write the durable evidence record
+        if: always()
+        run: |
+          {
+            echo "# Smoke release-gate evidence"
+            echo "run           : ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo "commit        : ${{ github.sha }}"
+            echo "ds image      : $RELEASE_DATASETTE_IMAGE"
+            echo "ds digest     : $DS_DIGEST (expected $EXPECTED_DATASETTE_DIGEST)"
+            echo "fe image      : $RELEASE_FRONTEND_IMAGE"
+            echo "fe digest     : $FE_DIGEST (expected $EXPECTED_FRONTEND_DIGEST)"
+            echo "datasette ver : $(docker run --rm --entrypoint /bin/sh "$RELEASE_DATASETTE_IMAGE" -c 'cd /app && uv run python -c "import datasette; print(datasette.__version__)"' 2>/dev/null | tail -1)"
+            echo "runtime       : $(docker ps --filter 'name=smoke-stack' --format '{{.Image}} | {{.Status}}')"
+            echo
+            echo "## What was tested / what was NOT"
+            echo "tested          : routing, frontend pages, data API, search-all, strip_columns," \
+                 "cache_headers, edge lockdown, owner bypass, negative control — through a real" \
+                 "compose stack built from the EXACT release image references above"
+            echo "NOT tested      : S3 bootstrap/download path (env blanked by design)," \
+                 "external TLS termination, Cloudflare edge behaviour"
+            echo "image-provenance: pull-by-reference + digest-verified (buildx imagetools inspect)"
+          } | tee evidence.txt
+          {
+            echo "### smoke_checks output (release images)"
+            cat /tmp/smoke-release.log 2>/dev/null || true
+            echo
+            echo "### negative-control output"
+            cat /tmp/smoke-regressions.log 2>/dev/null || true
+          } >> evidence.txt
+
+      - name: Upload release-gate evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: smoke-release-evidence-${{ github.run_id }}
+          path: evidence.txt
+          retention-days: 90
+          if-no-files-found: error
+
+      - name: Tear down the disposable stack
+        if: always()
+        run: >
+          docker compose -p smoke-stack
+          -f docker-compose.yml
+          -f tests/smoke-stack/docker-compose.smoke.yml
+          down -v --remove-orphans || true
