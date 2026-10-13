@@ -43,7 +43,9 @@ cleanup() {
       echo "## Smoke stack runtime provenance (captured before teardown)"
       echo "datasette image ref: $SMOKE_DATASETTE_IMAGE"
       echo "frontend image ref : $SMOKE_FRONTEND_IMAGE"
-      docker ps --filter "name=smoke-stack" --format '{{.Names}} | {{.Image}} | {{.Status}}'
+      docker ps -q --filter "name=smoke-stack" \
+        | xargs -r docker inspect --format \
+          '{{.Name}} | {{.Config.Image}} | image-id {{.Image}} | {{.State.Status}}'
     } > "$SMOKE_RUNTIME_FILE" 2>/dev/null || true
   fi
   if [ "$KEEP" != "1" ]; then

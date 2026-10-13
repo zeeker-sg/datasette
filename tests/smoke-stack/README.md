@@ -121,6 +121,15 @@ content-protection breakage (master pushes + release gate).
   deliberately does not hold. Bounded future option: a local-only profile
   (moto-based S3 stub container) or an explicit `SMOKE_S3=1` local profile —
   proposed, not implemented.
+- **Image-baked `metadata.json` / S3 metadata delivery** — the smoke mounts
+  its own fixture `metadata.json` read-only over the image-baked
+  `/app/metadata.json` (single-file ro bind, written before container start,
+  fresh inode). What the stack exercises is the SERVED-metadata contract
+  (owner-gated SQL + strip-columns config) via `--metadata
+  /app/metadata.json`; the baked file's *content inside the image* and the
+  S3-mediated metadata delivery path are NOT exercised by the smoke.
+  Bounded future options: assert the baked metadata's byte-equality against
+  the repo copy in CI, or an S3-stub smoke profile.
 - **External TLS / Cloudflare edge** — the smoke caddy publishes plain HTTP
   on loopback; TLS termination and CF caching are edge behaviors out of the
   disposable stack's scope. Bounded future options: a self-signed TLS smoke
