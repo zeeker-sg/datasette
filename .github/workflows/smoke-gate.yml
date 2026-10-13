@@ -201,7 +201,7 @@ jobs:
             echo "ds digest     : $DS_DIGEST (expected $EXPECTED_DATASETTE_DIGEST)"
             echo "fe image      : $RELEASE_FRONTEND_IMAGE"
             echo "fe digest     : $FE_DIGEST (expected $EXPECTED_FRONTEND_DIGEST)"
-            echo "datasette ver : $(docker run --rm --entrypoint /bin/sh "$RELEASE_DATASETTE_IMAGE" -c 'cd /app && uv run python -c \"import datasette; print(datasette.__version__)\"' 2>/dev/null | tail -1)"
+            echo "datasette ver : $(docker run --rm --entrypoint /app/.venv/bin/python "$RELEASE_DATASETTE_IMAGE" -c 'import datasette; print(datasette.__version__)' 2>/dev/null | tail -1)"
             echo
             echo "## Runtime provenance (captured before teardown)"
             cat /tmp/smoke-release-runtime.txt 2>/dev/null || echo "(runtime file missing)"
