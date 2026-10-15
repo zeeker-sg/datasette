@@ -267,8 +267,13 @@ jobs:
           } | tee /tmp/release-gate-meta.txt
 
       - name: Release gate (derive refs/expectations, digest+version check, smoke + negative control)
-        # workflow_dispatch: intended-release verification (strict inputs);
-        # else: derived refs, PR-defer / master-strict per event.
+        # workflow_dispatch: intended-release verification (strict inputs, by
+        # the explicit-args rule). pull_request: derived refs, defer on the
+        # pin-bump window. push (master): STRICT — the pre-deployment
+        # blocker. GATE_MODE is computed in the same shell that invokes the
+        # script (an `env:` block was dropped in 8644027, silently passing an
+        # empty mode and downgrading master pushes to defer — this fixes it
+        # and cannot regress the same way).
         run: |
           set -o pipefail
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
@@ -280,12 +285,19 @@ jobs:
               "${{ inputs.expected_datasette_version }}" \
               "${{ inputs.expected_ds_digest }}" "${{ inputs.expected_fe_digest }}" \
               2>&1 | tee /tmp/release-gate.log
-          else
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
             PR_HEAD_SHA="${{ github.event.pull_request.head.sha }}" \
             PR_HEAD_LABEL="PR #${{ github.event.pull_request.number }}" \
             PROVENANCE_NOTE="release-gate run for PR #${{ github.event.pull_request.number }} (head ${{ github.event.pull_request.head.sha }})" \
             RELEASE_EVIDENCE_FILE=/tmp/release-gate-evidence.txt \
-              bash tests/smoke-stack/release_gate.sh "" "" "" "" "" "$GATE_MODE" 2>&1 | tee /tmp/release-gate.log
+              bash tests/smoke-stack/release_gate.sh "" "" "" "" "" defer 2>&1 | tee /tmp/release-gate.log
+          else
+            # push event (master): strict derived run — verified locally to
+            # FAIL with a structured FAILED record while the compose pin
+            # lags the pyproject pin, and to fully verify after a pin bump.
+            PROVENANCE_NOTE="release-gate strict run on master push (commit ${{ github.sha }})" \
+            RELEASE_EVIDENCE_FILE=/tmp/release-gate-evidence.txt \
+              bash tests/smoke-stack/release_gate.sh "" "" "" "" "" strict 2>&1 | tee /tmp/release-gate.log
           fi
 
       - name: Write the release-gate state for the evidence bundle
