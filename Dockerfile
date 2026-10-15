@@ -34,6 +34,10 @@ COPY scripts/ ./scripts/
 COPY plugins/__init__.py ./plugins/__init__.py
 COPY plugins/cache_headers.py ./plugins/cache_headers.py
 COPY plugins/strip_columns.py ./plugins/strip_columns.py
+# block_db_csv.py: clean 404 for /{db}.csv instead of the Datasette 0.65.x
+# database-route as_csv 500 (KeyError: 'columns'). Same ASGI-wrapper
+# pattern as the other two plugins.
+COPY plugins/block_db_csv.py ./plugins/block_db_csv.py
 
 # Copy base metadata configuration
 COPY metadata.json .
