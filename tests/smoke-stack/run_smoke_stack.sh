@@ -31,12 +31,35 @@ cd "$REPO_ROOT"
 SMOKE_DATASETTE_IMAGE="$DS_IMAGE"
 SMOKE_FRONTEND_IMAGE="$FE_IMAGE"
 SMOKE_DATA_DIR="$(mktemp -d /tmp/smoke-stack-data.XXXXXX)"
+# All three are exported so the post-run safety-net teardown in CI (a
+# SEPARATE `docker compose down -v` step that re-renders the compose files)
+# sees the same project inputs as the setup/up commands — the CI teardown
+# runs in a FRESH shell without this script's env, so compose files that
+# interpolate SMOKE_* would otherwise fail there (masked by || true).
 export SMOKE_DATASETTE_IMAGE SMOKE_FRONTEND_IMAGE SMOKE_DATA_DIR
+
+# Persist the compose inputs for the CI safety-net teardown step (it runs in
+# its own shell): the workflow sources this env file so `down -v` re-renders
+# the files EXACTLY as the setup/up commands did.
+printf 'SMOKE_DATA_DIR=%s\nSMOKE_DATASETTE_IMAGE=%s\nSMOKE_FRONTEND_IMAGE=%s\n' \
+  "$SMOKE_DATA_DIR" "$SMOKE_DATASETTE_IMAGE" "$SMOKE_FRONTEND_IMAGE" \
+  > /tmp/smoke-stack-env.txt
 
 COMPOSE_ARGS=(-p smoke-stack -f docker-compose.yml -f tests/smoke-stack/docker-compose.smoke.yml)
 
 cleanup() {
   local rc=$?
+  # Runtime provenance BEFORE the stack disappears (only when asked for).
+  if [ -n "${SMOKE_RUNTIME_FILE:-}" ]; then
+    {
+      echo "## Smoke stack runtime provenance (captured before teardown)"
+      echo "datasette image ref: $SMOKE_DATASETTE_IMAGE"
+      echo "frontend image ref : $SMOKE_FRONTEND_IMAGE"
+      docker ps -q --filter "name=smoke-stack" \
+        | xargs -r docker inspect --format \
+          '{{.Name}} | {{.Config.Image}} | image-id {{.Image}} | {{.State.Status}}'
+    } > "$SMOKE_RUNTIME_FILE" 2>/dev/null || true
+  fi
   if [ "$KEEP" != "1" ]; then
     docker compose "${COMPOSE_ARGS[@]}" down -v --remove-orphans >/dev/null 2>&1 || true
     rm -rf "$SMOKE_DATA_DIR"
