@@ -50,6 +50,32 @@ on:
       - "scripts/download_from_s3.py"
       - "tests/smoke-stack/**"
       - ".github/workflows/smoke-gate.yml"
+  # Manual intended-release verification rig (e.g. when the release-referenced
+  # images exist while the compose pin still lags in a PR branch). Strict by
+  # definition: explicit refs+version passed to release_gate.sh. No automatic
+  # master-side effect; artifacts retain the full structured record.
+  workflow_dispatch:
+    inputs:
+      datasette_ref:
+        description: "Intended datasette image ref (default: current release sha tag)"
+        required: false
+        default: "ghcr.io/zeeker-sg/zeeker-datasette:sha-3d641f3b14363b59e9ec56371ae60175eaef67ba"
+      frontend_ref:
+        description: "Intended frontend image ref (default: current release sha tag)"
+        required: false
+        default: "ghcr.io/zeeker-sg/zeeker-frontend:sha-3d641f3b14363b59e9ec56371ae60175eaef67ba"
+      expected_datasette_version:
+        description: "Expected in-image datasette version"
+        required: false
+        default: "0.65.5"
+      expected_ds_digest:
+        description: "Optional expected datasette digest (empty = record observed only)"
+        required: false
+        default: ""
+      expected_fe_digest:
+        description: "Optional expected frontend digest (empty = record observed only)"
+        required: false
+        default: ""
   push:
     branches: [master]
     # Master pushes run the STRICT release gate — including compose
@@ -231,6 +257,7 @@ jobs:
           python-version: '3.12'
 
       - name: Derive the intended-release inputs for the log (refs come from release_gate.sh)
+        if: github.event_name != 'workflow_dispatch'
         run: |
           {
             echo "## Intended-release inputs (derived, not hardcoded)"
@@ -240,28 +267,45 @@ jobs:
           } | tee /tmp/release-gate-meta.txt
 
       - name: Release gate (derive refs/expectations, digest+version check, smoke + negative control)
-        env:
-          # Explicit refs/args imply strict per release_gate.sh's default
-          # rule; derived defaults on PRs defer during the pin-bump window;
-          # master pushes enforce strictly.
-          GATE_MODE: ${{ github.event_name == 'pull_request' && 'defer' || 'strict' }}
+        # workflow_dispatch: intended-release verification (strict inputs);
+        # else: derived refs, PR-defer / master-strict per event.
         run: |
           set -o pipefail
-          PR_HEAD_SHA="${{ github.event.pull_request.head.sha }}" \
-          PR_HEAD_LABEL="PR #${{ github.event.pull_request.number }}" \
-          PROVENANCE_NOTE="release-gate run for PR #${{ github.event.pull_request.number }} (head ${{ github.event.pull_request.head.sha }})" \
-          RELEASE_EVIDENCE_FILE=/tmp/release-gate-evidence.txt \
-            bash tests/smoke-stack/release_gate.sh "" "" "" "" "" "$GATE_MODE" 2>&1 | tee /tmp/release-gate.log
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            PR_HEAD_LABEL="workflow_dispatch intended-release verification" \
+            PROVENANCE_NOTE="manual intended-release verification against refs supplied at dispatch time (commit ${{ github.sha }})" \
+            RELEASE_EVIDENCE_FILE=/tmp/release-gate-evidence.txt \
+              bash tests/smoke-stack/release_gate.sh \
+              "${{ inputs.datasette_ref }}" "${{ inputs.frontend_ref }}" \
+              "${{ inputs.expected_datasette_version }}" \
+              "${{ inputs.expected_ds_digest }}" "${{ inputs.expected_fe_digest }}" \
+              2>&1 | tee /tmp/release-gate.log
+          else
+            PR_HEAD_SHA="${{ github.event.pull_request.head.sha }}" \
+            PR_HEAD_LABEL="PR #${{ github.event.pull_request.number }}" \
+            PROVENANCE_NOTE="release-gate run for PR #${{ github.event.pull_request.number }} (head ${{ github.event.pull_request.head.sha }})" \
+            RELEASE_EVIDENCE_FILE=/tmp/release-gate-evidence.txt \
+              bash tests/smoke-stack/release_gate.sh "" "" "" "" "" "$GATE_MODE" 2>&1 | tee /tmp/release-gate.log
+          fi
 
       - name: Write the release-gate state for the evidence bundle
         if: always()
         run: |
-          {
-            echo "## Release-gate disposition (workflow)"
-            echo "pr head sha      : ${{ github.event.pull_request.head.sha }}"
-            echo "tested checkout  : ${{ github.sha }} (GitHub merge ref of PR #${{ github.event.pull_request.number }})"
-            echo "note             : the release-gate steps above run with DERIVED compose-pin refs; see release-gate-evidence.txt for the DEFERRED/FAILED/PASSED disposition"
-          } >> /tmp/release-gate-meta.txt
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            {
+              echo "## Release-gate disposition (workflow)"
+              echo "event            : ${{ github.event_name }}"
+              echo "inputs           : ds_ref=${{ inputs.datasette_ref }} fe_ref=${{ inputs.frontend_ref }} expected=${{ inputs.expected_datasette_version }} ds_digest=${{ inputs.expected_ds_digest }} fe_digest=${{ inputs.expected_fe_digest }}"
+              echo "commit           : ${{ github.sha }} (the checked-out tree this run executed from)"
+            } > /tmp/release-gate-meta.txt
+          else
+            {
+              echo "## Release-gate disposition (workflow)"
+              echo "pr head sha      : ${{ github.event.pull_request.head.sha }}"
+              echo "tested checkout  : ${{ github.sha }} (GitHub merge ref of PR #${{ github.event.pull_request.number }})"
+              echo "note             : the release-gate steps above run with DERIVED compose-pin refs; see release-gate-evidence.txt for the DEFERRED/FAILED/PASSED disposition"
+            } > /tmp/release-gate-meta.txt
+          fi
 
       - name: Upload release-gate evidence
         if: always()

@@ -62,7 +62,10 @@ elif [ -n "$ARG_DS_REF" ] || [ -n "$ARG_FE_REF" ] || [ -n "$ARG_EXPECTED" ]; the
 else
   MODE="defer"
 fi
-EVIDENCE_FILE="${RELEASE_EVIDENCE_FILE:-/tmp/release-gate-evidence.txt}"
+# Durable evidence by default: a per-run timestamped file so concurrent or
+# repeated runs (e.g. a validation sequence) can never overwrite a previous
+# outcome's retained record. Explicit RELEASE_EVIDENCE_FILE wins.
+EVIDENCE_FILE="${RELEASE_EVIDENCE_FILE:-/tmp/release-gate-evidence-$(date -u '+%Y%m%dT%H%M%SZ').txt}"
 
 [ -n "$DS_REF" ] && [ -n "$FE_REF" ] || { echo "usage: release_gate.sh [DS_REF] [FE_REF] [EXPECTED_VER] [DS_DIGEST?] [FE_DIGEST?] [defer|strict]"; exit 2; }
 [ -n "$EXPECTED_VERSION" ] || { echo "no expected datasette version (pass arg3 or fix pyproject derivation)"; exit 2; }
@@ -110,11 +113,15 @@ observed_block() {
     echo "observed fe digest   : ${FE_DIGEST:-(not read)}"
     [ -n "$EXPECTED_DS_DIGEST" ] && echo "ds digest expectation: $EXPECTED_DS_DIGEST"
     [ -n "$EXPECTED_FE_DIGEST" ] && echo "fe digest expectation: $EXPECTED_FE_DIGEST"
-    if [ -n "$DS_VER" ]; then
-      echo "observed ds version  : $DS_VER (in-image probe)"
-    fi
   else
     echo "observed digests     : (none — refs not pulled)"
+  fi
+  # Always report the observed/last-probed version: failure paths after a
+  # successful probe (mismatch verdicts, smoke failures) retain it, and
+  # earlier failures explicitly show it was never obtained.
+  if [ -n "$DS_VER" ]; then
+    echo "observed ds version  : $DS_VER (in-image probe)"
+  else
     echo "observed ds version  : (not probed)"
   fi
 }
