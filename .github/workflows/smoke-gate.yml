@@ -1,0 +1,351 @@
+# Disposable smoke-stack gateway CI.
+#
+# Two jobs on every relevant PR (dependency, app, routing, bootstrap and
+# smoke-test changes):
+#
+#   smoke-pr      — BUILDS this PR's datasette + frontend images from the
+#                   checked-out PR head (the actual code under test) and runs
+#                   the disposable smoke stack (real compose stack: datasette
+#                   + frontend + caddy) against THEM. Provenance (PR head
+#                   sha + built image IDs) is captured into the evidence
+#                   artifact. Fixed-baseline green checks are NOT considered
+#                   regression protection for a PR's own changes.
+#   release-gate  — verifies the INTENDED release artifacts with ZERO
+#                   hardcoded ids: refs = the compose pins in
+#                   docker-compose.yml, expected version = the datasette
+#                   pin in pyproject.toml (both derived at run time). Digest
+#                   expectations can be supplied optionally (otherwise the
+#                   observed digest is recorded and flagged), then runs the
+#                   identical smoke + negative control against those exact
+#                   refs and uploads durable evidence.
+#
+# On master pushes touching the gate, the release gate runs too — after a
+# compose pin-bump merge it verifies the actual published images against the
+# (moved) compose pin and the pyproject expectation, so the intended-future
+# flow needs no workflow edits.
+#
+# No required-check or ruleset changes are made by this workflow — marking
+# "Smoke (PR) / Release gate" required is a separate, user-approved
+# branch-protection/ruleset change. See tests/smoke-stack/README.md.
+
+name: smoke-gate
+
+on:
+  pull_request:
+    paths:
+      - "pyproject.toml"
+      - "requirements.txt"
+      - "uv.lock"
+      - "packages/zeeker-frontend/pyproject.toml"
+      - "packages/zeeker-frontend/uv.lock"
+      - "Dockerfile"
+      - "packages/zeeker-frontend/Dockerfile"
+      - "docker-compose.yml"
+      - "Caddyfile"
+      - "Caddyfile.prod"
+      - "entrypoint.sh"
+      - "metadata.json"
+      - "plugins/**"
+      - "packages/zeeker-frontend/src/**"
+      - "scripts/download_from_s3.py"
+      - "tests/smoke-stack/**"
+      - ".github/workflows/smoke-gate.yml"
+  # Manual intended-release verification rig (e.g. when the release-referenced
+  # images exist while the compose pin still lags in a PR branch). Strict by
+  # definition: explicit refs+version passed to release_gate.sh. No automatic
+  # master-side effect; artifacts retain the full structured record.
+  workflow_dispatch:
+    inputs:
+      datasette_ref:
+        description: "Intended datasette image ref (default: current release sha tag)"
+        required: false
+        default: "ghcr.io/zeeker-sg/zeeker-datasette:sha-3d641f3b14363b59e9ec56371ae60175eaef67ba"
+      frontend_ref:
+        description: "Intended frontend image ref (default: current release sha tag)"
+        required: false
+        default: "ghcr.io/zeeker-sg/zeeker-frontend:sha-3d641f3b14363b59e9ec56371ae60175eaef67ba"
+      expected_datasette_version:
+        description: "Expected in-image datasette version"
+        required: false
+        default: "0.65.5"
+      expected_ds_digest:
+        description: "Optional expected datasette digest (empty = record observed only)"
+        required: false
+        default: ""
+      expected_fe_digest:
+        description: "Optional expected frontend digest (empty = record observed only)"
+        required: false
+        default: ""
+  push:
+    branches: [master]
+    # Master pushes run the STRICT release gate — including compose
+    # pin-bump merges, the exact change that moves the intended release.
+    paths:
+      - "pyproject.toml"
+      - "requirements.txt"
+      - "uv.lock"
+      - "packages/zeeker-frontend/pyproject.toml"
+      - "packages/zeeker-frontend/uv.lock"
+      - "Dockerfile"
+      - "packages/zeeker-frontend/Dockerfile"
+      - "docker-compose.yml"
+      - "Caddyfile"
+      - "Caddyfile.prod"
+      - "entrypoint.sh"
+      - "metadata.json"
+      - "plugins/**"
+      - "packages/zeeker-frontend/src/**"
+      - "scripts/download_from_s3.py"
+      - "tests/smoke-stack/**"
+      - ".github/workflows/smoke-gate.yml"
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  smoke-pr:
+    # BUILDS this PR's images from the checked-out head and runs the
+    # disposable smoke stack against THEM — the PR's actual changes under
+    # test, with provenance in the evidence artifact. (Green checks against
+    # fixed baseline images are NOT regression protection for a PR.)
+    name: Smoke (PR) — built PR-head images
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install uv (same version as the CI test job / prod images)
+        uses: astral-sh/setup-uv@caf0cab7a618c569241d31dcd442f54681755d39 # v3 (uv 0.11.14)
+        with:
+          version: '0.11.14'
+          python-version: '3.12'
+
+      - name: Build this PR's datasette + frontend images (the code under test)
+        run: |
+          set -o pipefail
+          docker build -t smoke-pr-datasette:"$GITHUB_SHA" .
+          docker build -t smoke-pr-frontend:"$GITHUB_SHA" ./packages/zeeker-frontend
+          docker image inspect smoke-pr-datasette:"$GITHUB_SHA" --format 'datasette image id: {{.Id}}'
+          docker image inspect smoke-pr-frontend:"$GITHUB_SHA" --format 'frontend image id: {{.Id}}'
+
+      - name: Verify the PR images before smoking them (provenance precheck)
+        run: |
+          set -o pipefail
+          # The built image must be the PR's dependency state — an accidental
+          # build from stale sources would make the smoke meaningless.
+          EXPECTED="$(grep -oE 'datasette==[0-9abrc.dev]+' pyproject.toml | head -1 | cut -d= -f3)"
+          OBSERVED="$(docker run --rm --entrypoint /app/.venv/bin/python "smoke-pr-datasette:${{ github.sha }}" -c 'import datasette; print(datasette.__version__)' 2>/dev/null | tail -1)"
+          echo "pyproject pin: $EXPECTED / built-image datasette: $OBSERVED"
+          [ -n "$OBSERVED" ] && [ "$OBSERVED" = "$EXPECTED" ] || {
+            echo "::error::PR image does not carry the PR's pinned datasette version — build provenance broken"
+            exit 1
+          }
+
+      - name: Capture built image IDs for the evidence record
+        if: always()
+        run: |
+          DS_ID="$(docker image inspect --format '{{.Id}}' "smoke-pr-datasette:${{ github.sha }}" 2>/dev/null || echo 'unbuilt')"
+          FE_ID="$(docker image inspect --format '{{.Id}}' "smoke-pr-frontend:${{ github.sha }}" 2>/dev/null || echo 'unbuilt')"
+          {
+            echo "built datasette ref : smoke-pr-datasette:${{ github.sha }}"
+            echo "built datasette id  : $DS_ID"
+            echo "built frontend ref  : smoke-pr-frontend:${{ github.sha }}"
+            echo "built frontend id   : $FE_ID"
+          } > /tmp/smoke-pr-image-ids.txt
+          cat /tmp/smoke-pr-image-ids.txt
+
+      - name: Run the disposable smoke stack against the PR images
+        run: |
+          set -o pipefail
+          SMOKE_RUNTIME_FILE=/tmp/smoke-pr-provenance.txt \
+            bash tests/smoke-stack/run_smoke_stack.sh \
+            "smoke-pr-datasette:$GITHUB_SHA" "smoke-pr-frontend:$GITHUB_SHA" \
+            "http://127.0.0.1:8891" 1 2>&1 | tee /tmp/smoke-pr.log
+
+      - name: Negative control on the PR images (checker self-proof, always)
+        # MUST pass on every relevant PR, independent of any release-gate
+        # deferral: the checker's two specific failure assertions are
+        # exercised against a deliberately protection-stripped variant of
+        # the SAME built PR images — checker changes can never go green
+        # untested.
+        run: |
+          set -o pipefail
+          bash tests/smoke-stack/run_regressions.sh \
+            "smoke-pr-datasette:$GITHUB_SHA" "smoke-pr-frontend:$GITHUB_SHA" \
+            2>&1 | tee /tmp/smoke-pr-regressions.log
+
+      - name: Write provenance (head vs checkout SHA, built image IDs, runtime)
+        if: always()
+        run: |
+          {
+            echo "# Smoke (PR) evidence"
+            echo "run              : ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo "pr               : #${{ github.event.pull_request.number }} (${{ github.event.pull_request.html_url }})"
+            echo "pr head sha      : ${{ github.event.pull_request.head.sha }}"
+            echo "tested checkout  : ${{ github.sha }} (GitHub merge ref — the tree actually built + smoked; contains the PR head but is not the head commit itself)"
+            echo
+            cat /tmp/smoke-pr-image-ids.txt 2>/dev/null || echo "(image ids missing)"
+            echo "datasette version: $(docker run --rm --entrypoint /app/.venv/bin/python "smoke-pr-datasette:${{ github.sha }}" -c 'import datasette; print(datasette.__version__)' 2>/dev/null | tail -1)"
+            echo
+            cat /tmp/smoke-pr-provenance.txt 2>/dev/null || echo "(runtime provenance missing)"
+          } | tee /tmp/smoke-pr-evidence.txt
+          {
+            echo
+            echo "### smoke_checks output (PR images)"
+            cat /tmp/smoke-pr.log 2>/dev/null || true
+          } >> /tmp/smoke-pr-evidence.txt
+
+      - name: Upload smoke evidence (log + provenance)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: smoke-pr-evidence-${{ github.run_id }}
+          path: |
+            /tmp/smoke-pr.log
+            /tmp/smoke-pr-evidence.txt
+            /tmp/smoke-pr-image-ids.txt
+            /tmp/smoke-pr-regressions.log
+          retention-days: 90
+          if-no-files-found: error
+
+      # Safety net: the runner script ALWAYS tears the stack down itself;
+      # this step re-runs `down -v` in a fresh shell with the PERSISTED env
+      # (so compose interpolation can't fail here), then verifies zero
+      # smoke containers remain — a real check, not a || true mask.
+      - name: Tear down + verify the disposable stack is gone
+        if: always()
+        run: |
+          if [ -f /tmp/smoke-stack-env.txt ]; then
+            set -a; source /tmp/smoke-stack-env.txt; set +a
+            docker compose -p smoke-stack -f docker-compose.yml \
+              -f tests/smoke-stack/docker-compose.smoke.yml \
+              down -v --remove-orphans || true
+          fi
+          REMAINING="$(docker ps -aq --filter 'name=smoke-stack' | wc -l)"
+          echo "remaining smoke-stack containers: $REMAINING"
+          [ "$REMAINING" -eq 0 ] || {
+            echo "::error::smoke-stack teardown incomplete — $REMAINING container(s) remain"
+            exit 1
+          }
+
+  release-gate:
+    # Verifies the INTENDED release artifacts with no hardcoded ids:
+    # image refs = the compose pins (docker-compose.yml), expected
+    # datasette version = the pyproject.toml pin — derived at run time, so
+    # the workflow needs no edits when the release moves. Digest
+    # expectations are optional (observed digests recorded + flagged when
+    # no expectation is supplied). Then: identical smoke + negative control
+    # against the exact refs, durable evidence artifact.
+    name: Release gate — compose-pin refs, derived expectations
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Log in to GHCR (read-only)
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@caf0cab7a618c569241d31dcd442f54681755d39 # v3 (uv 0.11.14)
+        with:
+          version: '0.11.14'
+          python-version: '3.12'
+
+      - name: Derive the intended-release inputs for the log (refs come from release_gate.sh)
+        if: github.event_name != 'workflow_dispatch'
+        run: |
+          {
+            echo "## Intended-release inputs (derived, not hardcoded)"
+            echo "compose-pin datasette ref  : $(grep -E 'image: .*zeeker-datasette:' docker-compose.yml | awk '{print $2}')"
+            echo "compose-pin frontend ref   : $(grep -E 'image: .*zeeker-frontend:' docker-compose.yml | awk '{print $2}')"
+            echo "pyproject expected version : $(grep -oE 'datasette==[0-9abrc.dev]+' pyproject.toml | head -1 | cut -d= -f3)"
+          } | tee /tmp/release-gate-meta.txt
+
+      - name: Release gate (derive refs/expectations, digest+version check, smoke + negative control)
+        # workflow_dispatch: intended-release verification (strict inputs, by
+        # the explicit-args rule). pull_request: derived refs, defer on the
+        # pin-bump window. push (master): STRICT — the pre-deployment
+        # blocker. GATE_MODE is computed in the same shell that invokes the
+        # script (an `env:` block was dropped in 8644027, silently passing an
+        # empty mode and downgrading master pushes to defer — this fixes it
+        # and cannot regress the same way).
+        run: |
+          set -o pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            PR_HEAD_LABEL="workflow_dispatch intended-release verification" \
+            PROVENANCE_NOTE="manual intended-release verification against refs supplied at dispatch time (commit ${{ github.sha }})" \
+            RELEASE_EVIDENCE_FILE=/tmp/release-gate-evidence.txt \
+              bash tests/smoke-stack/release_gate.sh \
+              "${{ inputs.datasette_ref }}" "${{ inputs.frontend_ref }}" \
+              "${{ inputs.expected_datasette_version }}" \
+              "${{ inputs.expected_ds_digest }}" "${{ inputs.expected_fe_digest }}" \
+              2>&1 | tee /tmp/release-gate.log
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+            PR_HEAD_SHA="${{ github.event.pull_request.head.sha }}" \
+            PR_HEAD_LABEL="PR #${{ github.event.pull_request.number }}" \
+            PROVENANCE_NOTE="release-gate run for PR #${{ github.event.pull_request.number }} (head ${{ github.event.pull_request.head.sha }})" \
+            RELEASE_EVIDENCE_FILE=/tmp/release-gate-evidence.txt \
+              bash tests/smoke-stack/release_gate.sh "" "" "" "" "" defer 2>&1 | tee /tmp/release-gate.log
+          else
+            # push event (master): strict derived run — verified locally to
+            # FAIL with a structured FAILED record while the compose pin
+            # lags the pyproject pin, and to fully verify after a pin bump.
+            PROVENANCE_NOTE="release-gate strict run on master push (commit ${{ github.sha }})" \
+            RELEASE_EVIDENCE_FILE=/tmp/release-gate-evidence.txt \
+              bash tests/smoke-stack/release_gate.sh "" "" "" "" "" strict 2>&1 | tee /tmp/release-gate.log
+          fi
+
+      - name: Write the release-gate state for the evidence bundle
+        if: always()
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            {
+              echo "## Release-gate disposition (workflow)"
+              echo "event            : ${{ github.event_name }}"
+              echo "inputs           : ds_ref=${{ inputs.datasette_ref }} fe_ref=${{ inputs.frontend_ref }} expected=${{ inputs.expected_datasette_version }} ds_digest=${{ inputs.expected_ds_digest }} fe_digest=${{ inputs.expected_fe_digest }}"
+              echo "commit           : ${{ github.sha }} (the checked-out tree this run executed from)"
+            } > /tmp/release-gate-meta.txt
+          else
+            {
+              echo "## Release-gate disposition (workflow)"
+              echo "pr head sha      : ${{ github.event.pull_request.head.sha }}"
+              echo "tested checkout  : ${{ github.sha }} (GitHub merge ref of PR #${{ github.event.pull_request.number }})"
+              echo "note             : the release-gate steps above run with DERIVED compose-pin refs; see release-gate-evidence.txt for the DEFERRED/FAILED/PASSED disposition"
+            } > /tmp/release-gate-meta.txt
+          fi
+
+      - name: Upload release-gate evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: smoke-release-evidence-${{ github.run_id }}
+          path: |
+            /tmp/release-gate-evidence.txt
+            /tmp/release-gate.log
+            /tmp/release-gate-meta.txt
+          retention-days: 90
+          if-no-files-found: warn
+
+      # Safety net with the same persisted-env + remaining-container
+      # verification as the PR job (the release gate's own trap already
+      # tears down; this cannot miss SMOKE_* inputs).
+      - name: Tear down + verify the disposable stack is gone
+        if: always()
+        run: |
+          if [ -f /tmp/smoke-stack-env.txt ]; then
+            set -a; source /tmp/smoke-stack-env.txt; set +a
+            docker compose -p smoke-stack -f docker-compose.yml \
+              -f tests/smoke-stack/docker-compose.smoke.yml \
+              down -v --remove-orphans || true
+          fi
+          REMAINING="$(docker ps -aq --filter 'name=smoke-stack' | wc -l)"
+          echo "remaining smoke-stack containers: $REMAINING"
+          [ "$REMAINING" -eq 0 ] || {
+            echo "::error::smoke-stack teardown incomplete — $REMAINING container(s) remain"
+            exit 1
+          }
