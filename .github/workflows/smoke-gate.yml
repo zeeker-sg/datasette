@@ -183,13 +183,25 @@ jobs:
           retention-days: 90
           if-no-files-found: error
 
-      - name: Tear down the disposable stack (idempotent safety net)
+      # Safety net: the runner script ALWAYS tears the stack down itself;
+      # this step re-runs `down -v` in a fresh shell with the PERSISTED env
+      # (so compose interpolation can't fail here), then verifies zero
+      # smoke containers remain — a real check, not a || true mask.
+      - name: Tear down + verify the disposable stack is gone
         if: always()
-        run: >
-          docker compose -p smoke-stack
-          -f docker-compose.yml
-          -f tests/smoke-stack/docker-compose.smoke.yml
-          down -v --remove-orphans || true
+        run: |
+          if [ -f /tmp/smoke-stack-env.txt ]; then
+            set -a; source /tmp/smoke-stack-env.txt; set +a
+            docker compose -p smoke-stack -f docker-compose.yml \
+              -f tests/smoke-stack/docker-compose.smoke.yml \
+              down -v --remove-orphans || true
+          fi
+          REMAINING="$(docker ps -aq --filter 'name=smoke-stack' | wc -l)"
+          echo "remaining smoke-stack containers: $REMAINING"
+          [ "$REMAINING" -eq 0 ] || {
+            echo "::error::smoke-stack teardown incomplete — $REMAINING container(s) remain"
+            exit 1
+          }
 
   release-gate:
     # Verifies the INTENDED release artifacts with no hardcoded ids:
@@ -218,6 +230,15 @@ jobs:
           version: '0.11.14'
           python-version: '3.12'
 
+      - name: Derive the intended-release inputs for the log (refs come from release_gate.sh)
+        run: |
+          {
+            echo "## Intended-release inputs (derived, not hardcoded)"
+            echo "compose-pin datasette ref  : $(grep -E 'image: .*zeeker-datasette:' docker-compose.yml | awk '{print $2}')"
+            echo "compose-pin frontend ref   : $(grep -E 'image: .*zeeker-frontend:' docker-compose.yml | awk '{print $2}')"
+            echo "pyproject expected version : $(grep -oE 'datasette==[0-9abrc.dev]+' pyproject.toml | head -1 | cut -d= -f3)"
+          } | tee /tmp/release-gate-meta.txt
+
       - name: Release gate (derive refs/expectations, digest+version check, smoke + negative control)
         env:
           # Explicit refs/args imply strict per release_gate.sh's default
@@ -232,6 +253,16 @@ jobs:
           RELEASE_EVIDENCE_FILE=/tmp/release-gate-evidence.txt \
             bash tests/smoke-stack/release_gate.sh "" "" "" "" "" "$GATE_MODE" 2>&1 | tee /tmp/release-gate.log
 
+      - name: Write the release-gate state for the evidence bundle
+        if: always()
+        run: |
+          {
+            echo "## Release-gate disposition (workflow)"
+            echo "pr head sha      : ${{ github.event.pull_request.head.sha }}"
+            echo "tested checkout  : ${{ github.sha }} (GitHub merge ref of PR #${{ github.event.pull_request.number }})"
+            echo "note             : the release-gate steps above run with DERIVED compose-pin refs; see release-gate-evidence.txt for the DEFERRED/FAILED/PASSED disposition"
+          } >> /tmp/release-gate-meta.txt
+
       - name: Upload release-gate evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -240,14 +271,25 @@ jobs:
           path: |
             /tmp/release-gate-evidence.txt
             /tmp/release-gate.log
-            /tmp/smoke-pr-regressions.log
+            /tmp/release-gate-meta.txt
           retention-days: 90
           if-no-files-found: warn
 
-      - name: Tear down the disposable stack
+      # Safety net with the same persisted-env + remaining-container
+      # verification as the PR job (the release gate's own trap already
+      # tears down; this cannot miss SMOKE_* inputs).
+      - name: Tear down + verify the disposable stack is gone
         if: always()
-        run: >
-          docker compose -p smoke-stack
-          -f docker-compose.yml
-          -f tests/smoke-stack/docker-compose.smoke.yml
-          down -v --remove-orphans || true
+        run: |
+          if [ -f /tmp/smoke-stack-env.txt ]; then
+            set -a; source /tmp/smoke-stack-env.txt; set +a
+            docker compose -p smoke-stack -f docker-compose.yml \
+              -f tests/smoke-stack/docker-compose.smoke.yml \
+              down -v --remove-orphans || true
+          fi
+          REMAINING="$(docker ps -aq --filter 'name=smoke-stack' | wc -l)"
+          echo "remaining smoke-stack containers: $REMAINING"
+          [ "$REMAINING" -eq 0 ] || {
+            echo "::error::smoke-stack teardown incomplete — $REMAINING container(s) remain"
+            exit 1
+          }

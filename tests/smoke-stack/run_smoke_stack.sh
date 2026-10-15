@@ -31,7 +31,19 @@ cd "$REPO_ROOT"
 SMOKE_DATASETTE_IMAGE="$DS_IMAGE"
 SMOKE_FRONTEND_IMAGE="$FE_IMAGE"
 SMOKE_DATA_DIR="$(mktemp -d /tmp/smoke-stack-data.XXXXXX)"
+# All three are exported so the post-run safety-net teardown in CI (a
+# SEPARATE `docker compose down -v` step that re-renders the compose files)
+# sees the same project inputs as the setup/up commands — the CI teardown
+# runs in a FRESH shell without this script's env, so compose files that
+# interpolate SMOKE_* would otherwise fail there (masked by || true).
 export SMOKE_DATASETTE_IMAGE SMOKE_FRONTEND_IMAGE SMOKE_DATA_DIR
+
+# Persist the compose inputs for the CI safety-net teardown step (it runs in
+# its own shell): the workflow sources this env file so `down -v` re-renders
+# the files EXACTLY as the setup/up commands did.
+printf 'SMOKE_DATA_DIR=%s\nSMOKE_DATASETTE_IMAGE=%s\nSMOKE_FRONTEND_IMAGE=%s\n' \
+  "$SMOKE_DATA_DIR" "$SMOKE_DATASETTE_IMAGE" "$SMOKE_FRONTEND_IMAGE" \
+  > /tmp/smoke-stack-env.txt
 
 COMPOSE_ARGS=(-p smoke-stack -f docker-compose.yml -f tests/smoke-stack/docker-compose.smoke.yml)
 

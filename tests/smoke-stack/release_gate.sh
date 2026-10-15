@@ -34,7 +34,7 @@
 #   tests/smoke-stack/release_gate.sh [DS_REF] [FRONTEND_REF] \
 #       [EXPECTED_DATASETTE_VERSION] [EXPECTED_DS_DIGEST] [EXPECTED_FE_DIGEST] \
 #       [defer|strict]
-# Env: PROVENANCE_NOTE, PR_HEAD_SHA (optional provenance), HEAD_LABEL
+# Env: PROVENANCE_NOTE, PR_HEAD_SHA, PR_HEAD_LABEL (optional provenance)
 # Exit codes: 0 full verification passed · 1 a material check failed ·
 #             2 setup/usage error. Deferred runs exit 0 WITH evidence.
 
@@ -171,14 +171,35 @@ if ! docker pull -q "$FE_REF"; then
   [ "$MODE" = "defer" ] && defer_recorded "intended frontend ref not pullable yet: $FE_REF (not published at this commit's state)"
   fail_recorded "could not pull frontend release ref: $FE_REF"
 fi
-DS_DIGEST="$(docker buildx imagetools inspect "$DS_REF" | awk '/^Digest:/ {print $2; exit}')"
-FE_DIGEST="$(docker buildx imagetools inspect "$FE_REF" | awk '/^Digest:/ {print $2; exit}')"
-[ -n "$DS_DIGEST" ] && [ -n "$FE_DIGEST" ] || fail_recorded "could not read registry digests"
-DS_ID="$(docker image inspect --format '{{.Id}}' "$DS_REF")"
-FE_ID="$(docker image inspect --format '{{.Id}}' "$FE_REF")"
+if ! DS_DIGEST="$(docker buildx imagetools inspect "$DS_REF" 2>/dev/null | awk '/^Digest:/ {print $2; exit}')"; then
+  [ "$MODE" = "defer" ] && defer_recorded "registry inspect failed for datasette ref: $DS_REF"
+  fail_recorded "registry inspect failed for datasette ref: $DS_REF"
+fi
+if ! FE_DIGEST="$(docker buildx imagetools inspect "$FE_REF" 2>/dev/null | awk '/^Digest:/ {print $2; exit}')"; then
+  [ "$MODE" = "defer" ] && defer_recorded "registry inspect failed for frontend ref: $FE_REF"
+  fail_recorded "registry inspect failed for frontend ref: $FE_REF"
+fi
+if [ -z "$DS_DIGEST" ] || [ -z "$FE_DIGEST" ]; then
+  [ "$MODE" = "defer" ] && defer_recorded "registry digests unreadable (empty) for: $DS_REF / $FE_REF"
+  fail_recorded "could not read registry digests for: $DS_REF / $FE_REF"
+fi
+if ! DS_ID="$(docker image inspect --format '{{.Id}}' "$DS_REF")"; then
+  [ "$MODE" = "defer" ] && defer_recorded "local image inspect failed for datasette ref: $DS_REF"
+  fail_recorded "local image inspect failed for datasette ref: $DS_REF"
+fi
+if ! FE_ID="$(docker image inspect --format '{{.Id}}' "$FE_REF")"; then
+  [ "$MODE" = "defer" ] && defer_recorded "local image inspect failed for frontend ref: $FE_REF"
+  fail_recorded "local image inspect failed for frontend ref: $FE_REF"
+fi
 
-DS_VER="$(docker run --rm --entrypoint /app/.venv/bin/python "$DS_REF" -c 'import datasette; print(datasette.__version__)' 2>/dev/null | tail -1)"
-[ -n "$DS_VER" ] || fail_recorded "could not probe in-image datasette version"
+if ! DS_VER="$(docker run --rm --entrypoint /app/.venv/bin/python "$DS_REF" -c 'import datasette; print(datasette.__version__)' 2>/dev/null | tail -1)"; then
+  [ "$MODE" = "defer" ] && defer_recorded "in-image version probe failed for: $DS_REF"
+  fail_recorded "could not probe in-image datasette version: $DS_REF"
+fi
+if [ -z "$DS_VER" ]; then
+  [ "$MODE" = "defer" ] && defer_recorded "in-image version probe returned empty for: $DS_REF"
+  fail_recorded "in-image datasette version probe empty: $DS_REF"
+fi
 
 # 2 — digest expectations (verify when supplied, else record + flag)
 DS_DIG_OK="not-supplied"; FE_DIG_OK="not-supplied"
@@ -208,8 +229,12 @@ fi
 #     the local image IDs recorded for the tie.
 DS_EXEC_REF="${DS_REF%%:*}@${DS_DIGEST}"
 FE_EXEC_REF="${FE_REF%%:*}@${FE_DIGEST}"
-DS_EXEC_ID="$(docker image inspect --format '{{.Id}}' "$DS_EXEC_REF")"
-FE_EXEC_ID="$(docker image inspect --format '{{.Id}}' "$FE_EXEC_REF")"
+if ! DS_EXEC_ID="$(docker image inspect --format '{{.Id}}' "$DS_EXEC_REF")"; then
+  fail_recorded "digest-pinned datasette ref not locally resolvable: $DS_EXEC_REF"
+fi
+if ! FE_EXEC_ID="$(docker image inspect --format '{{.Id}}' "$FE_EXEC_REF")"; then
+  fail_recorded "digest-pinned frontend ref not locally resolvable: $FE_EXEC_REF"
+fi
 [ "$DS_EXEC_ID" = "$DS_ID" ] && [ "$FE_EXEC_ID" = "$FE_ID" ] || fail_recorded "digest-ref resolves to a different local image than the verified ref (unexpected local state)"
 
 # 5 — the identical disposable smoke, on the digest-pinned release refs
