@@ -1,0 +1,14 @@
+{
+  "title": "data.zeeker.sg smoke (BROKEN — regression scenario)",
+  "allow_sql": { "id": "owner" },
+  "plugins": {
+    "strip-columns": {
+      "default_deny_names": [],
+      "tables": {}
+    }
+  },
+  "menu_links": [
+    { "href": "/", "label": "Home" },
+    { "href": "/status", "label": "Status" }
+  ]
+}
