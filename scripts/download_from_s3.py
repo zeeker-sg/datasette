@@ -18,6 +18,7 @@ import json
 import logging
 import os
 import sys
+import time
 from pathlib import Path
 from typing import Dict, Set
 
@@ -32,6 +33,67 @@ logging.basicConfig(
     handlers=[logging.StreamHandler()],
 )
 logger = logging.getLogger("s3-downloader")
+
+# --- Build-deploy vs refresh race tolerances -------------------------------
+# The 6-hourly zeeker-judgements build deploys a ~3 GB database to latest/
+# minutes before the :10 datasette refresh reads it. When the deploy lands
+# mid-download, s3transfer's ranged reader fails the If-Match consistency
+# check (the provider answers 412 PreconditionFailed) and the whole download
+# is lost with "did not match expected ETag". A short backoff plus a fresh
+# download_file() (which re-reads the now-stable object) is sufficient.
+ETAG_RACE_SIGNATURE = "did not match expected ETag"
+ETAG_RACE_ATTEMPTS = 3
+ETAG_RACE_BASE_DELAY_S = 30.0
+
+
+def is_etag_race_error(exc: BaseException) -> bool:
+    """True when a download failed because the S3 object changed mid-download.
+
+    Covers both surfaces of the same race:
+      - s3transfer's S3DownloadFailedError raised after the provider answered
+        412 PreconditionFailed ("did not match expected ETag"), and
+      - a raw ClientError with a 412 precondition error code.
+    """
+    response = getattr(exc, "response", None)
+    if isinstance(response, dict):
+        code = response.get("Error", {}).get("Code")
+        if code in ("PreconditionFailed", "PreconditionFailedError"):
+            return True
+    return ETAG_RACE_SIGNATURE in str(exc)
+
+
+def download_file_with_etag_retry(
+    s3_client,
+    bucket,
+    key,
+    dest_path,
+    logger=None,
+    max_attempts=ETAG_RACE_ATTEMPTS,
+    base_delay_s=ETAG_RACE_BASE_DELAY_S,
+):
+    """s3.download_file with a bounded retry on the ETag race.
+
+    Retries ONLY the mid-download-object-replacement failure; every other
+    error is re-raised on its first attempt so genuine breakages stay loud.
+    """
+    log = logger if logger is not None else logging.getLogger("s3-downloader")
+    for attempt in range(1, max_attempts + 1):
+        try:
+            s3_client.download_file(bucket, key, dest_path)
+            return
+        except Exception as e:
+            if not is_etag_race_error(e) or attempt >= max_attempts:
+                raise
+            delay = base_delay_s * attempt
+            log.warning(
+                "ETag race on %s (object replaced mid-download) — retrying in "
+                "%.0fs (attempt %d/%d)",
+                key,
+                delay,
+                attempt + 1,
+                max_attempts,
+            )
+            time.sleep(delay)
 
 
 class ZeekerS3Downloader:
@@ -142,7 +204,9 @@ class ZeekerS3Downloader:
                     local_path = self.data_dir / filename
 
                     logger.info(f"Downloading database: {key} → {local_path}")
-                    self.s3_client.download_file(self.s3_bucket, key, str(local_path))
+                    download_file_with_etag_retry(
+                        self.s3_client, self.s3_bucket, key, str(local_path), logger
+                    )
                     databases.add(db_name)
 
             logger.info(f"Downloaded {len(databases)} database files: {databases}")
