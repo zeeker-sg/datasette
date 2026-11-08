@@ -38,9 +38,15 @@ setup_imports()
 
 # Replace the dynamic import section
 try:
-    from scripts.download_from_s3 import ZeekerS3Downloader
+    from scripts.download_from_s3 import (
+        ZeekerS3Downloader,
+        download_file_with_etag_retry,
+    )
 except ImportError:
-    from download_from_s3 import ZeekerS3Downloader
+    from download_from_s3 import (
+        ZeekerS3Downloader,
+        download_file_with_etag_retry,
+    )
 
 try:
     from scripts import backup as backup_module
@@ -115,7 +121,7 @@ def download_from_s3_to_dir(target_dir, logger):
                 local_path = target_path / filename
 
                 logger.info(f"Downloading {key} to {local_path}")
-                s3.download_file(s3_bucket, key, str(local_path))
+                download_file_with_etag_retry(s3, s3_bucket, key, str(local_path), logger)
 
         if not found_files:
             logger.warning(f"No .db files found in s3://{s3_bucket}/latest")
