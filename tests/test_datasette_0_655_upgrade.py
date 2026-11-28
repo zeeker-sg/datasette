@@ -11,10 +11,17 @@ wrapper active throughout so no protected full text can leak on any path.
 
 Runs against the installed datasette (uv-managed), mirroring the prod image
 build (uv sync --frozen) and CI (uv sync --locked + uv run pytest).
+
+Version assertions derive the expected version from the pyproject pin
+(_pinned_datasette_version) instead of hardcoding 0.65.5, so Dependabot
+patch bumps stay green — they still fail whenever the installed version
+drifts from the pin (the stale-venv/lock case they were written for).
 """
 
 import json
 import sqlite3
+import tomllib
+from pathlib import Path
 
 import pytest
 from datasette.app import Datasette
@@ -25,6 +32,23 @@ import plugins.strip_columns as strip_columns_module
 from datasette import __version__ as datasette_version
 
 PLUGIN_PREFIX = "upgrade-under-test"
+
+
+def _pinned_datasette_version() -> str:
+    """The datasette version pinned in pyproject.toml.
+
+    Version assertions compare against this pin rather than a hardcoded
+    number, so a Dependabot patch bump does not red-line CI; the tests still
+    fail whenever the installed version drifts from the pin.
+    """
+    pyproject = Path(__file__).resolve().parent.parent / "pyproject.toml"
+    dependencies = tomllib.loads(pyproject.read_text())["project"]["dependencies"]
+    pins = [dep for dep in dependencies if dep.startswith("datasette==")]
+    if len(pins) != 1:
+        raise AssertionError(
+            f"expected exactly one 'datasette==' pin in {pyproject}, found {pins!r}"
+        )
+    return pins[0].split("==", 1)[1]
 
 METADATA = {
     "title": "upgrade-smoke",
@@ -122,10 +146,13 @@ def ds(ds_factory):
 # ------------------------------------------------------------------ bootstrap
 
 
-def test_datasette_resolved_to_0_6_5_5():
-    """The pinned dependency is the upgraded one — catches a stale venv/lock
-    silently serving the old version to every other test in this module."""
-    assert [int(p) for p in datasette_version.split(".")[:3]] == [0, 65, 5]
+def test_datasette_resolves_to_the_pinned_version():
+    """The installed dependency is the pinned one — catches a stale venv/lock
+    silently serving a different version to every other test in this module."""
+    pinned = _pinned_datasette_version()
+    assert [int(p) for p in datasette_version.split(".")[:3]] == [
+        int(p) for p in pinned.split(".")[:3]
+    ]
 
 
 @pytest.mark.asyncio
@@ -143,7 +170,7 @@ async def test_explicit_invoke_startup_completes(ds):
 async def test_versions_endpoint_reports_upgraded_datasette(ds):
     response = await ds.client.get("/-/versions.json")
     assert response.status_code == 200
-    assert response.json()["datasette"]["version"] == "0.65.5"
+    assert response.json()["datasette"]["version"] == _pinned_datasette_version()
 
 
 @pytest.mark.asyncio
