@@ -255,6 +255,13 @@ jobs:
         with:
           version: '0.11.14'
           python-version: '3.12'
+          # This job never runs uv on the host (release_gate.sh works entirely
+          # through docker/compose), so there is nothing to cache. With the
+          # v3 default (auto), any PR whose uv.lock/pyproject hash differs
+          # from the last saved key misses the restore and the post-step save
+          # then fails with "Cache path ... does not exist on disk" — marking
+          # an all-green gate run (DEFERRED) as failed.
+          enable-cache: false
 
       - name: Derive the intended-release inputs for the log (refs come from release_gate.sh)
         if: github.event_name != 'workflow_dispatch'
